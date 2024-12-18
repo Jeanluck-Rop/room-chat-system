@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Divde client from server for a better handle of each one
+# Divide client from server for a better handle of each one
 project(client)
 
 set(CMAKE_CXX_STANDARD 17)

@@ -1,22 +1,28 @@
 cmake_minimun_requeried(VERSION 3.10)
 
+# Divide server from client for a better handle of each one
 project(server)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Add the headers in the include/ directory for the compiltation/executation
 include_directories(include)
 
+# Code files
 set(SOURCES
   src/main.c
+  src/cJSON.c
 )
 
+# Create static library 
 add_library(server_library ${SOURCES})
 
+# Create main executable
 add_executable(server src/main.c)
 
+# Link static library with executable
 target_link_libraries(server server_library)
 
 target_include_directories(server_lib PRIVATE ${CMAKE_SOURSE_DIR}/src/server/include)
-
 target_compile_definitions(server PRIVATE ${CMAKE_SOURCE_DIR}/src/server/include)
