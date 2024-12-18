@@ -1,7 +1,29 @@
-add_library(client)
+cmake_minimum_required(VERSION 3.10)
 
-target_include_directories(client PUBLIC include)
+# Divde client from server for a better handle of each one
+project(client)
 
-find_package(nlohmann_json REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  
+# Add the headers in the include/ directory for the compiltation/executation
+include_directories(include)
 
-target_link_libraries(client PUBLIC nlohmann_json::nlohmann_json)
+# Code files
+set(SOURCES
+  src/main.cpp
+)
+
+# Create static library 
+add_library(client_library ${SOURCES})
+
+# Create main executable
+add_executable(client src/main.cpp)
+
+# Link static library with executable
+target_link_libraries(client client_library)
+
+# Paths to headers, we use PRIVATE to handl header access precisely and prevent propagation of include paths.
+target_include_directories(client_lib PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
+target_include_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
+
