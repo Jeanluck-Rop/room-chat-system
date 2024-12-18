@@ -1,7 +1,22 @@
-add_library(server)
+cmake_minimun_requeried(VERSION 3.10)
 
-target_sources(server PRIVATE src/cJSON.c)
+project(server)
 
-target_include_directories(server PUBLIC include)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-target_compile_definitions(server PRIVATE -DCJSON_MEM_REDUCED=1)
+include_directories(include)
+
+set(SOURCES
+  src/main.c
+)
+
+add_library(server_library ${SOURCES})
+
+add_executable(server src/main.c)
+
+target_link_libraries(server server_library)
+
+target_include_directories(server_lib PRIVATE ${CMAKE_SOURSE_DIR}/src/server/include)
+
+target_compile_definitions(server PRIVATE ${CMAKE_SOURCE_DIR}/src/server/include)
