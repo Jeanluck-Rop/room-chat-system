@@ -26,16 +26,15 @@ A robust chat system designed for real-time communication between users.
 ## Contributors
 
 - [Ianluck Rojo](https://github.com/Jeanluck-Rop)
-- [Fernanda Ramírez]()
-- [Emir Quezada]()
+- [Fernanda Ramírez](https://github.com/Mariafernandarj)
+- [Emir Quezada](https://github.com/Emirq00)
 
 
 ## **How to Run the Project**
 
 1. Clone the repository:  
    ```bash
-   git clone https://github.com/your-repo-name.git
+   git clone https://github.com/Jeanluck-Rop/room-chat-system.git
    ```
-
 
 ### Contact: ianluck.rop@gmail.com
