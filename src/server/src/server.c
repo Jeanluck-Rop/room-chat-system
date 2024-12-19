@@ -1,48 +1,38 @@
-#include <studio.h> // operaciones entrada salida 
-#include <stdlib.h> // conversion tipo de datos, no aleatorios, gestion de memoria, busqueda y ordenamineto
-#include <string.h> //op con cadenas
-#include <unistd.h> // funciones que interactúan con el sis op
-#include <signal.h> // manejo de señales 
-#include <arpa/inet.h> // op con direcciones de red
+#include "server.h"
+#include "cJSON.h"
+#include <studio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <unistd.h> 
+#include <pthread.h>
+#include <arpa/inet.h> 
 
-#define PORT 8080
 #define BACKLOG 10
-
-int server_fd;
-// Maneja las señales para setener el servidor 
-void handle_signal(int sig) {
-  printf("\n[INFO] Stopping server...\n" )
-    if(server_fd >= 0 ) {
-      close(server_fd);
-    }
-  exit(0);
-}
+// función para manejar errores y para detener el servidor 
 // Funcion que iniciualiza el servidor 
-int start_server(int port){
+void start_server(int port) {
+  int server_fd;
   struct sockaddr_in server_addr;
 
-  server_fd = socket(IF_INET, SOCK_STREAM, 0);
+  server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd == -1) {
     perror("[ERROR]Error creating socket");
-    return -1;
+    exit(EXIT_FAILURE);
   }
   
   server_addr.sin_family = AF_INET;
-  server_addr.sin_addr.s_addr = INADOR_ANY;
+  server_addr.sin_addr.s_addr = INADDR_ANY;
   server_addr.sin.port = htons(port);
 
   if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
     perror("[ERROR] Socket cannot be associated to the port");
     close(server_fd);
-    return -1;
+    exit(EXIT_FAILURE);
   }
 
   if(listen(sever_fd, BACKLOG) == -1) {
     perror("[ERROR] Error listening port");
     close(server_fd);
-    return -1;
+    exit(EXIT_FAILURE);
   }
-
-  printf("[INFO] SErver started on port %d\n", port);
-  return 0; 
 }
