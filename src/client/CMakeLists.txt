@@ -24,6 +24,6 @@ add_executable(client src/main.cpp)
 target_link_libraries(client client_library)
 
 # Paths to headers, we use PRIVATE to handl header access precisely and prevent propagation of include paths.
-target_include_directories(client_lib PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
+target_include_directories(client_library PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
 target_include_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
 
