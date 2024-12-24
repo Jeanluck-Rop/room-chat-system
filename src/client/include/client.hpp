@@ -4,8 +4,8 @@
 #include <string>
 #include <thread>
 #include <atomic>
-#include <unordered_map>
 #include <nlohmann/json.hpp>
+#include "message.hpp"
 
 class Client {
 public:
@@ -21,7 +21,12 @@ public:
 private:
   int socket_fd;
   std::atomic<bool> is_connected;
-  std::thread listener_thread; 
+  std::thread listener_thread;
+  std::thread actions_thread;
+
+  void handle_user_actions();
+  void send_message(const std::string& msg);
+  void receive_message();
 };
 
 #endif // CLIENT_H
