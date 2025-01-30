@@ -7,25 +7,34 @@
 #include "client.hpp"
 #include "message.hpp"
 
-/* */
+/* Constructor: Initializes the Client object with default values */
 Client::Client() : socket_fd(-1), is_connected(false) {}
 
-/* */
+/* Destructor: Ensures proper cleanup by disconnecting if still connected */
 Client::~Client() {
   if (is_connected)
     disconnect();
 }
 
-/* */
+/**
+ * Establishes a connection to the specified server.
+ * @param server_ip The IP address of the server to connect to.
+ * @param port The port number of the server to connect to.
+ * @return true if the connection is successful, otherwise throws an exception.
+ * @throws std::runtime_error if socket creation, IP conversion, or connection fails.
+ */
 bool Client::connect_to_server(const std::string& server_ip, int port) {
+  // Create a TCP socket
   socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd == -1)
     throw std::runtime_error("Failed to create socket");
 
+  // Setup server address structure
   sockaddr_in server_address{};
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port);
 
+  // Convert server IP address to binary format
   if (inet_pton(AF_INET, server_ip.c_str(), &server_address.sin_addr) <= 0)
     throw std::runtime_error("Invalid server IP address");
 
@@ -36,7 +45,9 @@ bool Client::connect_to_server(const std::string& server_ip, int port) {
   return true;
 }
 
-/* */
+/**
+ * Disconnects from the server, closing the socket and updating the state.
+ */
 void Client::disconnect() {
   if (is_connected) {
     is_connected = false;
@@ -45,7 +56,10 @@ void Client::disconnect() {
   }
 }
 
-/* */
+/**
+ * Signal handler for handling interruptions like Ctrl+C.
+ * @param signal The signal number received.
+ */
 void Client::signal_handler(int signal) {
   if (signal == SIGINT) {
     TerminalView::display_message("\n[INFO] Interruption received. Disconnecting...");
@@ -54,7 +68,10 @@ void Client::signal_handler(int signal) {
   }
 }
 
-/* */
+/**
+ * Listens for messages from the server in a loop.
+ * Processes and parses received messages using the Message class that uses a json protocol.
+ */
 void Client::receive_message() {
   char buffer[1024];
   
@@ -64,7 +81,7 @@ void Client::receive_message() {
       buffer[received_bytes] = '\0';
       std::string raw_message(buffer);
 
-      // Parse the incoming message using Message class
+      // Parse the incoming message
       Message incoming_msg;
       if (incoming_msg.parse(raw_message)) {
         // Handle different types of messages
@@ -121,14 +138,19 @@ void Client::receive_message() {
   }
 }
 
-/* */
+/**
+ * Sends a message to the server.
+ * @param message The message content to be sent.
+ */
 void Client::send_message(const std::string& message) {
   if (is_connected)
     if (send(socket_fd, message.c_str(), message.size(), 0) < 0)
       TerminalView::display_error("[ERROR] Failed to send message.");
 }
 
-/* */
+/**
+ * Handles user input and actions, including identification and chat interactions.
+ */
 void Client::handle_user_actions() {
   bool identified = false;
   
@@ -189,7 +211,10 @@ void Client::handle_user_actions() {
   }
 }
 
-/* */
+/**
+ * Starts the client application by initializing threads for listening and user actions.
+ * Ensures threads are properly joined before exiting.
+ */
 void Client::run_client() {
   TerminalView::display_message("[INFO] Successfully connected to the server.");
   TerminalView::display_message("[ALERT] You must identify yourself beore accessing the chat: /id=<username>");
