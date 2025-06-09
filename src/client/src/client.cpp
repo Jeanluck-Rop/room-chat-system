@@ -8,6 +8,12 @@
 #include "message.hpp"
 #include "view.hpp"
 
+
+Client& Client::instance() {
+  static Client instance;
+  return instance;
+}
+
 /* Constructor: Initializes the Client object with default values */
 Client::Client() : socket_fd(-1), is_connected(false) {}
 
@@ -28,7 +34,7 @@ bool Client::connect_to_server(const std::string& server_ip, int port) {
   // Create a TCP socket
   socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd == -1)
-    throw std::runtime_error("Failed to create socket");
+    throw std::runtime_error("Failed to create socket.");
 
   // Setup server address structure
   sockaddr_in server_address{};
@@ -37,10 +43,10 @@ bool Client::connect_to_server(const std::string& server_ip, int port) {
 
   // Convert server IP address to binary format
   if (inet_pton(AF_INET, server_ip.c_str(), &server_address.sin_addr) <= 0)
-    throw std::runtime_error("Invalid server IP address");
+    throw std::runtime_error("Invalid server IP address.");
 
   if (connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
-    throw std::runtime_error("Failed to connect to the server");
+    throw std::runtime_error("Failed to connect to the server.");
 
   is_connected = true;
   return true;
@@ -64,8 +70,7 @@ void Client::disconnect() {
 void Client::signal_handler(int signal) {
   if (signal == SIGINT) {
     TerminalView::display_message("\n[INFO] Interruption received. Disconnecting...");
-    if (client_ptr)
-      client_ptr->disconnect();
+    instance().disconnect();
     exit(EXIT_SUCCESS);
   }
 }

@@ -3,9 +3,6 @@
 #include <memory> // For using smart pointers like std::unique_ptr
 #include "client.hpp"
 
-// Global smart pointer to manage the Client object
-std::unique_ptr<Client> client_ptr;
-
 /* */
 int main(int num_args, char *argv[]) {
   // Check if the correct number of arguments is provided, <run_command_in_cmake> <server_ip> <port>
@@ -32,12 +29,10 @@ int main(int num_args, char *argv[]) {
   std::signal(SIGINT, Client::signal_handler);
   
   try {
-    // Create a new Client object using a smart pointer
-    client_ptr = std::make_unique<Client>();
-
+    auto& client = Client::instance();
     // Attempt to connect to the server using the provided IP and port
-    client_ptr->connect_to_server(server_ip, port);
-    client_ptr->run_client();
+    client.connect_to_server(server_ip, port);
+    client.run_client();
   } catch (const std::runtime_error &e) {
     std::cerr << "[ERROR] " << e.what() << std::endl;
     return EXIT_FAILURE;
