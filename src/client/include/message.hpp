@@ -6,21 +6,21 @@
 
 class Message {
 public:
-    enum class Type {      
-      RESPONSE,
+  // Enum class for handle json protocol type messages
+    enum class Type {
       NEW_USER,
       NEW_STATUS,
       TEXT_FROM,
       PUBLIC_TEXT_FROM,
       DISCONNECT,
-      UNKNOWN
+      RESPONSE,
+      UNKNOWN //Default type message
     };
   
-  // Constructors
   Message();
   explicit Message(const nlohmann::json& json_message);
   
-  // Methods for creating different types of messages
+  // Methods for creating different types of messages according to the json protocol
   static Message create_identify_message(const std::string& username);
   static Message create_text_message(const std::string& text);
   static Message create_status_message(const std::string& status);
@@ -41,7 +41,7 @@ public:
   std::string get_result() const;
   std::string get_extra() const;
   
-  // Serialization method
+  // Serialization method, convert the message in json type
   std::string to_json() const;
   
 private:

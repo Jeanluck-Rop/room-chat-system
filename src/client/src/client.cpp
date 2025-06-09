@@ -217,7 +217,7 @@ void Client::handle_user_actions() {
  */
 void Client::run_client() {
   TerminalView::display_message("[INFO] Successfully connected to the server.");
-  TerminalView::display_message("[ALERT] You must identify yourself beore accessing the chat: /id=<username>");
+  TerminalView::display_message("[ALERT] You must identify yourself before accessing the chat: /id=<username>");
   TerminalView::display_message("[INFO] Type '/exit=' to quit.");
   
   listener_thread = std::thread(&Client::receive_message, this);
