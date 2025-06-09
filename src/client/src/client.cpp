@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include "client.hpp"
 #include "message.hpp"
+#include "view.hpp"
 
 /* Constructor: Initializes the Client object with default values */
 Client::Client() : socket_fd(-1), is_connected(false) {}
@@ -63,7 +64,8 @@ void Client::disconnect() {
 void Client::signal_handler(int signal) {
   if (signal == SIGINT) {
     TerminalView::display_message("\n[INFO] Interruption received. Disconnecting...");
-    disconnnect();
+    if (client_ptr)
+      client_ptr->disconnect();
     exit(EXIT_SUCCESS);
   }
 }
@@ -87,8 +89,8 @@ void Client::receive_message() {
         // Handle different types of messages
         switch (incoming_msg.get_type()) {
 	case Message::Type::RESPONSE: {
-	  std::string operation = incoming_message.get_operation();
-	  std::string result = incoming_message.get_result();
+	  std::string operation = incoming_msg.get_operation();
+	  std::string result = incoming_msg.get_result();
 	  
 	  if (operation == "IDENTIFY") {
 	    if (result == "SUCCESS") {
@@ -125,13 +127,13 @@ void Client::receive_message() {
 	  TerminalView::display_message("[PUBLIC] " + incoming_msg.get_text());
 	  break;
 	case Message::Type::DISCONNECTED:
-	  TerminalView::display_message("[INFO] " + incoming_message.get_username() + "disconnected from the chat.");
+	  TerminalView::display_message("[INFO] " + incoming_msg.get_username() + "disconnected from the chat.");
 	  break;
 	default:
 	  TerminalView::display_message("[ALERT] Unknown message type received.");
         }
       }
-    } else if (bytes_received == 0) {
+    } else if (received_bytes == 0) {
       TerminalView::display_message("[ALERT] connection closed by the served");
       disconnect();
     }
@@ -159,7 +161,7 @@ void Client::handle_user_actions() {
     
     if (user_input == "/exit=") {
       Message disconnect_msg = Message::create_disconnect_message();
-      send_message(disonnect_msg.to_json());
+      send_message(disconnect_msg.to_json());
       disconnect();
       break;
     }
@@ -170,7 +172,7 @@ void Client::handle_user_actions() {
 	if (username.length() > 8 || username.length() < 1) {
 	  TerminalView::display_message("[ALERT] Invalid username. Disconnecting...");
 	  Message disconnect_msg = Message::create_disconnect_message();
-	  send_message(disonnect_msg.to_json());
+	  send_message(disconnect_msg.to_json());
 	  disconnect();
 	  break;
 	}
@@ -182,7 +184,7 @@ void Client::handle_user_actions() {
       } else {
 	TerminalView::display_message("[ALERT] You must identify yourself before accessing the chat. Disconnecting...");
 	Message disconnect_msg = Message::create_disconnect_message();
-	send_message(disonnect_msg.to_json());
+	send_message(disconnect_msg.to_json());
 	disconnect();
 	break;
       }
@@ -198,7 +200,6 @@ void Client::handle_user_actions() {
       if (message_detector != std::string::npos) {
 	std::string target_username = user_input.substr(4, message_detector - 4);
 	std::string message_text = user_input.substr(message_detector + 1);
-	    
 	Message private_msg = Message::create_private_text_message(target_username, message_text);
 	send_message(private_msg.to_json());
       } else {

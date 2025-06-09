@@ -10,16 +10,16 @@ std::unique_ptr<Client> client_ptr;
 int main(int num_args, char *argv[]) {
   // Check if the correct number of arguments is provided, <run_command_in_cmake> <server_ip> <port>
   if (num_args != 3) {
-    std::cerr << "Use: " << args[0] << " <server_ip> <port>" << std::endl;
+    std::cerr << "Use: " << argv[0] << " <server_ip> <port>" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Parse server IP and port number from command-line arguments
-  const char *server_ip = args[1];
+  const char *server_ip = argv[1];
   int port;
   
   try {
-    port = std::stoi(args[2]);
+    port = std::stoi(argv[2]);
     if (port < 1024 || port > 49151) 
       throw std::out_of_range("Port number must be between 1024 and 49151.");
   } catch (const std::exception &e) {

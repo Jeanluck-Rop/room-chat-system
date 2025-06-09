@@ -5,6 +5,7 @@
 #include <thread>
 #include <atomic>
 #include <nlohmann/json.hpp>
+#include <memory>
 #include "message.hpp"
 
 class Client {
@@ -28,5 +29,7 @@ private:
   void send_message(const std::string& msg);
   void receive_message();
 };
+
+extern std::unique_ptr<Client> client_ptr;
 
 #endif // CLIENT_H

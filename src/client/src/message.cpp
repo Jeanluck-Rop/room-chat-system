@@ -12,13 +12,6 @@ Message Message::create_identify_message(const std::string& username) {
   return Message(msg);
 }
 
-Message Message::create_text_message(const std::string& text) {
-  nlohmann::json msg;
-  msg["type"] = "TEXT";
-  msg["text"] = text;
-  return Message(msg);
-}
-
 Message Message::create_status_message(const std::string& status) {
   nlohmann::json msg;
   msg["type"] = "STATUS";
@@ -121,10 +114,10 @@ Message::Type Message::parse_type(const std::string& type_str) const {
   if (type_str == "NEW_STATUS")
     return Type::NEW_STATUS;
   if (type_str == "TEXT_FROM")
-    return Type::PRIVATE_TEXT;
+    return Type::TEXT_FROM;
   if (type_str == "PUBLIC_TEXT_FROM")
-    return Type::PUBLIC_TEXT;
-  if (type_str == "DISCONNECT")
-    return Type::DISCONNECT;
+    return Type::PUBLIC_TEXT_FROM;
+  if (type_str == "DISCONNECTED")
+    return Type::DISCONNECTED;
   return Type::UNKNOWN;
 }

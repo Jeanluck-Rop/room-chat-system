@@ -12,7 +12,7 @@ public:
       NEW_STATUS,
       TEXT_FROM,
       PUBLIC_TEXT_FROM,
-      DISCONNECT,
+      DISCONNECTED,
       RESPONSE,
       UNKNOWN //Default type message
     };
@@ -22,7 +22,6 @@ public:
   
   // Methods for creating different types of messages according to the json protocol
   static Message create_identify_message(const std::string& username);
-  static Message create_text_message(const std::string& text);
   static Message create_status_message(const std::string& status);
   static Message create_private_text_message(const std::string& target_username, const std::string& text);
   static Message create_public_text_message(const std::string& text);
