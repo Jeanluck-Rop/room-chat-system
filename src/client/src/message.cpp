@@ -1,5 +1,5 @@
-#include "message.hpp"
 #include <iostream>
+#include "message.hpp"
 
 Message::Message() : json_data({}) {}
 
@@ -31,6 +31,12 @@ Message Message::create_public_text_message(const std::string& text) {
   nlohmann::json msg;
   msg["type"] = "PUBLIC_TEXT";
   msg["text"] = text;
+  return Message(msg);
+}
+
+Message Message::create_users_list_message() {
+  nlohmann::json msg;
+  msg["type"] = "USER_LIST";
   return Message(msg);
 }
 
@@ -102,6 +108,25 @@ std::string Message::get_extra() const {
   return "";
 }
 
+std::string Message::get_users() const {
+  if (json_data.contains("users") && json_data["users"].is_object()) {
+    std::string list = "";
+    int n = 1;    
+    for (const auto& [user, status] : json_data["users"].items()) {
+      list += std::to_string(n) + ". " + user + " : " + status.get<std::string>() + "\n";
+      n++;
+    }
+    return list;
+  }
+  return "";
+}
+
+std::string Message::get_roomname() const {
+  if (json_data.contains("roomname"))
+    return json_data["roomname"];
+  return "";
+}
+
 std::string Message::to_json() const {
   return json_data.dump();
 }
@@ -117,6 +142,18 @@ Message::Type Message::parse_type(const std::string& type_str) const {
     return Type::TEXT_FROM;
   if (type_str == "PUBLIC_TEXT_FROM")
     return Type::PUBLIC_TEXT_FROM;
+  if (type_str == "USER_LIST")
+    return Type::USER_LIST;
+  if (type_str == "INVITATION")
+    return Type::INVITATION;
+  if (type_str == "JOINED_ROOM")
+    return Type::JOINED_ROOM;
+  if (type_str == "ROOM_USER_LIST")
+    return Type::ROOM_USER_LIST;
+  if (type_str == "ROOM_TEXT_FROM")
+    return Type::ROOM_TEXT_FROM;
+  if (type_str == "LEFT_ROOM")
+    return Type::LEFT_ROOM;
   if (type_str == "DISCONNECTED")
     return Type::DISCONNECTED;
   return Type::UNKNOWN;

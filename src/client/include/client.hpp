@@ -30,9 +30,13 @@ private:
   std::thread listener_thread;
   std::thread actions_thread;
 
-  void handle_user_actions();
-  void send_message(const std::string& msg);
   void receive_message();
+  void send_message(const std::string& message);
+  void handle_response(const Message& incoming_msg);
+  void handle_message_received(const std::string& raw_message);
+  bool identify_user(std::string& user_input);
+  void disconnect_user();
+  void handle_user_actions();
 };
 
 #endif // CLIENT_H

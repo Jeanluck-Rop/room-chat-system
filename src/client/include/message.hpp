@@ -12,6 +12,12 @@ public:
       NEW_STATUS,
       TEXT_FROM,
       PUBLIC_TEXT_FROM,
+      USER_LIST,
+      INVITATION,
+      JOINED_ROOM,
+      ROOM_USER_LIST,
+      ROOM_TEXT_FROM,
+      LEFT_ROOM,
       DISCONNECTED,
       RESPONSE,
       UNKNOWN //Default type message
@@ -25,6 +31,7 @@ public:
   static Message create_status_message(const std::string& status);
   static Message create_private_text_message(const std::string& target_username, const std::string& text);
   static Message create_public_text_message(const std::string& text);
+  static Message create_users_list_message();
   static Message create_disconnect_message();
   static Message create_response_message(const std::string& operation, const std::string& result);
   
@@ -39,7 +46,8 @@ public:
   std::string get_operation() const;
   std::string get_result() const;
   std::string get_extra() const;
-  
+  std::string get_users() const;
+  std::string get_roomname() const;
   // Serialization method, convert the message in json type
   std::string to_json() const;
   
