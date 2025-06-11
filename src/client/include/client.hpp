@@ -34,7 +34,15 @@ private:
   void send_message(const std::string& message);
   void handle_response(const Message& incoming_msg);
   void handle_message_received(const std::string& raw_message);
-  bool identify_user(std::string& user_input);
+  bool check_id(std::string& user_input);
+  void change_status(std::string& user_input);
+  void direct_message(std::string& user_input);
+  void new_room(std::string& user_input);
+  void invite_users(std::string& user_input);
+  void join_room(std::string& user_input);
+  void room_users(std::string& user_input);
+  void room_text(std::string& user_input);
+  void left_room(std::string& user_input);
   void disconnect_user();
   void handle_user_actions();
 };

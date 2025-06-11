@@ -1,4 +1,4 @@
-2#include <iostream>
+#include <iostream>
 #include <stdexcept>
 #include <csignal>
 #include <unistd.h>
@@ -248,7 +248,7 @@ void Client::handle_message_received(const std::string& raw_message) {
 /**
  *
  */
-bool Client::identify_user(std::string& user_input) {
+bool Client::check_id(std::string& user_input) {
   if (user_input.rfind("/id=", 0) == 0) {
     std::string username = user_input.substr(4);
     if (username.length() > 8 || username.length() < 1) {
@@ -261,6 +261,100 @@ bool Client::identify_user(std::string& user_input) {
   }
   TerminalView::display_message("[ALERT] You must identify yourself before accessing the chat. Disconnecting...");
   return false;
+}
+
+/**
+ *
+ */
+void Client::change_status(std::string& user_input) {
+  std::string status = user_input.substr(6);
+  if (status == "AWAY" || status == "ACTIVE" || status == "BUSY") {
+    Message status_msg = Message::create_status_message(status);
+    send_message(status_msg.to_json());
+  }
+  TerminalView::display_message("[INFO] Invalid status. Options are: AWAY, ACTIVE, or BUSY.");
+}
+
+/**
+ *
+ */
+void Client::direct_message(std::string& user_input) {
+  size_t message_detector = user_input.find(':');
+  if (message_detector != std::string::npos) {
+    std::string target_username = user_input.substr(4, message_detector - 4);
+    std::string message_text = user_input.substr(message_detector + 1);
+    Message private_msg = Message::create_private_text_message(target_username, message_text);
+    send_message(private_msg.to_json());
+  } else
+    TerminalView::display_message("[INFO] Incorrect usage of /dm=<username>:<message>");
+}
+
+/**
+ *
+ */
+void Client::new_room(std::string& user_input) {
+  std::string roomname = user_input.substr(10);
+  if (roomname.length() > 16 || roomname.length() < 3) {
+    TerminalView::display_message("[INFO] Invalid room name.");
+    return;
+  }
+  Message new_room_msg = Message::create_new_room_message(roomname);
+  send_message(new_room_msg.to_json());
+}
+
+/**
+ *
+ */
+void Client::invite_users(std::string& user_input) {
+  size_t roomname_detector = user_input.find(':');
+  if (roomname_detector != std::string::npos) {
+    std::string target_usernames = user_input.substr(8, roomname_detector - 8);
+    std::string target_roomname = user_input.substr(roomname_detector + 1);
+    Message private_msg = Message::create_room_text_message(target_roomname, target_usernames);
+    send_message(private_msg.to_json());
+  } else
+    TerminalView::display_message("[INFO] Incorrect usage of /invite=<usernames>:<roomname>");
+}
+
+/**
+ *
+ */
+void Client::join_room(std::string& user_input) {
+  std::string roomname = user_input.substr(11);
+  Message join_room_msg = Message::create_join_room_message(roomname);
+  send_message(join_room_msg.to_json());
+}
+
+/**
+ *
+ */
+void Client::room_users(std::string& user_input) {
+  std::string roomname = user_input.substr(12);
+  Message room_users_msg = Message::create_room_users_message(roomname);
+  send_message(room_users_msg.to_json());
+}
+
+/**
+ *
+ */
+void Client::room_text(std::string& user_input) {
+  size_t message_detector = user_input.find(':');
+  if (message_detector != std::string::npos) {
+    std::string target_roomname = user_input.substr(11, message_detector - 11);
+    std::string message_text = user_input.substr(message_detector + 1);
+    Message room_msg = Message::create_room_text_message(target_roomname, message_text);
+    send_message(room_msg.to_json());
+  } else
+    TerminalView::display_message("[INFO] Incorrect usage of /room_text=<roomname>:<message>");
+}
+
+/**
+ *
+ */
+void Client::left_room(std::string& user_input) {
+  std::string roomname = user_input.substr(11);
+  Message left_room_msg = Message::create_left_room_message(roomname);
+  send_message(left_room_msg.to_json());
 }
 
 /**
@@ -281,44 +375,49 @@ void Client::handle_user_actions() {
   
   while (is_connected) {  
     std::string user_input = TerminalView::get_user_input();  
+
     if (!identified) {
-      if (!(identify_user(user_input))) {
+      if (!check_id(user_input)) {
 	disconnect_user();
 	break;
       }
       identified = true;
+    } 
+    
+    if (user_input.rfind("/status=", 0) == 0)
+      change_status(user_input);
+
+    if (user_input.rfind("/users=", 0) == 0) {
+      Message users_list = Message::create_users_list_message();
+      send_message(users_list.to_json());
     }
+
+    if (user_input.rfind("/dm=", 0) == 0)
+      direct_message(user_input);
+    
+    if (user_input.rfind("/new_room=", 0) == 0)
+      new_room(user_input);
+
+    if (user_input.rfind("/invite=", 0) == 0)
+      invite_users(user_input);
+
+    if (user_input.rfind("/join_room=", 0) == 0)
+      join_room(user_input);
+
+    if (user_input.rfind("/room_users=", 0) == 0)
+      room_users(user_input);
+
+    if (user_input.rfind("/room_text=", 0) == 0)
+      room_text(user_input);
+
+    if (user_input.rfind("/left_room=", 0) == 0)
+      left_room(user_input);
     
     if (user_input == "/exit=") {
       disconnect_user();
       break;
     }
     
-    if (user_input.rfind("/stts=", 0) == 0) {
-      std::string status = user_input.substr(6);
-      if (status == "AWAY" || status == "ACTIVE" || status == "BUSY") {
-	Message status_msg = Message::create_status_message(status);
-	send_message(status_msg.to_json());
-      } else
-	TerminalView::display_message("[ALERT] Invalid status. Options are: AWAY, ACTIVE, or BUSY.");
-    }
-
-    if (user_input.rfind("/users=", 0) == 0) {
-      Message users_list = Message::create_users_list_message();
-      send_message(users_list.to_json());
-    }
-    
-    if (user_input.rfind("/dm=", 0) == 0) {
-      size_t message_detector = user_input.find(':');
-      if (message_detector != std::string::npos) {
-	std::string target_username = user_input.substr(4, message_detector - 4);
-	std::string message_text = user_input.substr(message_detector + 1);
-	Message private_msg = Message::create_private_text_message(target_username, message_text);
-	send_message(private_msg.to_json());
-      } else
-	TerminalView::display_message("[ALERT] Incorrect usage of /dm=<username>:<message>");
-    }
-
     Message public_msg = Message::create_public_text_message(user_input);
     send_message(public_msg.to_json());
   }

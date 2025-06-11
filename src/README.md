@@ -130,7 +130,7 @@ Invites one or multiple users to a room; only users who are already in a room ca
 ```
 { "type": "INVITE",
   "roomname": "invitation_room",
-  "usernames": [ "<username>", "<username>", "<username>" ] }
+  "usernames": [ "<username_1>", "<username_2>", "<username_3>" ] }
 ```
 
 The room and all the users must exist. In that case, the server sends no response but sends the message INVITATION to each user in the list:

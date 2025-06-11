@@ -40,6 +40,50 @@ Message Message::create_users_list_message() {
   return Message(msg);
 }
 
+Message Message::create_new_room_message(const std::string& roomname) {
+  nlohmann::json msg;
+  msg["type"] = "NEW_ROOM";
+  msg["roomname"] = roomname;
+  return Message(msg);
+}
+
+Message Message::create_invite_message(const std::string& roomname, const std::string& usernames) {
+  nlohmann::json msg;
+  msg["type"] = "INVITE";
+  msg["roomname"] = roomname;
+  msg["usernames"] = usernames;
+  return Message(msg);
+}
+
+Message Message::create_join_room_message(const std::string& roomname) {
+  nlohmann::json msg;
+  msg["type"] = "JOIN_ROOM";
+  msg["roomname"] = roomname;
+  return Message(msg);
+}
+
+Message Message::create_room_users_message(const std::string& roomname) {
+  nlohmann::json msg;
+  msg["type"] = "ROOM_USERS";
+  msg["roomname"] = roomname;
+  return Message(msg);
+}
+
+Message Message::create_room_text_message(const std::string& roomname, const std::string& text) {
+  nlohmann::json msg;
+  msg["type"] = "ROOM_TEXT";
+  msg["roomname"] = roomname;
+  msg["text"] = text;
+  return Message(msg);
+}
+
+Message Message::create_left_room_message(const std::string& roomname) {
+  nlohmann::json msg;
+  msg["type"] = "LEFT_ROOM";
+  msg["roomname"] = roomname;
+  return Message(msg);
+}
+
 Message Message::create_disconnect_message() {
   nlohmann::json msg;
   msg["type"] = "DISCONNECT";
