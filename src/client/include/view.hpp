@@ -1,5 +1,5 @@
-#ifndef TERMINAL_VIEW_H
-#define TERMINAL_VIEW_H
+#ifndef VIEW_H
+#define VIEW_H
 
 #include <string>
 
@@ -10,4 +10,4 @@ public:
   static std::string get_user_input();
 };
 
-#endif // TERMINAL_VIEW_H
+#endif // VIEW_H

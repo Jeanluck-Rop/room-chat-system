@@ -1,31 +1,45 @@
 #ifndef MESSAGE_HPP
 #define MESSAGE_HPP
 
+#include <vector>
 #include <string>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 class Message {
 public:
-    enum class Type {      
-      RESPONSE,
+  // Enum class for handle json protocol type messages
+    enum class Type {
       NEW_USER,
       NEW_STATUS,
       TEXT_FROM,
       PUBLIC_TEXT_FROM,
-      DISCONNECT,
-      UNKNOWN
+      USER_LIST,
+      INVITATION,
+      JOINED_ROOM,
+      ROOM_USER_LIST,
+      ROOM_TEXT_FROM,
+      LEFT_ROOM,
+      DISCONNECTED,
+      RESPONSE,
+      UNKNOWN //Default type message
     };
   
-  // Constructors
   Message();
   explicit Message(const nlohmann::json& json_message);
   
-  // Methods for creating different types of messages
+  // Methods for creating different types of messages according to the json protocol
   static Message create_identify_message(const std::string& username);
-  static Message create_text_message(const std::string& text);
   static Message create_status_message(const std::string& status);
   static Message create_private_text_message(const std::string& target_username, const std::string& text);
   static Message create_public_text_message(const std::string& text);
+  static Message create_users_list_message();
+  static Message create_new_room_message(const std::string& roomname);
+  static Message create_invite_message(const std::string& roomname, const std::vector<std::string>& usernames);
+  static Message create_join_room_message(const std::string& roomname);
+  static Message create_room_users_message(const std::string& roomname);
+  static Message create_room_text_message(const std::string& roomname, const std::string& text);
+  static Message create_left_room_message(const std::string& roomname);
   static Message create_disconnect_message();
   static Message create_response_message(const std::string& operation, const std::string& result);
   
@@ -40,8 +54,9 @@ public:
   std::string get_operation() const;
   std::string get_result() const;
   std::string get_extra() const;
-  
-  // Serialization method
+  std::string get_users() const;
+  std::string get_roomname() const;
+  // Serialization method, convert the message in json type
   std::string to_json() const;
   
 private:

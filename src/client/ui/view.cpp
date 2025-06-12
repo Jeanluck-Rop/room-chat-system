@@ -1,4 +1,4 @@
-#include "terminal_view.hpp"
+#include "view.hpp"
 #include <iostream>
 
 void TerminalView::display_message(const std::string& message) {
