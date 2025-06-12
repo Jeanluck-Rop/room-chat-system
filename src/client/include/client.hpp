@@ -4,8 +4,15 @@
 #include <string>
 #include <thread>
 #include <atomic>
-#include <nlohmann/json.hpp>
 #include <memory>
+#include <vector>
+#include <csignal>
+#include <iostream>
+#include <stdexcept>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <nlohmann/json.hpp>
 #include "message.hpp"
 
 class Client {

@@ -1,9 +1,3 @@
-#include <iostream>
-#include <stdexcept>
-#include <csignal>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include "client.hpp"
 #include "message.hpp"
 #include "view.hpp"
@@ -308,12 +302,20 @@ void Client::new_room(std::string& user_input) {
 void Client::invite_users(std::string& user_input) {
   size_t roomname_detector = user_input.find(':');
   if (roomname_detector != std::string::npos) {
-    std::string target_usernames = user_input.substr(8, roomname_detector - 8);
+    std::string raw_usernames = user_input.substr(8, roomname_detector - 8);
     std::string target_roomname = user_input.substr(roomname_detector + 1);
-    Message private_msg = Message::create_room_text_message(target_roomname, target_usernames);
-    send_message(private_msg.to_json());
-  } else
-    TerminalView::display_message("[INFO] Incorrect usage of /invite=<usernames>:<roomname>");
+    std::vector<std::string> usernames; //Vector to store the parsed usernames
+    std::stringstream stringstream(raw_usernames); //stringstream with raw usernames string to enable splitting
+    std::string username; //Temp string to hold each extracted username
+    //Loop for extract usernames separated by ';'
+    while (std::getline(stringstream, username, ';'))
+      if (!username.empty()) usernames.push_back(username);
+    Message invitation = Message::create_invite_message(target_roomname, usernames);
+    send_message(invitation.to_json());
+  } else {
+    TerminalView::display_message("[INFO] Incorrect usage of /invite= \n");
+    TerminalView::display_message("Example: /invite=<username_1>;<username_2>;<username_3>:<roomname>");
+  }
 }
 
 /**

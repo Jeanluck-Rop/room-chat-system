@@ -1,4 +1,3 @@
-#include <iostream>
 #include "message.hpp"
 
 Message::Message() : json_data({}) {}
@@ -47,7 +46,7 @@ Message Message::create_new_room_message(const std::string& roomname) {
   return Message(msg);
 }
 
-Message Message::create_invite_message(const std::string& roomname, const std::string& usernames) {
+Message Message::create_invite_message(const std::string& roomname, const std::vector<std::string>& usernames) {
   nlohmann::json msg;
   msg["type"] = "INVITE";
   msg["roomname"] = roomname;

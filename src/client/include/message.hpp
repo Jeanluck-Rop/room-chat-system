@@ -1,7 +1,9 @@
 #ifndef MESSAGE_HPP
 #define MESSAGE_HPP
 
+#include <vector>
 #include <string>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 class Message {
@@ -33,7 +35,7 @@ public:
   static Message create_public_text_message(const std::string& text);
   static Message create_users_list_message();
   static Message create_new_room_message(const std::string& roomname);
-  static Message create_invite_message(const std::string& roomname, const std::string& usernames);
+  static Message create_invite_message(const std::string& roomname, const std::vector<std::string>& usernames);
   static Message create_join_room_message(const std::string& roomname);
   static Message create_room_users_message(const std::string& roomname);
   static Message create_room_text_message(const std::string& roomname, const std::string& text);
