@@ -56,6 +56,7 @@ public:
   std::string get_extra() const;
   std::string get_users() const;
   std::string get_roomname() const;
+
   // Serialization method, convert the message in json type
   std::string to_json() const;
   
