@@ -39,11 +39,10 @@ public:
   static Message create_join_room_message(const std::string& roomname);
   static Message create_room_users_message(const std::string& roomname);
   static Message create_room_text_message(const std::string& roomname, const std::string& text);
-  static Message create_left_room_message(const std::string& roomname);
+  static Message create_leave_room_message(const std::string& roomname);
   static Message create_disconnect_message();
-  static Message create_response_message(const std::string& operation, const std::string& result);
   
-  // Method for parsing incoming messages
+  // Function for parsing incoming messages
   bool parse(const std::string& raw_message);
   
   // Getters for received message details

@@ -76,7 +76,7 @@ Message Message::create_room_text_message(const std::string& roomname, const std
   return Message(msg);
 }
 
-Message Message::create_left_room_message(const std::string& roomname) {
+Message Message::create_leave_room_message(const std::string& roomname) {
   nlohmann::json msg;
   msg["type"] = "LEFT_ROOM";
   msg["roomname"] = roomname;
@@ -86,14 +86,6 @@ Message Message::create_left_room_message(const std::string& roomname) {
 Message Message::create_disconnect_message() {
   nlohmann::json msg;
   msg["type"] = "DISCONNECT";
-  return Message(msg);
-}
-
-Message Message::create_response_message(const std::string& operation, const std::string& result) {
-  nlohmann::json msg;
-  msg["type"] = "RESPONSE";
-  msg["operation"] = operation;
-  msg["result"] = result;
   return Message(msg);
 }
 

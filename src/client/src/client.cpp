@@ -355,7 +355,7 @@ void Client::room_text(std::string& user_input) {
  */
 void Client::left_room(std::string& user_input) {
   std::string roomname = user_input.substr(11);
-  Message left_room_msg = Message::create_left_room_message(roomname);
+  Message left_room_msg = Message::create_leave_room_message(roomname);
   send_message(left_room_msg.to_json());
 }
 

@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <arpa/inet.h> 
 #include "cJSON.h"
+#include "message.h"
 
 /* Define a client struct to represents a connected client */
 typedef struct Client {
@@ -23,10 +24,22 @@ typedef struct Client {
 
 void print_message(const char *text, char type);
 void disconnect_client(Client *client);
-void handle_client(Client *client);
-
-void handle_received_message(char *raw_message);
-
+void send_message(Client *client, const char *message);
+void broadcast_message(const char *message,  int sender_socket);
+void invalid_response(Client *client, const char *result);
+void leave_room(Client *client, Message *incoming_message);
+void room_text(Client *client, Message *incoming_message);
+void get_room_users(Client *client, Message *incoming_message);
+void join_room(Client *client, Message *incoming_message);
+void get_guests(Client *client, Message *incoming_message);
+void new_room(Client *client, Message *incoming_message);
+void public_text(Client *client, Message *incoming_message);
+void private_text(Client *client, Message *incoming_message);
+void get_users_list(Client *client, Message *incoming_message);
+void change_status(Client *client, Message *incoming_message);
+bool handle_identify(Client *client, Message *incoming_message);
+bool client_actions(Client *client, Message *incoming_message);
+void *handle_client(void *arg);
 void server_cycle(int server_fd);
 void start_server(int port);
 
