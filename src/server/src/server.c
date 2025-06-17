@@ -84,6 +84,18 @@ void broadcast_message(const char *message, int sender_socket) {
 }
 
 /* */
+Client *find_client_by_username(const char *username) {
+  Client *current = clients;
+  while (current != NULL) {
+    if (strcmp(current->username, username) == 0)
+      return current;
+    current = current->next;
+  }
+  return NULL;
+}
+
+
+/* */
 void invalid_response(Client *client, const char *result) {
   Message *response = create_response_message("INVALID", result, "");
   char *json_str = to_json(response);
@@ -125,22 +137,95 @@ void new_room(Client *client, Message *incoming_message) {
 
 /* */
 void public_text(Client *client, Message *incoming_message) {
-  return;
+  const char *text_content = get_text(incoming_message);
+  
+  if (!text_content || strcmp(text_content, "") == 0)
+    return;
+  
+  Message *text_message = create_public_text_from_message(client->username, text_content);
+  char *json_str = to_json(text_message);
+  broadcast_message(json_str, client->socket_fd);
+  free(json_str);
+  free_message(text_message);
 }
 
 /* */
 void private_text(Client *client, Message *incoming_message) {
-  return;
+  const char *text_content = get_text(incoming_message);
+  const char *target_username = get_username(incoming_message);
+	      
+  if (!text_content || !target_username || strcmp(text_content, "") == 0 || strcmp(target_username, "") == 0)
+    return;
+  
+  pthread_mutex_lock(&clients_mutex);
+  Client *target_client = find_client_by_username(target_username);
+  pthread_mutex_unlock(&clients_mutex);
+  
+  if (target_client) {
+    Message *msg = create_text_from_message(client->username, text_content);
+    char *json_str = to_json(msg);
+    send_message(target_client, json_str);
+    free(json_str);
+    free_message(msg);
+  } else {
+    Message *response = create_response_message("TEXT", "NO_SUCH_USER", target_username);
+    char *json_str = to_json(response);
+    send_message(client, json_str);
+    free(json_str);
+    free_message(response);
+  }
 }
 
 /* */
-void get_users_list(Client *client, Message *incoming_message) {
-  return;
+void users_list(Client *client, Message *incoming_message) {
+  pthread_mutex_lock(&clients_mutex);
+  
+  int capacity = BACKLOG;
+  int count = 0;
+  char **users_list = malloc(sizeof(char *) * capacity);
+  char **statuses = malloc(sizeof(char *) * capacity);
+  
+  Client *current = clients;
+  while (current != NULL) {
+    if (strlen(current->username) > 0) {
+      if (count == capacity) {
+        capacity *= 2;
+        users_list = realloc(users_list, sizeof(char *) * capacity);
+        statuses = realloc(statuses, sizeof(char *) * capacity);
+      }
+      users_list[count] = strdup(current->username);
+      statuses[count] = strdup(current->status);
+      count++;
+    }
+    current = current->next;
+  }
+
+  pthread_mutex_unlock(&clients_mutex);
+  
+  Message *list_message = create_users_list_message(users_list, statuses, count);
+  char *json_str = to_json(list_message);
+  send_message(client, json_str);
+
+  for (int i = 0; i < count; i++) {
+    free(users_list[i]);
+    free(statuses[i]);
+  }
+  free(users_list);
+  free(statuses);
+  free(json_str);
+  free_message(list_message);
 }
 
 /* */
 void change_status(Client *client, Message *incoming_message) {
-  return;
+  const char *username = get_username(incoming_message);
+  const char *new_status = get_status(incoming_message);
+  
+  Message *status_message = create_new_status_message(username, new_status);
+  char *json_str = to_json(status_message);
+  broadcast_message(json_str, client->socket_fd);
+  free(json_str);
+  free_message(status_message);
 }
 
 /* */
@@ -201,7 +286,7 @@ bool client_actions(Client *client, Message *incoming_message) {
     change_status(client, incoming_message);
     break;
   case USERS:
-    get_users_list(client, incoming_message);
+    users_list(client, incoming_message);
     break;
   case TEXT:
     private_text(client, incoming_message);

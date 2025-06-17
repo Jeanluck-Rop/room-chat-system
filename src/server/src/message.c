@@ -28,16 +28,21 @@ Message *create_text_from_message(const char *username, const char *text) {
   return msg;
 }
 
-Message *create_public_text_message(const char *username, const char *text) {
+Message *create_public_text_from_message(const char *username, const char *text) {
   Message *msg = create_base_message("PUBLIC_TEXT");
   cJSON_AddStringToObject(msg->json_data, "username", username);
   cJSON_AddStringToObject(msg->json_data, "text", text);
   return msg;
 }
 
-Message *create_user_list_message(const char *usernames) {
+Message *create_users_list_message(char **usernames, char **statuses, int count) {
   Message *msg = create_base_message("USER_LIST");
-  cJSON_AddStringToObject(msg->json_data, "usernames", usernames);
+  
+  cJSON *users_object = cJSON_CreateObject();
+  for (int i = 0; i < count; ++i)
+    cJSON_AddStringToObject(users_object, usernames[i], statuses[i]);
+  cJSON_AddItemToObject(msg->json_data, "users", users_object);
+  
   return msg;
 }
 
@@ -126,13 +131,35 @@ const char *get_roomname(const Message *msg) {
   return get_string(msg, "roomname");
 }
 
-const array *get_users(const Message *msg) {
-  if (json_data.contains("users") && json_data["users"].is_object()) {
-    for (const auto& [user, status] : json_data["users"].items()) {
-      array;
-    }
+char **get_users(const Message *msg, int *size) {
+  cJSON *usernames_array = cJSON_GetObjectItem(msg->json_data, "usernames");
+  if (!cJSON_IsArray(usernames_array))
+    return NULL;
+  
+  *size = cJSON_GetArraySize(usernames_array);
+  if (*size <= 0)
+    return NULL;
+  
+  char **usernames = malloc(*size * sizeof(char *));
+  if (!usernames)
+    return NULL;
+  
+  for (int i = 0; i < *size; ++i) {
+    cJSON *item = cJSON_GetArrayItem(usernames_array, i);
+    if (cJSON_IsString(item) && item->valuestring != NULL) {
+      usernames[i] = strdup(item->valuestring);
+      if (!usernames[i]) {
+	// If strdup fails, we free everything previously assigned 
+	for (int j = 0; j < i; ++j)
+	  free(usernames[j]);
+	free(usernames);
+	return NULL;
+      }
+    } else
+      usernames[i] = NULL;
   }
-  return array;
+  
+  return usernames;
 }
 
 MessageType get_type(const Message *msg) {
