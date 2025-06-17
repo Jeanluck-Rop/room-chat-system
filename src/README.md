@@ -53,6 +53,7 @@ Returns the list of users in the chat:
 ```
 
 The server responds with a dictionary with usernames and their statuses:
+```
 { "type": "USER_LIST",
   "users": { "<user_1>": "<status>",
              "<user_2>": "<status>",
@@ -129,14 +130,14 @@ If the room name already exists, the server responds with:
 Invites one or multiple users to a room; only users who are already in a room can invite others to it:
 ```
 { "type": "INVITE",
-  "roomname": "invitation_room",
+  "roomname": "<invitation_room",
   "usernames": [ "<username_1>", "<username_2>", "<username_3>" ] }
 ```
 
 The room and all the users must exist. In that case, the server sends no response but sends the message INVITATION to each user in the list:
 ```
 { "type": "INVITATION",
-  "username" "<room_host_user>",
+  "username" "<invited_user>",
   "roomname": "<invited_room>" }
 ```
 
@@ -414,7 +415,7 @@ A user has disconnected from the chat:
 ```
 
 
-### Notas:
+### Notes:
 Usernames must be limited to 8 characters, and room names to 16 characters.
 
 When all users have left a room, the room disappears.

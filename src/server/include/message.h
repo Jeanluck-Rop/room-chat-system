@@ -34,8 +34,8 @@ Message *create_public_text_from_message(const char *username, const char *text)
 Message *create_users_list_message(char **usernames, char **statuses, int count);
 Message *create_invite_message(const char *username, const char *roomname);
 Message *create_joined_room_message(const char *roomname, const char *username);
-Message *create_room_user_list_message(const char *roomname, const char *usernames);
-Message *create_room_text_from_message(const char *roomname,const char *username, const char *text);
+Message *create_room_users_list_message(const char *roomname, const char **usernames, const char **statuses, int count);
+Message *create_room_text_from_message(const char *roomname, const char *username, const char *text);
 Message *create_left_room_message(const char *roomname, const char *username);
 Message *create_disconnected_message(const char *username);
 Message *create_response_message(const char *operation, const char *result, const char *extra);

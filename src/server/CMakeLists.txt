@@ -13,6 +13,7 @@ set(SOURCES
   src/main.c
   src/message.c
   src/server.c
+  src/room.c
   src/cJSON.c
 )
 

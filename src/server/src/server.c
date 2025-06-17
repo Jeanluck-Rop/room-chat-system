@@ -1,5 +1,6 @@
 #include "server.h"
 #include "message.h"
+#include "room.h"
 
 #define BACKLOG 20 //Maximum of queued connections
 
@@ -94,6 +95,39 @@ Client *find_client_by_username(const char *username) {
   return NULL;
 }
 
+/* */
+bool was_invited(Client *client, const char *roomname) {
+  for (int i = 0; i < client->invited_count; i++)
+    if (strcmp(client->invited_rooms[i], roomname) == 0)
+      return true;
+  
+  return false;
+}
+
+/* */
+void mark_as_invited(Client *client, const char *roomname) {
+  if (was_invited(client, roomname))
+    return;
+
+  if (client->invited_capacity == 0) {
+    client->invited_capacity = 4;
+    client->invited_rooms = malloc(sizeof(char *) * client->invited_capacity);
+  } else if (client->invited_count == client->invited_capacity) {
+    client->invited_capacity *= 2;
+    client->invited_rooms = realloc(client->invited_rooms, sizeof(char *) * client->invited_capacity);
+  }
+
+  client->invited_rooms[client->invited_count++] = strdup(roomname);
+}
+
+/* */
+void room_response(Client *client, const char *operation, const char *result, const char *roomname) {
+  Message *response = create_response_message(operation, result, roomname);
+  char *json_str = to_json(response);
+  send_message(client, json_str);
+  free(json_str);
+  free_message(response);
+}
 
 /* */
 void invalid_response(Client *client, const char *result) {
@@ -107,32 +141,199 @@ void invalid_response(Client *client, const char *result) {
 
 /* */
 void leave_room(Client *client, Message *incoming_message) {
-  return;
+  const char *roomname = get_roomname(incoming_message);
+  if (!roomname || strcmp(roomname, "") == 0)
+    return;
+  
+  Room *room_to_leave = find_room(roomname);
+  if (room_to_leave == NULL) {
+    room_response(client, "LEAVE_ROOM", "NO_SUCH_ROOM", roomname);
+    printf("[INFO] Client [%s] tried to leave a room [%s] that does not exist.\n", client->username, roomname);
+    return;
+  }
+
+  if (!was_invited(client, roomname)) {
+    room_response(client, "LEAVE_ROOM_", "NOT_JOINED", roomname);
+    printf("[INFO] Client [%s] tried to leave a room [%s] that was not invited.\n", client->username, roomname);
+    return;
+  }
+  
+  if (!remove_client_from_room(room_to_leave, client)) {
+    printf("[ALERT] Could not remove [%s] from the room [%s].\n", client->username, roomname);
+    return;
+  }
+  
+  Message *response = create_left_room_message(roomname, client->username);
+  char *json_str = to_json(response);
+  broadcast_message(json_str, client->socket_fd);
+  free(json_str);
+  free_message(response);
 }
 
 /* */
 void room_text(Client *client, Message *incoming_message) {
-  return;
+  const char *roomname = get_roomname(incoming_message);
+  const char *text_content = get_text(incoming_message);
+  if (!roomname || strcmp(roomname, "") == 0 || !text_content || strcmp(text_content, "") == 0)
+    return;
+  
+  Room *target_room = find_room(roomname);
+  if (target_room == NULL) {
+    room_response(client, "ROOM_TEXT", "NO_SUCH_ROOM", roomname);
+    printf("[INFO] Client [%s] tried to send text to a room [%s] that does not exist.\n", client->username, roomname);
+    return;
+  }
+
+  if (!was_invited(client, roomname)) {
+    room_response(client, "ROOM_TEXT", "NOT_JOINED", roomname);
+    printf("[INFO] Client [%s] tried to send text to a room [%s] that was not invited.\n", client->username, roomname);
+    return;
+  }
+  
+  Message *msg = create_room_text_from_message(roomname, client->username, text_content);
+  char *json_str = to_json(msg);
+  broadcast_message(json_str, client->socket_fd);
+  free(json_str);
+  free_message(msg);
 }
 
 /* */
 void get_room_users(Client *client, Message *incoming_message) {
-  return;
+  const char *roomname = get_roomname(incoming_message);
+  if (!roomname || strcmp(roomname, "") == 0)
+    return;
+
+  Room *target_room = find_room(roomname);
+  if (target_room == NULL) {
+    room_response(client, "ROOM_USERS", "NO_SUCH_ROOM", roomname);
+    printf("[INFO] Client [%s] tried to get room users from a room [%s] that does not exist.\n", client->username, roomname);
+    return;
+  }
+
+  if (!was_invited(client, roomname)) {
+    room_response(client, "ROOM_USERS", "NOT_JOINED", roomname);
+    printf("[INFO] Client [%s] tried to get room users from a room [%s] that was not invited.\n", client->username, roomname);
+    return;
+  }
+  
+  char **usernames = NULL;
+  char **statuses = NULL;
+  int count = 0;
+
+  get_room_user_info(roomname, &usernames, &statuses, &count);
+
+  Message *msg = create_room_users_list_message(roomname, (const char **)usernames, (const char **)statuses, count);
+  char *json_str = to_json(msg);
+  send_message(client, json_str);
+
+  for (int i = 0; i < count; i++) {
+    free(usernames[i]);
+    free(statuses[i]);
+  }
+  free(usernames);
+  free(statuses);
+  free(json_str);
+  free_message(msg);
 }
 
 /* */
 void join_room(Client *client, Message *incoming_message) {
-  return;
+    const char *roomname = get_roomname(incoming_message);
+  if (!roomname || strcmp(roomname, "") == 0)
+    return;
+  
+  Room *room_to_join = find_room(roomname);
+  if (room_to_join == NULL) {
+    room_response(client, "INVITE", "NO_SUCH_ROOM", roomname);
+    printf("[INFO] Client [%s] tried to join a room [%s] that does not exist.\n", client->username, roomname);
+    return;
+  }
+
+  if (!was_invited(client, roomname)) {
+    room_response(client, "JOIN_ROOM", "NOT_INVITED", roomname);
+    printf("[INFO] Client [%s] tried to join a room [%s] which he was not invited\n", client->username, roomname);
+    return;
+  }
+  
+  if (!add_client_to_room(room_to_join, client)) {
+    printf("[ALERT] Could not add [%s] to requested room [%s].\n", client->username, roomname);
+    return;
+  }
+  
+  room_response(client, "JOIN_ROOM", "SUCCESS", roomname);
+  
+  Message *response = create_joined_room_message(roomname, client->username);
+  char *json_str = to_json(response);
+  broadcast_message(json_str, client->socket_fd);
+  free(json_str);
+  free_message(response);  
 }
 
 /* */
-void get_guests(Client *client, Message *incoming_message) {
-  return;
+void invite_guests(Client *client, Message *incoming_message) {
+  const char *roomname = get_roomname(incoming_message);
+  if (!roomname || strcmp(roomname, "") == 0)
+    return;
+  
+  Room *target_room = find_room(roomname);
+  if (target_room == NULL) {
+    room_response(client, "INVITE", "NO_SUCH_ROOM", roomname);
+    printf("[INFO] Client [%s] tried to invite users to an inexisting room.\n", client->username);
+    return;
+  }
+
+  int guest_count = 0;
+  char **guests_list = get_users(incoming_message, &guest_count);
+  if (!guests_list)
+    return;
+  
+  pthread_mutex_lock(&clients_mutex);
+
+  for (int i = 0; i < guest_count; ++i) {
+    if (!guests_list[i])
+      continue;
+    
+    Client *exists = find_client_by_username(guests_list[i]);
+    if (!exists)
+      room_response(client, "INVITE", "NO_SUCH_USER", guests_list[i]);
+    else {
+      mark_as_invited(exists, roomname);
+      Message *invitation = create_invite_message(guests_list[i], roomname);
+      char *json_str = to_json(invitation);
+      send_message(client, json_str);
+      free(json_str);
+      free_message(invitation);
+    }
+  }
+  
+  pthread_mutex_unlock(&clients_mutex);
+  
+  for (int i = 0; i < guest_count; i++)
+    free(guests_list[i]);
+  free(guests_list);
 }
 
 /* */
 void new_room(Client *client, Message *incoming_message) {
-  return;
+  const char *roomname = get_roomname(incoming_message);
+  if (!roomname || strcmp(roomname, "") == 0)
+    return;
+  
+  Room *new_room = create_room(roomname);
+  if (new_room == NULL) {
+    room_response(client, "NEW_ROOM", "ROOM_ALREADY_EXISTS", roomname);
+    printf("[INFO] Client [%s] tried to create and existing room.\n", client->username);
+    return;
+  }
+
+  //implement later a way to notify the customer that he couldnt be added to the new room
+  if (!add_client_to_room(new_room, client)) {
+    printf("[ALERT] Could not add [%s] to new room created.\n", client->username);
+    cleanup_empty_rooms();
+    return;
+  }
+
+  room_response(client, "NEW_ROOM", "SUCCESS", roomname);
 }
 
 /* */
@@ -298,7 +499,7 @@ bool client_actions(Client *client, Message *incoming_message) {
     new_room(client, incoming_message);
     break;
   case INVITE:
-    get_guests(client, incoming_message);
+    invite_guests(client, incoming_message);
     break;
   case JOIN_ROOM:
     join_room(client, incoming_message);
@@ -313,7 +514,7 @@ bool client_actions(Client *client, Message *incoming_message) {
     leave_room(client, incoming_message);
     break;
   case DISCONNECT:
-    printf("Client: [%s] requested a disconnection.\n", client->username);
+    printf("[INFO] Client: [%s] requested a disconnection.\n", client->username);
     return false;
   default:
     invalid_response(client, "INVALID");

@@ -60,10 +60,15 @@ Message *create_joined_room_message(const char *roomname, const char *username) 
   return msg;
 }
 
-Message *create_room_user_list_message(const char *roomname, const char *usernames) {
+Message *create_room_users_list_message(const char *roomname, const char **usernames, const char **statuses, int count) {
   Message *msg = create_base_message("ROOM_USERS");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
-  cJSON_AddStringToObject(msg->json_data, "usernames", usernames);
+  cJSON *users = cJSON_CreateObject();
+  for (int i = 0; i < count; i++) {
+    cJSON_AddStringToObject(users, usernames[i], statuses[i]);
+  }
+
+  cJSON_AddItemToObject(msg->json_data, "users", users);
   return msg;
 }
 

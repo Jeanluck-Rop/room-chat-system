@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <arpa/inet.h> 
 #include "cJSON.h"
+#include "room.h"
 #include "message.h"
 
 /* Define a client struct to represents a connected client */
@@ -20,6 +21,9 @@ typedef struct Client {
   char status[10];     //Client status
   struct Client *next; //Pointer to the next client in a linked list.
   pthread_t thread;    //Thread associated with the client to handle its connection.
+  char **invited_rooms;
+  int invited_count;
+  int invited_capacity;
 } Client;
 
 void print_message(const char *text, char type);
@@ -27,12 +31,14 @@ void disconnect_client(Client *client);
 void send_message(Client *client, const char *message);
 void broadcast_message(const char *message,  int sender_socket);
 Client *find_client_by_username(const char *username);
+bool was_invited(Client *client, const char *roomname);
+void room_response(Client *client, const char *operation, const char *result, const char *roomname);
 void invalid_response(Client *client, const char *result);
 void leave_room(Client *client, Message *incoming_message);
 void room_text(Client *client, Message *incoming_message);
 void get_room_users(Client *client, Message *incoming_message);
 void join_room(Client *client, Message *incoming_message);
-void get_guests(Client *client, Message *incoming_message);
+void invite_guests(Client *client, Message *incoming_message);
 void new_room(Client *client, Message *incoming_message);
 void public_text(Client *client, Message *incoming_message);
 void private_text(Client *client, Message *incoming_message);
