@@ -1,6 +1,7 @@
 #include "server.h"
 #include "message.h"
 #include "room.h"
+#include "room.c"
 
 #define BACKLOG 20 //Maximum of queued connections
 
@@ -34,6 +35,19 @@ void handle_sigint(int sig) {
 
 /* */
 void disconnect_client(Client *client) {
+  if (client == NULL)
+    return;
+
+  // Protection added for avoiding multiple disconnections
+  static pthread_mutex_t disconnect_mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_mutex_lock(&disconnect_mutex);
+  if (client->is_disconnected) {
+    pthread_mutex_unlock(&disconnect_mutex);
+    return;
+  }
+  client->is_disconnected = true;
+  pthread_mutex_unlock(&disconnect_mutex);
+  
   if (strlen(client->username) > 0) {
     Message *client_disconnected = create_disconnected_message(client->username);
     char *json_str = to_json(client_disconnected);
@@ -41,10 +55,9 @@ void disconnect_client(Client *client) {
     free(json_str);
     free_message(client_disconnected);
   }
-  
-  pthread_mutex_lock(&clients_mutex);
-  
+
   // Remove the client from the list
+  pthread_mutex_lock(&clients_mutex);
   Client **prev = &clients;
   Client *current = clients;
   while (current != NULL) {
@@ -55,8 +68,31 @@ void disconnect_client(Client *client) {
     prev = &current->next;
     current = current->next;
   }
-  
   pthread_mutex_unlock(&clients_mutex);
+
+   // 4) Liberar lista de invitaciones
+  for (int i = 0; i < client->invited_count; ++i) {
+    free(client->invited_rooms[i]);
+  }
+  free(client->invited_rooms);
+
+  // 5) Quitar de cada cuarto en el que estaba y notificar “LEFT_ROOM”
+  pthread_mutex_lock(&rooms_mutex);
+  Room *room = rooms;
+  while (room) {
+    if (remove_client_from_room(room, client)) {
+      Message *leave_message = create_left_room_message(room->roomname, client->username);
+      char *json_str = to_json(leave_message);
+      broadcast_to_room(room, json_str, client->socket_fd);
+      free(json_str);
+      free_message(leave_message);
+    }
+    room = room->next;
+  }
+  pthread_mutex_unlock(&rooms_mutex);
+  
+  cleanup_empty_rooms();
+  
   close(client->socket_fd);
   free(client);
 }
@@ -136,7 +172,6 @@ void invalid_response(Client *client, const char *result) {
   send_message(client, json_str);
   free(json_str);
   free_message(response);
-  disconnect_client(client);
 }
 
 /* */
@@ -192,7 +227,7 @@ void room_text(Client *client, Message *incoming_message) {
   
   Message *msg = create_room_text_from_message(roomname, client->username, text_content);
   char *json_str = to_json(msg);
-  broadcast_message(json_str, client->socket_fd);
+  broadcast_to_room(target_room, json_str, client->socket_fd);
   free(json_str);
   free_message(msg);
 }
@@ -264,7 +299,7 @@ void join_room(Client *client, Message *incoming_message) {
   
   Message *response = create_joined_room_message(roomname, client->username);
   char *json_str = to_json(response);
-  broadcast_message(json_str, client->socket_fd);
+  broadcast_to_room(room_to_join, json_str, client->socket_fd);
   free(json_str);
   free_message(response);  
 }
@@ -593,15 +628,19 @@ void server_cycle(int server_fd) {
     
     //Create a new client and handle it in a separated thread
     Client *client = (Client *)malloc(sizeof(Client));
-    if (client == NULL) {
+    if (!client) {
       print_message("[ERROR] Could not allocate memory for the client.", 'e');
       close(client_fd);
       continue;
     }
-    
+
     client->socket_fd = client_fd;
     client->username[0] = '\0'; 
     client->next = NULL;
+    client->invited_rooms = NULL;
+    client->invited_count = 0;
+    client->invited_capacity = 0;
+    client->is_disconnected = false;
     pthread_mutex_lock(&clients_mutex);
     client->next = clients;
     clients = client;

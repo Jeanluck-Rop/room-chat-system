@@ -24,6 +24,7 @@ typedef struct Client {
   char **invited_rooms;
   int invited_count;
   int invited_capacity;
+  bool is_disconnected;
 } Client;
 
 void print_message(const char *text, char type);
