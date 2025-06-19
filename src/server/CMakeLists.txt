@@ -25,6 +25,3 @@ add_executable(server src/main.c)
 
 # Link static library with executable
 target_link_libraries(server server_library)
-
-#target_include_directories(server_library PRIVATE ${CMAKE_SOURSE_DIR}/src/server/include)
-#target_compile_definitions(server PRIVATE ${CMAKE_SOURCE_DIR}/src/server/include)

@@ -25,8 +25,3 @@ add_executable(client src/main.cpp)
 
 # Link static library with executable
 target_link_libraries(client client_library)
-
-# Paths to headers, we use PRIVATE to handle header access precisely and prevent propagation of include paths.
-# target_include_directories(client_library PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
-# target_include_directories(client PRIVATE ${CMAKE_SOURCE_DIR}/src/client/include)
-
