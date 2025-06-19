@@ -18,16 +18,16 @@ void print_message(const char *text, char type) {
     exit(EXIT_FAILURE);
   }
   else if (type == 'a')
-    printf("[ALERT] %s\n", text);
+    printf("[ALERT]: %s\n", text);
   else
-    printf("[INFO] %s\n", text);  
+    printf("[INFO]: %s\n", text);  
 }
 
 /* SIGINT signal handler */
 void handle_sigint(int sig) {
   if (server_fd != -1) {
     close(server_fd);
-    print_message("Server socket closed due to SIGINT (Ctrl+C).", 'a');
+    print_message("Server socket closed due to SIGINT (Ctrl+C).", 'i');
   }
   (void)sig;
   exit(0);
@@ -101,7 +101,7 @@ void disconnect_client(Client *client) {
 void send_message(Client *client, const char *message) {
   if (send(client->socket_fd, message, strlen(message), 0) < 0) {
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "Failed to send message to client [%s].", client->username);
+    snprintf(buffer, sizeof(buffer), "Failed to send message to client [%s].\n", client->username);
     print_message(buffer, 'e');
   }
 }
@@ -286,7 +286,7 @@ void join_room(Client *client, Message *incoming_message) {
 
   if (!was_invited(client, roomname)) {
     room_response(client, "JOIN_ROOM", "NOT_INVITED", roomname);
-    printf("[INFO] Client [%s] tried to join a room [%s] which he was not invited\n", client->username, roomname);
+    printf("[INFO] Client [%s] tried to join a room [%s] which he was not invited.\n", client->username, roomname);
     return;
   }
   
@@ -503,6 +503,7 @@ bool handle_identify(Client *client, Message *incoming_message) {
   send_message(client, json_str);
   free(json_str);
   free_message(response);
+  printf("[INFO]: Client [%s] connected and identified.\n", client->username);
   
   // Notify the rest of new connected client 
   Message *new_user = create_new_user_message(client->username);
@@ -549,10 +550,11 @@ bool client_actions(Client *client, Message *incoming_message) {
     leave_room(client, incoming_message);
     break;
   case DISCONNECT:
-    printf("[INFO] Client: [%s] requested a disconnection.\n", client->username);
+    printf("[INFO]: Client [%s] disconnected.\n", client->username);
     return false;
   default:
     invalid_response(client, "INVALID");
+    printf("[INFO]: Invalid message received from the client, disconnecting it.\n", client->username);
     return false;
   }
   
@@ -588,7 +590,6 @@ void *handle_client(void *arg) {
 	  free_message(incoming_msg);
 	  break;
 	}
-	print_message("Client connected and identified.", 'i');
       } else {
 	is_connected = client_actions(client, incoming_msg);
 	if (!is_connected) {
@@ -622,14 +623,14 @@ void server_cycle(int server_fd) {
     client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_len);
     
     if (client_fd < 0) {
-      print_message("[ERROR] Server accept failed.", 'e');
+      print_message("[ERROR]: Server accept failed.", 'e');
       continue;
     }
     
     //Create a new client and handle it in a separated thread
     Client *client = (Client *)malloc(sizeof(Client));
     if (!client) {
-      print_message("[ERROR] Could not allocate memory for the client.", 'e');
+      print_message("[ERROR]: Could not allocate memory for the client.", 'e');
       close(client_fd);
       continue;
     }
@@ -645,6 +646,7 @@ void server_cycle(int server_fd) {
     client->next = clients;
     clients = client;
     pthread_mutex_unlock(&clients_mutex);
+    print_message("New client connected.", 'i');
 
     if (pthread_create(&client->thread, NULL, handle_client, client) != 0) {
       print_message("Could not create client thread.", 'e');
@@ -671,9 +673,7 @@ void start_server(int port) {
   print_message("Creating the server socket...", 'i');
   server_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (server_fd == -1)
-    print_message("[ERROR] Error creating socket\n", 'e');
-  else
-    print_message("Socket succesfully created.", 'i');
+    print_message("[ERROR]: Error creating socket\n", 'e');
   
   // Set server address
   print_message("Configuring the server address...", 'i');
@@ -682,23 +682,20 @@ void start_server(int port) {
   server_addr.sin_port = htons(port);       // Convert port number to network byte order
 
   if (server_addr.sin_port == 0)
-    print_message("[ERROR] Error setting server port.", 'e');
-  else
-    print_message("Server address configured.", 'i');
+    print_message("[ERROR]: Error setting server port.\n", 'e');
 
   // Bind the socket to the specified port
   print_message("Binding the socket to port...", 'i');
   if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) != 0) {
     close(server_fd);
-    print_message("[ERROR] Socket cannot be associated to the port.", 'e');
-  } else
-    print_message("Socket successfully bound to the port.", 'i');
+    print_message("[ERROR]: Socket cannot be associated to the port.\n", 'e');
+  }
 
   // Put the server in listening mode
   print_message("Putting the server in listening mode...", 'i');
   if (listen(server_fd, BACKLOG) == -1) {
     close(server_fd);
-    print_message("[ERROR] Error listening port.", 'e');
+    print_message("[ERROR]: Error listening port.\n", 'e');
   } else
     print_message("Server is now listening for incoming connections.", 'i');
   
@@ -709,5 +706,5 @@ void start_server(int port) {
   if (close(server_fd) == 0)
     print_message("Server socket closed successfully.", 'i');
   else
-    print_message("[ERROR] Error closing the server socket.", 'e');
+    print_message("[ERROR]: Error closing the server socket.\n", 'e');
 }

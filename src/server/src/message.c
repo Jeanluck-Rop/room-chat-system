@@ -15,21 +15,21 @@ Message *create_new_user_message(const char *username) {
 }
 
 Message *create_new_status_message(const char *username, const char *status) {
-  Message *msg = create_base_message("STATUS");
+  Message *msg = create_base_message("NEW_STATUS");
   cJSON_AddStringToObject(msg->json_data, "username", username);
   cJSON_AddStringToObject(msg->json_data, "status", status);
   return msg;
 }
 
 Message *create_text_from_message(const char *username, const char *text) {
-  Message *msg = create_base_message("TEXT");
+  Message *msg = create_base_message("TEXT_FROM");
   cJSON_AddStringToObject(msg->json_data, "username", username);
   cJSON_AddStringToObject(msg->json_data, "text", text);
   return msg;
 }
 
 Message *create_public_text_from_message(const char *username, const char *text) {
-  Message *msg = create_base_message("PUBLIC_TEXT");
+  Message *msg = create_base_message("PUBLIC_TEXT_FROM");
   cJSON_AddStringToObject(msg->json_data, "username", username);
   cJSON_AddStringToObject(msg->json_data, "text", text);
   return msg;
@@ -47,21 +47,21 @@ Message *create_users_list_message(char **usernames, char **statuses, int count)
 }
 
 Message *create_invite_message(const char *username, const char *roomname) {
-  Message *msg = create_base_message("INVITE");
+  Message *msg = create_base_message("INVITATION");
   cJSON_AddStringToObject(msg->json_data, "username", username);
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
   return msg;
 }
 
 Message *create_joined_room_message(const char *roomname, const char *username) {
-  Message *msg = create_base_message("JOIN_ROOM");
+  Message *msg = create_base_message("JOINED_ROOM");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
   cJSON_AddStringToObject(msg->json_data, "username", username);
   return msg;
 }
 
 Message *create_room_users_list_message(const char *roomname, const char **usernames, const char **statuses, int count) {
-  Message *msg = create_base_message("ROOM_USERS");
+  Message *msg = create_base_message("ROOM_USER_LIST");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
   cJSON *users = cJSON_CreateObject();
   for (int i = 0; i < count; i++) {
@@ -73,7 +73,7 @@ Message *create_room_users_list_message(const char *roomname, const char **usern
 }
 
 Message *create_room_text_from_message(const char *roomname,const char *username, const char *text) {
-  Message *msg = create_base_message("ROOM_TEXT");
+  Message *msg = create_base_message("ROOM_TEXT_FROM");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
   cJSON_AddStringToObject(msg->json_data, "username", username);
   cJSON_AddStringToObject(msg->json_data, "text", text);
@@ -88,7 +88,7 @@ Message *create_left_room_message(const char *roomname, const char *username) {
 }
 
 Message *create_disconnected_message(const char *username) {
-  Message *msg = create_base_message("DISCONNECT");
+  Message *msg = create_base_message("DISCONNECTED");
   cJSON_AddStringToObject(msg->json_data, "username", username);
   return msg;
 }

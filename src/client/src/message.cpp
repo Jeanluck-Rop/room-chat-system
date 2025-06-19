@@ -35,7 +35,7 @@ Message Message::create_public_text_message(const std::string& text) {
 
 Message Message::create_users_list_message() {
   nlohmann::json msg;
-  msg["type"] = "USER_LIST";
+  msg["type"] = "USERS";
   return Message(msg);
 }
 
