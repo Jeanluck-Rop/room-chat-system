@@ -455,6 +455,15 @@ void users_list(Client *client, Message *incoming_message) {
 /* */
 void change_status(Client *client, Message *incoming_message) {
   const char *new_status = get_status(incoming_message);
+
+  if (!new_status) {
+    strncpy(client->status, "ACTIVE", sizeof(client->status) - 1);
+    client->status[sizeof(client->status) - 1] = '\0';
+    return;
+  }
+  
+  strncpy(client->status, new_status, sizeof(client->status) - 1);
+  client->status[sizeof(client->status) - 1] = '\0';
   Message *status_message = create_new_status_message(client->username, new_status);
   char *json_str = to_json(status_message);
   broadcast_message(json_str, client->socket_fd);
@@ -552,7 +561,7 @@ bool client_actions(Client *client, Message *incoming_message) {
     return false;
   default:
     invalid_response(client, "INVALID");
-    printf("[INFO]: Invalid message received from the client, disconnecting it.\n", client->username);
+    printf("[INFO]: Invalid message received from the client [%s], disconnecting it.\n", client->username);
     return false;
   }
   
@@ -576,7 +585,7 @@ void *handle_client(void *arg) {
       
       if (!incoming_msg) {
 	invalid_response(client, "INVALID");
-	print_message("Invalid message received from the client, disconnecting it.", 'a');
+	printf("[INFO]: Invalid message received from the client [%s], disconnecting it.", client->username);
 	break;
       }
 
