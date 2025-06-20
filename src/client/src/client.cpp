@@ -411,7 +411,7 @@ void Client::handle_user_actions() {
       left_room(user_input);
     else if (user_input == "/exit=") {
       disconnect_user();
-      break;
+      return;
     } else {    
       Message public_msg = Message::create_public_text_message(user_input);
       send_message(public_msg.to_json());

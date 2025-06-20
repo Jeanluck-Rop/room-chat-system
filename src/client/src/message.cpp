@@ -78,7 +78,7 @@ Message Message::create_room_text_message(const std::string& roomname, const std
 
 Message Message::create_leave_room_message(const std::string& roomname) {
   nlohmann::json msg;
-  msg["type"] = "LEFT_ROOM";
+  msg["type"] = "LEAVE_ROOM";
   msg["roomname"] = roomname;
   return Message(msg);
 }

@@ -143,6 +143,21 @@ bool was_invited(Client *client, const char *roomname) {
 }
 
 /* */
+void unmark_as_invited(Client *client, const char *roomname) {
+  if (!client || !roomname)
+    return;
+
+  for (int i = 0; i < client->invited_count; ++i) {
+    if (strcmp(client->invited_rooms[i], roomname) == 0) {
+      free(client->invited_rooms[i]);
+      client->invited_rooms[i] = client->invited_rooms[client->invited_count - 1];
+      client->invited_count--;
+      return;
+    }
+  }
+}
+
+/* */
 bool mark_as_invited(Client *client, const char *roomname) {
   if (was_invited(client, roomname))
     return true;
@@ -202,7 +217,7 @@ void leave_room(Client *client, Message *incoming_message) {
   }
 
   if (!was_invited(client, roomname)) {
-    room_response(client, "LEAVE_ROOM_", "NOT_JOINED", roomname);
+    room_response(client, "LEAVE_ROOM", "NOT_JOINED", roomname);
     printf("[INFO] Client [%s] tried to leave a room [%s] that was not invited.\n", client->username, roomname);
     return;
   }
@@ -212,6 +227,8 @@ void leave_room(Client *client, Message *incoming_message) {
     return;
   }
   
+  cleanup_empty_rooms();
+  unmark_as_invited(client, roomname);
   Message *response = create_left_room_message(roomname, client->username);
   char *json_str = to_json(response);
   broadcast_message(json_str, client->socket_fd);
@@ -266,11 +283,16 @@ void get_room_users(Client *client, Message *incoming_message) {
     return;
   }
   
-  char **usernames = NULL;
-  char **statuses = NULL;
-  int count = 0;
-
-  get_room_user_info(roomname, &usernames, &statuses, &count);
+  pthread_mutex_lock(&rooms_mutex);
+  int count = target_room->client_count;
+  char **usernames = malloc(sizeof(char *) * count);
+  char **statuses = malloc(sizeof(char *) * count);
+  for (int i = 0; i < count; ++i) {
+    Client *room_client = target_room->clients[i];
+    usernames[i] = strdup(room_client->username);
+    statuses[i] = strdup(room_client->status);
+  }
+  pthread_mutex_unlock(&rooms_mutex);
 
   Message *msg = create_room_users_list_message(roomname, (const char **)usernames, (const char **)statuses, count);
   char *json_str = to_json(msg);
@@ -280,7 +302,6 @@ void get_room_users(Client *client, Message *incoming_message) {
     free(usernames[i]);
     free(statuses[i]);
   }
-  
   free(usernames);
   free(statuses);
   free(json_str);

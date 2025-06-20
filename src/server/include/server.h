@@ -33,6 +33,7 @@ void send_message(Client *client, const char *message);
 void broadcast_message(const char *message,  int sender_socket);
 Client *find_client_by_username(const char *username);
 bool was_invited(Client *client, const char *roomname);
+void unmark_as_invited(Client *client, const char *roomname);
 bool mark_as_invited(Client *client, const char *roomname);
 void room_response(Client *client, const char *operation, const char *result, const char *roomname);
 void invalid_response(Client *client, const char *result);
