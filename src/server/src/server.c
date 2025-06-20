@@ -70,13 +70,15 @@ void disconnect_client(Client *client) {
   }
   pthread_mutex_unlock(&clients_mutex);
 
-   // 4) Liberar lista de invitaciones
-  for (int i = 0; i < client->invited_count; ++i) {
+   
+  for (int i = 0; i < client->invited_count; ++i)
     free(client->invited_rooms[i]);
-  }
   free(client->invited_rooms);
-
-  // 5) Quitar de cada cuarto en el que estaba y notificar “LEFT_ROOM”
+  client->invited_rooms = NULL;
+  client->invited_count = 0;
+  client->invited_capacity = 0;
+ 
+  // Exit each room the client belonged
   pthread_mutex_lock(&rooms_mutex);
   Room *room = rooms;
   while (room) {
@@ -141,19 +143,31 @@ bool was_invited(Client *client, const char *roomname) {
 }
 
 /* */
-void mark_as_invited(Client *client, const char *roomname) {
+bool mark_as_invited(Client *client, const char *roomname) {
   if (was_invited(client, roomname))
-    return;
+    return true;
 
   if (client->invited_capacity == 0) {
     client->invited_capacity = 4;
     client->invited_rooms = malloc(sizeof(char *) * client->invited_capacity);
+    if (!client->invited_rooms) {
+      print_message("[ERROR]: malloc failed in mark_as_invited.\n", 'e');
+      client->invited_capacity = 0;
+      return false;
+    }
   } else if (client->invited_count == client->invited_capacity) {
-    client->invited_capacity *= 2;
-    client->invited_rooms = realloc(client->invited_rooms, sizeof(char *) * client->invited_capacity);
+    int new_capacity = client->invited_capacity * 2;
+    char **new_rooms = realloc(client->invited_rooms, sizeof(char *) * new_capacity);
+    if (!new_rooms) {
+      print_message("[ERROR]: realloc failed in mark_as_invited.\n", 'e');
+      return false;
+    }
+    client->invited_capacity = new_capacity;
+    client->invited_rooms = new_rooms;
   }
 
   client->invited_rooms[client->invited_count++] = strdup(roomname);
+  return true;
 }
 
 /* */
@@ -207,6 +221,7 @@ void leave_room(Client *client, Message *incoming_message) {
 
 /* */
 void room_text(Client *client, Message *incoming_message) {
+  cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
   const char *text_content = get_text(incoming_message);
   if (!roomname || strcmp(roomname, "") == 0 || !text_content || strcmp(text_content, "") == 0)
@@ -265,6 +280,7 @@ void get_room_users(Client *client, Message *incoming_message) {
     free(usernames[i]);
     free(statuses[i]);
   }
+  
   free(usernames);
   free(statuses);
   free(json_str);
@@ -273,7 +289,8 @@ void get_room_users(Client *client, Message *incoming_message) {
 
 /* */
 void join_room(Client *client, Message *incoming_message) {
-    const char *roomname = get_roomname(incoming_message);
+  cleanup_empty_rooms();
+  const char *roomname = get_roomname(incoming_message);
   if (!roomname || strcmp(roomname, "") == 0)
     return;
   
@@ -283,7 +300,7 @@ void join_room(Client *client, Message *incoming_message) {
     printf("[INFO] Client [%s] tried to join a room [%s] that does not exist.\n", client->username, roomname);
     return;
   }
-
+  
   if (!was_invited(client, roomname)) {
     room_response(client, "JOIN_ROOM", "NOT_INVITED", roomname);
     printf("[INFO] Client [%s] tried to join a room [%s] which he was not invited.\n", client->username, roomname);
@@ -296,7 +313,7 @@ void join_room(Client *client, Message *incoming_message) {
   }
   
   room_response(client, "JOIN_ROOM", "SUCCESS", roomname);
-  
+  printf("[INFO]: Client [%s] successfully joined to the room [%s].\n", client->username, roomname);
   Message *response = create_joined_room_message(roomname, client->username);
   char *json_str = to_json(response);
   broadcast_to_room(room_to_join, json_str, client->socket_fd);
@@ -306,6 +323,7 @@ void join_room(Client *client, Message *incoming_message) {
 
 /* */
 void invite_guests(Client *client, Message *incoming_message) {
+  cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
   if (!roomname || strcmp(roomname, "") == 0)
     return;
@@ -333,16 +351,17 @@ void invite_guests(Client *client, Message *incoming_message) {
       room_response(client, "INVITE", "NO_SUCH_USER", guests_list[i]);
     else {
       mark_as_invited(exists, roomname);
-      Message *invitation = create_invite_message(guests_list[i], roomname);
+      Message *invitation = create_invite_message(client->username, roomname);
       char *json_str = to_json(invitation);
-      send_message(client, json_str);
+      send_message(exists, json_str);
       free(json_str);
       free_message(invitation);
     }
   }
   
   pthread_mutex_unlock(&clients_mutex);
-  
+
+  printf("[INFO]: Client [%s] successfully invited users to the room [%s].\n", client->username, roomname);
   for (int i = 0; i < guest_count; i++)
     free(guests_list[i]);
   free(guests_list);
@@ -350,25 +369,31 @@ void invite_guests(Client *client, Message *incoming_message) {
 
 /* */
 void new_room(Client *client, Message *incoming_message) {
+  cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
   if (!roomname || strcmp(roomname, "") == 0)
     return;
   
   Room *new_room = create_room(roomname);
-  if (new_room == NULL) {
+  if (!new_room) {
     room_response(client, "NEW_ROOM", "ROOM_ALREADY_EXISTS", roomname);
-    printf("[INFO] Client [%s] tried to create and existing room.\n", client->username);
+    printf("[INFO]: Client [%s] tried to create and existing room.\n", client->username);
     return;
   }
 
-  //implement later a way to notify the customer that he couldnt be added to the new room
+  //implement later a way to notify the room creator that he couldnt be added to the new room
   if (!add_client_to_room(new_room, client)) {
-    printf("[ALERT] Could not add [%s] to new room created.\n", client->username);
-    cleanup_empty_rooms();
+    printf("[ALERT]: Could not add [%s] to new room created.\n", client->username);
     return;
   }
 
+  if (!mark_as_invited(client, roomname)) {
+    printf("[ALERT]: Could not mark [%s] as invited to the new room [%s].\n", client->username, roomname);
+    return;
+  }
+  
   room_response(client, "NEW_ROOM", "SUCCESS", roomname);
+  printf("[INFO]: Room [%s] successfully created by the client [%s].\n", roomname, client->username);
 }
 
 /* */
@@ -415,12 +440,10 @@ void private_text(Client *client, Message *incoming_message) {
 /* */
 void users_list(Client *client, Message *incoming_message) {
   pthread_mutex_lock(&clients_mutex);
-  
   int capacity = BACKLOG;
   int count = 0;
   char **users_list = malloc(sizeof(char *) * capacity);
   char **statuses = malloc(sizeof(char *) * capacity);
-  
   Client *current = clients;
   while (current != NULL) {
     if (strlen(current->username) > 0) {
@@ -435,7 +458,6 @@ void users_list(Client *client, Message *incoming_message) {
     }
     current = current->next;
   }
-
   pthread_mutex_unlock(&clients_mutex);
   
   Message *list_message = create_users_list_message(users_list, statuses, count);
@@ -446,6 +468,7 @@ void users_list(Client *client, Message *incoming_message) {
     free(users_list[i]);
     free(statuses[i]);
   }
+  
   free(users_list);
   free(statuses);
   free(json_str);
@@ -461,7 +484,8 @@ void change_status(Client *client, Message *incoming_message) {
     client->status[sizeof(client->status) - 1] = '\0';
     return;
   }
-  
+
+  printf("[INFO]: Client [%s] changed his status to [%s].\n", client->username, client->status);
   strncpy(client->status, new_status, sizeof(client->status) - 1);
   client->status[sizeof(client->status) - 1] = '\0';
   Message *status_message = create_new_status_message(client->username, new_status);

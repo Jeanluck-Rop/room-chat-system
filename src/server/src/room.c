@@ -192,7 +192,7 @@ Room *create_room(const char *roomname) {
   strncpy(room->roomname, roomname, sizeof(room->roomname) - 1);
   room->roomname[sizeof(room->roomname) - 1] = '\0';
   room->clients = malloc(sizeof(Client *) * 15);
-  room->client_count = 1;
+  room->client_count = 0;
   room->capacity = 15;
   room->next = rooms;
   rooms = room;

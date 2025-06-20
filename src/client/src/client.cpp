@@ -292,7 +292,7 @@ void Client::direct_message(std::string& user_input) {
 void Client::new_room(std::string& user_input) {
   std::string roomname = user_input.substr(10);
   if (roomname.length() > 16 || roomname.length() < 3) {
-    TerminalView::display_message("[INFO] Invalid room name.");
+    TerminalView::display_message("[INFO]: Invalid room name.");
     return;
   }
   Message new_room_msg = Message::create_new_room_message(roomname);
