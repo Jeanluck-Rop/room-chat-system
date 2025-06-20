@@ -454,10 +454,8 @@ void users_list(Client *client, Message *incoming_message) {
 
 /* */
 void change_status(Client *client, Message *incoming_message) {
-  const char *username = get_username(incoming_message);
   const char *new_status = get_status(incoming_message);
-  
-  Message *status_message = create_new_status_message(username, new_status);
+  Message *status_message = create_new_status_message(client->username, new_status);
   char *json_str = to_json(status_message);
   broadcast_message(json_str, client->socket_fd);
   free(json_str);
