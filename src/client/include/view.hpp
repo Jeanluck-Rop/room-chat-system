@@ -2,6 +2,9 @@
 #define VIEW_H
 
 #include <string>
+#include <poll.h>
+#include <unistd.h>
+#include <iostream>
 
 class TerminalView {
 public:

@@ -18,7 +18,6 @@ void cleanup_empty_rooms();
 void broadcast_to_room(Room *room, const char *message, int sender_socket);
 bool is_member(const char *username, const char *roomname);
 Room *find_room(const char *roomname);
-void leave_room(Client *client, Room *room);
 bool remove_client_from_room(Room *room, Client *client);
 bool add_client_to_room(Room *room, Client *client);
 Room *create_room(const char *roomname);

@@ -91,23 +91,10 @@ Room *find_room(const char *roomname) {
 }
 
 /* */
-void leave_room(Client *client, Room *room) {
-  if (!client || !room)
-    return;
-
-  if (!remove_client_from_room(room, client))
-    return;
-
-  unmark_as_invited(client, room->roomname);
-  Message *left_message = create_left_room_message(room->roomname, client->username);
-  char *json_str = to_json(left_message);
-  broadcast_to_room(room, json_str, client->socket_fd);
-  free(json_str);
-  free_message(left_message);
-}
-
-/* */
 bool remove_client_from_room(Room *room, Client *client) {
+  if (!room || !client)
+    return false;
+    
   pthread_mutex_lock(&rooms_mutex);
 
   for (int i = 0; i < room->client_count; ++i) {

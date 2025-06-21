@@ -35,7 +35,7 @@ void handle_sigint(int sig) {
 
 /* */
 void disconnect_client(Client *client) {
-  if (client == NULL)
+  if (!client)
     return;
 
   // Protection added for avoiding multiple disconnections
@@ -47,7 +47,7 @@ void disconnect_client(Client *client) {
   }
   client->is_disconnected = true;
   pthread_mutex_unlock(&disconnect_mutex);
-  
+
   if (strlen(client->username) > 0) {
     Message *client_disconnected = create_disconnected_message(client->username);
     char *json_str = to_json(client_disconnected);
@@ -74,21 +74,10 @@ void disconnect_client(Client *client) {
   for (int i = 0; i < client->invited_count; ++i)
     free(client->invited_rooms[i]);
   free(client->invited_rooms);
+  
   client->invited_rooms = NULL;
   client->invited_count = 0;
   client->invited_capacity = 0;
- 
-  // Exit each room the client belonged
-  pthread_mutex_lock(&rooms_mutex);
-  Room *room = rooms;
-  while (room) {
-    Room *next = room->next;
-    if (is_member(client->username, room->roomname))
-      leave_room(client, room);
-    room = next;
-  }
-  pthread_mutex_unlock(&rooms_mutex);
-  
   close(client->socket_fd);
   free(client);
   cleanup_empty_rooms();
@@ -96,6 +85,9 @@ void disconnect_client(Client *client) {
 
 /* Sends a message to one client */
 void send_message(Client *client, const char *message) {
+  if (!client || client->is_disconnected)
+    return;
+    
   if (send(client->socket_fd, message, strlen(message), 0) < 0) {
     char buffer[256];
     snprintf(buffer, sizeof(buffer), "Failed to send message to client [%s].\n", client->username);
@@ -199,7 +191,7 @@ void invalid_response(Client *client, const char *result) {
 }
 
 /* */
-void leave_room_message(Client *client, Message *incoming_message) {
+void leave_room(Client *client, Message *incoming_message) {
   const char *roomname = get_roomname(incoming_message);
   if (!roomname || strcmp(roomname, "") == 0)
     return;
@@ -217,7 +209,17 @@ void leave_room_message(Client *client, Message *incoming_message) {
     return;
   }
 
-  leave_room(client, room_to_leave);
+  if (!remove_client_from_room(room_to_leave, client)) {
+    printf("[ALERT] Could not remove [%s] from the room [%s].\n", client->username, roomname);
+    return;
+  }
+
+  unmark_as_invited(client, roomname);
+  Message *left_message = create_left_room_message(roomname, client->username);
+  char *json_str = to_json(left_message);
+  broadcast_to_room(room_to_leave, json_str, client->socket_fd);
+  free(json_str);
+  free_message(left_message);
   cleanup_empty_rooms();
 }
 
@@ -302,17 +304,23 @@ void join_room(Client *client, Message *incoming_message) {
   
   Room *room_to_join = find_room(roomname);
   if (room_to_join == NULL) {
-    room_response(client, "INVITE", "NO_SUCH_ROOM", roomname);
+    room_response(client, "JOIN_ROOM", "NO_SUCH_ROOM", roomname);
     printf("[INFO] Client [%s] tried to join a room [%s] that does not exist.\n", client->username, roomname);
     return;
   }
 
   if (!was_invited(client, roomname)) {
-    room_response(client, "ROOM_USERS", "NOT_JOINED", roomname);
+    room_response(client, "JOIN_ROOM", "NOT_INVITED", roomname);
     printf("[INFO] Client [%s] tried to get room users from a room [%s] that was not invited.\n", client->username, roomname);
     return;
   }
   
+  if(is_member(client->username, roomname)) {
+    printf("[INFO]: Client [%s] is already member of the room [%s].\n", client->username, roomname);
+    room_response(client, "JOIN_ROOM", "ALREADY_MEMBER", roomname);
+    return;
+  }
+
   if (!add_client_to_room(room_to_join, client)) {
     printf("[ALERT] Could not add [%s] to requested room [%s].\n", client->username, roomname);
     return;
@@ -606,7 +614,7 @@ bool client_actions(Client *client, Message *incoming_message) {
     room_text(client, incoming_message);
     break;
   case LEAVE_ROOM:
-    leave_room_message(client, incoming_message);
+    leave_room(client, incoming_message);
     break;
   case DISCONNECT:
     printf("[INFO]: Client [%s] disconnected.\n", client->username);
