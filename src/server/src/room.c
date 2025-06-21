@@ -46,6 +46,51 @@ void broadcast_to_room(Room *room, const char *message, int sender_socket) {
 }
 
 /* */
+char **get_room_users_list(const char *roomname, int *count) {
+  pthread_mutex_lock(&rooms_mutex);
+
+  Room *room = find_room(roomname);
+  if (!room) {
+    pthread_mutex_unlock(&rooms_mutex);
+    *count = 0;
+    return NULL;
+  }
+
+  char **usernames = malloc(sizeof(char *) * room->client_count);
+  int size = 0;
+
+  for (int i = 0; i < room->client_count; i++)
+    if (room->clients[i] && strlen(room->clients[i]->username) > 0)
+      usernames[size++] = strdup(room->clients[i]->username);
+
+  pthread_mutex_unlock(&rooms_mutex);
+
+  *count = size;
+  return usernames;
+}
+
+/* */
+bool is_member(const char *username, const char *roomname) {
+  int count = 0;
+  char **usernames = get_room_users_list(roomname, &count);
+  if (!usernames)
+    return false;
+
+  for (int i = 0; i < count; i++) {
+    if (strcmp(usernames[i], username) == 0) {
+      for (int j = 0; j < count; j++)
+        free(usernames[j]);
+      free(usernames);
+      return true;
+    }
+    free(usernames[i]);
+  }
+  
+  free(usernames);
+  return false;
+}
+
+/* */
 Room *find_room(const char *roomname) {
   Room *current = rooms;
 

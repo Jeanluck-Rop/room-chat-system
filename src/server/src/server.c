@@ -216,9 +216,9 @@ void leave_room(Client *client, Message *incoming_message) {
     return;
   }
 
-  if (!was_invited(client, roomname)) {
+  if (!was_invited(client, roomname) || !is_member(client->username, roomname)) {
     room_response(client, "LEAVE_ROOM", "NOT_JOINED", roomname);
-    printf("[INFO] Client [%s] tried to leave a room [%s] that was not invited.\n", client->username, roomname);
+    printf("[INFO] Client [%s] tried to leave a room [%s] that was not invited or has not joined yet.\n", client->username, roomname);
     return;
   }
   
@@ -251,9 +251,9 @@ void room_text(Client *client, Message *incoming_message) {
     return;
   }
 
-  if (!was_invited(client, roomname)) {
+  if (!was_invited(client, roomname) || !is_member(client->username, roomname)) {
     room_response(client, "ROOM_TEXT", "NOT_JOINED", roomname);
-    printf("[INFO] Client [%s] tried to send text to a room [%s] that was not invited.\n", client->username, roomname);
+    printf("[INFO] Client [%s] tried to send text to a room [%s] that was not invited or has not joined yet.\n", client->username, roomname);
     return;
   }
   
@@ -277,9 +277,9 @@ void get_room_users(Client *client, Message *incoming_message) {
     return;
   }
 
-  if (!was_invited(client, roomname)) {
+  if (!was_invited(client, roomname) || !is_member(client->username, roomname)) {
     room_response(client, "ROOM_USERS", "NOT_JOINED", roomname);
-    printf("[INFO] Client [%s] tried to get room users from a room [%s] that was not invited.\n", client->username, roomname);
+    printf("[INFO] Client [%s] tried to get room users from a room [%s] that was not invited or has not joined yet.\n", client->username, roomname);
     return;
   }
   
@@ -312,7 +312,7 @@ void get_room_users(Client *client, Message *incoming_message) {
 void join_room(Client *client, Message *incoming_message) {
   cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0)
+  if (!roomname || strcmp(roomname, "") == 0) 
     return;
   
   Room *room_to_join = find_room(roomname);
@@ -321,8 +321,14 @@ void join_room(Client *client, Message *incoming_message) {
     printf("[INFO] Client [%s] tried to join a room [%s] that does not exist.\n", client->username, roomname);
     return;
   }
-  
+
   if (!was_invited(client, roomname)) {
+    room_response(client, "ROOM_USERS", "NOT_JOINED", roomname);
+    printf("[INFO] Client [%s] tried to get room users from a room [%s] that was not invited.\n", client->username, roomname);
+    return;
+  }
+  
+  if (!was_invited(client, roomname)  || !is_member(client->username, roomname)) {
     room_response(client, "JOIN_ROOM", "NOT_INVITED", roomname);
     printf("[INFO] Client [%s] tried to join a room [%s] which he was not invited.\n", client->username, roomname);
     return;
@@ -356,6 +362,12 @@ void invite_guests(Client *client, Message *incoming_message) {
     return;
   }
 
+  if (!was_invited(client, roomname) || !is_member(client->username, roomname)) {
+    room_response(client, "INVITE", "NOT_JOINED", roomname);
+    printf("[INFO] Client [%s] tried to invite users to a room [%s] which he was not invited or has not joined yet.\n", client->username, roomname);
+    return;
+  }
+  
   int guest_count = 0;
   char **guests_list = get_users(incoming_message, &guest_count);
   if (!guests_list)
@@ -370,7 +382,10 @@ void invite_guests(Client *client, Message *incoming_message) {
     Client *exists = find_client_by_username(guests_list[i]);
     if (!exists)
       room_response(client, "INVITE", "NO_SUCH_USER", guests_list[i]);
-    else {
+    else if (exists == client) {
+      printf("Client [%s] tried to invite himself to the room [%s].\n", client->username, roomname);
+      continue;
+    } else {
       mark_as_invited(exists, roomname);
       Message *invitation = create_invite_message(client->username, roomname);
       char *json_str = to_json(invitation);
@@ -506,7 +521,7 @@ void change_status(Client *client, Message *incoming_message) {
     return;
   }
 
-  printf("[INFO]: Client [%s] changed his status to [%s].\n", client->username, client->status);
+  printf("[INFO]: Client [%s] changed his status to [%s].\n", client->username, new_status);
   strncpy(client->status, new_status, sizeof(client->status) - 1);
   client->status[sizeof(client->status) - 1] = '\0';
   Message *status_message = create_new_status_message(client->username, new_status);

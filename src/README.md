@@ -149,6 +149,14 @@ If the room does not exist, the server responds:
   "extra": "<roomname>" }
 ```
 
+If the room exists but the user has not been invited or has not joined it yet, the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "INVITE",
+  "result": "NOT_JOINED",
+  "extra": "<roomname>" }
+```
+
 If one or more of the users do not exist, the server responds as soon as it detects the first invalid user:
 ```
 { "type": "RESPONSE",
