@@ -50,7 +50,7 @@ private:
   void join_room(std::string& user_input);
   void room_users(std::string& user_input);
   void room_text(std::string& user_input);
-  void left_room(std::string& user_input);
+  void leave_room(std::string& user_input);
   void disconnect_user();
   void handle_user_actions();
 };

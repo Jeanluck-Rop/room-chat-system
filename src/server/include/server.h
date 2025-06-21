@@ -37,7 +37,7 @@ void unmark_as_invited(Client *client, const char *roomname);
 bool mark_as_invited(Client *client, const char *roomname);
 void room_response(Client *client, const char *operation, const char *result, const char *roomname);
 void invalid_response(Client *client, const char *result);
-void leave_room(Client *client, Message *incoming_message);
+void leave_room_message(Client *client, Message *incoming_message);
 void room_text(Client *client, Message *incoming_message);
 void get_room_users(Client *client, Message *incoming_message);
 void join_room(Client *client, Message *incoming_message);

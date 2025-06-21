@@ -162,7 +162,23 @@ If one or more of the users do not exist, the server responds as soon as it dete
 { "type": "RESPONSE",
   "operation": "INVITE",
   "result": "NO_SUCH_USER",
-  "extra": "invalid_username" }
+  "extra": "<invalid_username>" }
+```
+
+If the user tries to invite himself, the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "INVITE",
+  "result": "SELF_INVITE",
+  "extra": "<invalid_username>" }
+```
+
+If one or more of the users are already invited or member of the room, the server responds as soon as it detects the user:
+```
+{ "type": "RESPONSE",
+  "operation": "INVITE",
+  "result": "NO_SUCH_USER",
+  "extra": "<invalid_username>" }
 ```
 
 If a user is already in the room or has already been invited, that user is ignored and does not receive the message INVITATION.

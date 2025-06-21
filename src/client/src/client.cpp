@@ -166,6 +166,10 @@ void Client::handle_response(const Message& incoming_msg) {
       TerminalView::display_message("[INFO]: User '" + incoming_msg.get_extra() + "' not found.");
     else if (result == "NOT_JOINED")
       TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + incoming_msg.get_extra() + ".");
+    else if (result == "SELF_INVITE")
+      TerminalView::display_message("[INFO]: You can not invite yourself to a room.");
+    else if (result == "ALREADY_MEMBER_OR_INVITED")
+      TerminalView::display_message("[INFO]: User: " + incoming_msg.get_extra() + " already invited or member.");
   }
 
   if (operation == "JOIN_ROOM") {
@@ -379,14 +383,14 @@ void Client::room_text(std::string& user_input) {
 /**
  *
  */
-void Client::left_room(std::string& user_input) {
-  std::string roomname = user_input.substr(11);
+void Client::leave_room(std::string& user_input) {
+  std::string roomname = user_input.substr(12);
   if (roomname.length() > 16 || roomname.length() < 1) {
     TerminalView::display_message("[INFO]: Invalid roomname.");
     return;
   }
-  Message left_room_msg = Message::create_leave_room_message(roomname);
-  send_message(left_room_msg.to_json());
+  Message leave_room_msg = Message::create_leave_room_message(roomname);
+  send_message(leave_room_msg.to_json());
 }
 
 /**
@@ -436,8 +440,8 @@ void Client::handle_user_actions() {
       room_users(user_input);
     else if (user_input.rfind("/room_text=", 0) == 0)
       room_text(user_input);
-    else if (user_input.rfind("/left_room=", 0) == 0)
-      left_room(user_input);
+    else if (user_input.rfind("/leave_room=", 0) == 0)
+      leave_room(user_input);
     else if (user_input == "/exit=") {
       disconnect_user();
       return;

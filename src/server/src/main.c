@@ -15,6 +15,7 @@ int main(int num_args, char *argv[]) {
   }
 
   printf("Starting server at the port %d:\n", port);
+  signal(SIGPIPE, SIG_IGN); //handle send(), avoiding killing the server by an issue and instead handle it as -1 or errno
   start_server(port);
   return EXIT_SUCCESS;
 }

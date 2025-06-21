@@ -34,59 +34,46 @@ void cleanup_empty_rooms() {
 
 /* */
 void broadcast_to_room(Room *room, const char *message, int sender_socket) {
+  if (!room)
+    return;
+
   pthread_mutex_lock(&rooms_mutex);
 
-  for (int i = 0; i < room->client_count; ++i) {
-    Client *client = room->clients[i];
-    if (client->socket_fd != sender_socket && strlen(client->username) > 0)
+  int count = room->client_count;
+  Client **clients_copy = malloc(sizeof(Client*) * count);
+
+  for (int i = 0; i < count; ++i)
+    clients_copy[i] = room->clients[i]; //copy reference
+
+  pthread_mutex_unlock(&rooms_mutex);
+    
+  for (int i = 0; i < count; ++i) {
+    Client *client = clients_copy[i];
+    if (client && client->socket_fd != sender_socket && !client->is_disconnected)
       send_message(client, message);
   }
-  
-  pthread_mutex_unlock(&rooms_mutex);
-}
 
-/* */
-char **get_room_users_list(const char *roomname, int *count) {
-  pthread_mutex_lock(&rooms_mutex);
-
-  Room *room = find_room(roomname);
-  if (!room) {
-    pthread_mutex_unlock(&rooms_mutex);
-    *count = 0;
-    return NULL;
-  }
-
-  char **usernames = malloc(sizeof(char *) * room->client_count);
-  int size = 0;
-
-  for (int i = 0; i < room->client_count; i++)
-    if (room->clients[i] && strlen(room->clients[i]->username) > 0)
-      usernames[size++] = strdup(room->clients[i]->username);
-
-  pthread_mutex_unlock(&rooms_mutex);
-
-  *count = size;
-  return usernames;
+  free(clients_copy);
 }
 
 /* */
 bool is_member(const char *username, const char *roomname) {
-  int count = 0;
-  char **usernames = get_room_users_list(roomname, &count);
-  if (!usernames)
+  pthread_mutex_lock(&rooms_mutex);
+  
+  Room *room = find_room(roomname);
+  if (!room) {
+    pthread_mutex_unlock(&rooms_mutex);
     return false;
+  }
 
-  for (int i = 0; i < count; i++) {
-    if (strcmp(usernames[i], username) == 0) {
-      for (int j = 0; j < count; j++)
-        free(usernames[j]);
-      free(usernames);
+  for (int i = 0; i < room->client_count; ++i) {
+    if (room->clients[i] && strcmp(room->clients[i]->username, username) == 0) {
+      pthread_mutex_unlock(&rooms_mutex);
       return true;
     }
-    free(usernames[i]);
   }
-  
-  free(usernames);
+
+  pthread_mutex_unlock(&rooms_mutex);
   return false;
 }
 
@@ -101,6 +88,22 @@ Room *find_room(const char *roomname) {
   }
   
   return NULL;
+}
+
+/* */
+void leave_room(Client *client, Room *room) {
+  if (!client || !room)
+    return;
+
+  if (!remove_client_from_room(room, client))
+    return;
+
+  unmark_as_invited(client, room->roomname);
+  Message *left_message = create_left_room_message(room->roomname, client->username);
+  char *json_str = to_json(left_message);
+  broadcast_to_room(room, json_str, client->socket_fd);
+  free(json_str);
+  free_message(left_message);
 }
 
 /* */
