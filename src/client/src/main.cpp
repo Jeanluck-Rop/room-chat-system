@@ -34,7 +34,7 @@ int main(int num_args, char *argv[]) {
     client.connect_to_server(server_ip, port);
     client.run_client();
   } catch (const std::runtime_error &e) {
-    std::cerr << "[ERROR] " << e.what() << std::endl;
+    std::cerr << "[ERROR]: " << e.what() << std::endl;
     return EXIT_FAILURE;
   }
     

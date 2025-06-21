@@ -59,19 +59,21 @@ void Client::run_client() {
   
   listener_thread = std::thread(&Client::receive_message, this);
   actions_thread = std::thread(&Client::handle_user_actions, this);
-  
-  if (listener_thread.joinable())
-    listener_thread.join();
+
   if (actions_thread.joinable())
     actions_thread.join();
+  if (listener_thread.joinable())
+    listener_thread.join();
 }
 
 /**
  * Disconnects from the server, closing the socket and updating the state.
  */
 void Client::disconnect() {
+  //std::lock_guard<std::mutex> lock(disconnect_mutex);
   if (is_connected) {
     is_connected = false;
+    shutdown(socket_fd, SHUT_RDWR); //close both socket sides
     close(socket_fd);
     TerminalView::display_message("[INFO]: Disconnected from the server.");
   }
@@ -105,6 +107,13 @@ void Client::receive_message() {
     } else if (received_bytes == 0) {
       TerminalView::display_message("[INFO]: Connection closed by the served.");
       disconnect();
+      break;
+    } else {
+      if (errno != EINTR) {
+        TerminalView::display_message("[ALERT]: Error receiving data. Disconnecting.");
+        disconnect();
+        break;
+      }
     }
   }
 }
@@ -366,10 +375,12 @@ void Client::left_room(std::string& user_input) {
  *
  */
 void Client::disconnect_user() {
+  if (!is_connected)
+    return;
+
   Message disconnect_msg = Message::create_disconnect_message();
   send_message(disconnect_msg.to_json());
   disconnect();
-  return;
 }
 
 /**

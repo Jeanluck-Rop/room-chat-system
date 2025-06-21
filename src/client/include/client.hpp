@@ -1,6 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <mutex>
 #include <string>
 #include <thread>
 #include <atomic>
