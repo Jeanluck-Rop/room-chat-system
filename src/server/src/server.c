@@ -231,7 +231,7 @@ void leave_room(Client *client, Message *incoming_message) {
   unmark_as_invited(client, roomname);
   Message *response = create_left_room_message(roomname, client->username);
   char *json_str = to_json(response);
-  broadcast_message(json_str, client->socket_fd);
+  broadcast_to_room(room_to_leave, json_str, client->socket_fd);
   free(json_str);
   free_message(response);
 }
