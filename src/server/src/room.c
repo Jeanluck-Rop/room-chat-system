@@ -57,6 +57,20 @@ void broadcast_to_room(Room *room, const char *message, int sender_socket) {
 }
 
 /* */
+void leave_room(Client *client, Room *room) {
+  if (!remove_client_from_room(room, client))
+    return;
+
+  unmark_as_invited(client, room->roomname);
+
+  Message *left_message = create_left_room_message(room->roomname, client->username);
+  char *json_str = to_json(left_message);
+  broadcast_to_room(room, json_str, client->socket_fd);
+  free(json_str);
+  free_message(left_message);
+}
+
+/* */
 bool is_member(const char *username, const char *roomname) {
   pthread_mutex_lock(&rooms_mutex);
   

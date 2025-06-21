@@ -16,6 +16,7 @@ typedef struct Room {
 
 void cleanup_empty_rooms();
 void broadcast_to_room(Room *room, const char *message, int sender_socket);
+void leave_room(Client *client, Room *room);
 bool is_member(const char *username, const char *roomname);
 Room *find_room(const char *roomname);
 bool remove_client_from_room(Room *room, Client *client);

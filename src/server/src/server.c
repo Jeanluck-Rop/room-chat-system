@@ -37,7 +37,7 @@ void handle_sigint(int sig) {
 void disconnect_client(Client *client) {
   if (!client)
     return;
-
+  
   // Protection added for avoiding multiple disconnections
   static pthread_mutex_t disconnect_mutex = PTHREAD_MUTEX_INITIALIZER;
   pthread_mutex_lock(&disconnect_mutex);
@@ -48,6 +48,35 @@ void disconnect_client(Client *client) {
   client->is_disconnected = true;
   pthread_mutex_unlock(&disconnect_mutex);
 
+  //Get client rooms
+  pthread_mutex_lock(&rooms_mutex);
+  Room *rooms_copy = NULL;
+  Room *current_room = rooms;
+  while (current_room) {
+    for (int i = 0; i < current_room->client_count; ++i) {
+      if (current_room->clients[i] == client) {
+	// Add room to copy list
+	Room *copy = malloc(sizeof(Room));
+	strncpy(copy->roomname, current_room->roomname, sizeof(copy->roomname));
+	copy->next = rooms_copy;
+	rooms_copy = copy;
+	break;
+      }
+    }
+    current_room = current_room->next;
+  }
+  pthread_mutex_unlock(&rooms_mutex);
+
+  // Leave client rooms
+  while (rooms_copy) {
+    Room *next = rooms_copy->next;
+    Room *actual_room = find_room(rooms_copy->roomname);
+    if (actual_room)
+      leave_room(client, actual_room);
+    free(rooms_copy);
+    rooms_copy = next;
+  }
+  
   if (strlen(client->username) > 0) {
     Message *client_disconnected = create_disconnected_message(client->username);
     char *json_str = to_json(client_disconnected);
@@ -78,6 +107,7 @@ void disconnect_client(Client *client) {
   client->invited_rooms = NULL;
   client->invited_count = 0;
   client->invited_capacity = 0;
+  
   close(client->socket_fd);
   free(client);
   cleanup_empty_rooms();
@@ -191,7 +221,7 @@ void invalid_response(Client *client, const char *result) {
 }
 
 /* */
-void leave_room(Client *client, Message *incoming_message) {
+void leave_room_message(Client *client, Message *incoming_message) {
   const char *roomname = get_roomname(incoming_message);
   if (!roomname || strcmp(roomname, "") == 0)
     return;
@@ -209,17 +239,7 @@ void leave_room(Client *client, Message *incoming_message) {
     return;
   }
 
-  if (!remove_client_from_room(room_to_leave, client)) {
-    printf("[ALERT] Could not remove [%s] from the room [%s].\n", client->username, roomname);
-    return;
-  }
-
-  unmark_as_invited(client, roomname);
-  Message *left_message = create_left_room_message(roomname, client->username);
-  char *json_str = to_json(left_message);
-  broadcast_to_room(room_to_leave, json_str, client->socket_fd);
-  free(json_str);
-  free_message(left_message);
+  leave_room(client, room_to_leave);
   cleanup_empty_rooms();
 }
 
@@ -614,7 +634,7 @@ bool client_actions(Client *client, Message *incoming_message) {
     room_text(client, incoming_message);
     break;
   case LEAVE_ROOM:
-    leave_room(client, incoming_message);
+    leave_room_message(client, incoming_message);
     break;
   case DISCONNECT:
     printf("[INFO]: Client [%s] disconnected.\n", client->username);
