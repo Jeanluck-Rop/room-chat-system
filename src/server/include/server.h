@@ -9,48 +9,45 @@
 #include <unistd.h>
 #include <stdbool.h> 
 #include <pthread.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
+
 #include "cJSON.h"
 #include "room.h"
 #include "message.h"
 
-/* Define a client struct to represents a connected client */
-typedef struct Client {
-  int socket_fd;       //Socket descriptor for the client's connection.
-  char username[9];    //Client username (maximum 8 characters + null terminator).
-  char status[10];     //Client status
-  struct Client *next; //Pointer to the next client in a linked list.
-  pthread_t thread;    //Thread associated with the client to handle its connection.
-  char **invited_rooms;
-  int invited_count;
-  int invited_capacity;
-  bool is_disconnected;
-} Client;
+/* Client struct to represent a connected client */
+typedef struct Client
+{
+  int socket_fd;          // Socket descriptor for the client's connection.
+  char status[10];        // Client status, ACTIVE, AWAY, BUSY.
+  char username[9];       // Client username (maximum 8 characters + null terminator).
+  pthread_t thread;       // Thread associated with the client to handle its connection.
+  int invited_count;      // Number of current invitations.
+  char **invited_rooms;   // List of roomnames the client WASs invited to
+  int invited_capacity;   // To allocate size memory for invitations list.
+  bool is_disconnected;   // For stop handling a connected client.
+  struct Client *next;    // Pointer to the next client in a linked list.
+}
+  Client;
 
-void print_message(const char *text, char type);
-void disconnect_client(Client *client);
+/**
+ * Sends a message to a specific client.
+ * If the client is disconnected or NULL, the function returns immediately.
+ * Logs an error and exits if sending the message fails.
+ *
+ * @param client Pointer to the target client.
+ * @param message The message string to send.
+ **/
 void send_message(Client *client, const char *message);
-void broadcast_message(const char *message,  int sender_socket);
-Client *find_client_by_username(const char *username);
-bool was_invited(Client *client, const char *roomname);
-void unmark_as_invited(Client *client, const char *roomname);
-bool mark_as_invited(Client *client, const char *roomname);
-void room_response(Client *client, const char *operation, const char *result, const char *roomname);
-void invalid_response(Client *client, const char *result);
-void leave_room_message(Client *client, Message *incoming_message);
-void room_text(Client *client, Message *incoming_message);
-void get_room_users(Client *client, Message *incoming_message);
-void join_room(Client *client, Message *incoming_message);
-void invite_guests(Client *client, Message *incoming_message);
-void new_room(Client *client, Message *incoming_message);
-void public_text(Client *client, Message *incoming_message);
-void private_text(Client *client, Message *incoming_message);
-void users_list(Client *client, Message *incoming_message);
-void change_status(Client *client, Message *incoming_message);
-bool handle_identify(Client *client, Message *incoming_message);
-bool client_actions(Client *client, Message *incoming_message);
-void *handle_client(void *arg);
-void server_cycle(int server_fd);
+
+/**
+ * Function to initialize and start the server on the specified port.
+ * This function creates the server socket, binds it to the port,
+ * starts listening, and enters the server loop to accept clients.
+ * Also sets up signal handling for clean termination.
+ *
+ * @param port Port number on which the server will listen for incoming connections.
+ **/
 void start_server(int port);
 
 #endif // SERVER_H
