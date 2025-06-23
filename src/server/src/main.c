@@ -14,7 +14,6 @@ int main(int num_args, char *argv[]) {
      fprintf(stderr, "Invalid port.\n Valid ports between 1024 and 49151");
      return EXIT_FAILURE; 
   }
-
   printf("Starting server at the port %d:\n", port);
   signal(SIGPIPE, SIG_IGN); //handle send(), avoiding killing the server by an issue and instead handle it as -1 or errno
   start_server(port);
