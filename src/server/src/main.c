@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "server.h"
 
 int main(int num_args, char *argv[]) {
