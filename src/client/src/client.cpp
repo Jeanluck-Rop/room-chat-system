@@ -1,12 +1,8 @@
 #include "client.hpp"
-#include "message.hpp"
-#include "view.hpp"
 
-/**
- * Returns the singleton instance of the Client class.
- * Ensures that only one instance of the client exists during the lifetime of the application.
- */
-Client& Client::instance() {
+/* Returns the singleton instance of the Client class */
+Client& Client::instance()
+{
   static Client instance;
   return instance;
 }
@@ -15,33 +11,34 @@ Client& Client::instance() {
 Client::Client() : socket_fd(-1), is_connected(false) {}
 
 /* Destructor: Ensures proper cleanup by disconnecting if still connected */
-Client::~Client() {
+Client::~Client()
+{
   if (is_connected)
     disconnect();
 }
 
 /**
- * Establishes a connection to the specified server.
+ * Establishes a connection to the server at the specified IP and port.
+ *
  * @param server_ip The IP address of the server to connect to.
  * @param port The port number of the server to connect to.
  * @return true if the connection is successful, otherwise throws an exception.
  * @throws std::runtime_error if socket creation, IP conversion, or connection fails.
- */
-bool Client::connect_to_server(const std::string& server_ip, int port) {
-  // Create a TCP socket
+ **/
+bool Client::connect_to_server(const std::string& server_ip, int port)
+{
+  //Create a TCP socket
   socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd == -1)
     throw std::runtime_error("Failed to create socket.");
-
-  // Setup server address structure
+  
+  //Setup server address structure
   sockaddr_in server_address{};
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port);
-
-  // Convert server IP address to binary format
+  //Convert server IP address to binary format
   if (inet_pton(AF_INET, server_ip.c_str(), &server_address.sin_addr) <= 0)
     throw std::runtime_error("Invalid server IP address.");
-
   if (connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
     throw std::runtime_error("Failed to connect to the server.");
 
@@ -51,15 +48,13 @@ bool Client::connect_to_server(const std::string& server_ip, int port) {
 
 /**
  * Starts the client application by initializing threads for listening and user actions.
- * Ensures threads are properly joined before exiting.
- */
-void Client::run_client() {
+ **/
+void Client::run_client()
+{
   TerminalView::display_message("[INFO]: Successfully connected to the server.");
   TerminalView::display_message("[INFO]: You must identify yourself before accessing the chat: /id=<username>");
-  
   listener_thread = std::thread(&Client::receive_message, this);
-  actions_thread = std::thread(&Client::handle_user_actions, this);
-
+  actions_thread = std::thread(&Client::user_actions, this);
   if (actions_thread.joinable())
     actions_thread.join();
   if (listener_thread.joinable())
@@ -67,14 +62,17 @@ void Client::run_client() {
 }
 
 /**
- * Disconnects from the server, closing the socket and updating the state.
- */
-void Client::disconnect() {
+ * Disconnects the client gracefully from the server.
+ **/
+void Client::disconnect()
+{
+  static std::mutex disconnect_mutex;
+  std::lock_guard<std::mutex> lock(disconnect_mutex);  //Ensure only one thread disconnects
+  
   if (!is_connected)
     return;
- 
   is_connected = false;
-  shutdown(socket_fd, SHUT_RDWR); //close both socket sides
+  shutdown(socket_fd, SHUT_RDWR); //Close both socket sides
   if (socket_fd != -1)
     close(socket_fd);
   socket_fd = -1;
@@ -83,9 +81,11 @@ void Client::disconnect() {
 
 /**
  * Signal handler for handling interruptions like Ctrl+C.
+ *
  * @param signal The signal number received.
- */
-void Client::signal_handler(int signal) {
+ **/
+void Client::signal_handler(int signal)
+{
   if (signal == SIGINT) {
     TerminalView::display_message("\n[INFO]: Interruption received. Disconnecting...");
     instance().disconnect();
@@ -94,20 +94,19 @@ void Client::signal_handler(int signal) {
 }
 
 /**
- * Listens for messages from the server in a loop.
- * Processes and parses received messages using the Message class that uses a json protocol.
- */
-void Client::receive_message() {
+ * Listens and parses incoming messages from the server in a loop.
+ **/
+void Client::receive_message()
+{
   char buffer[1024];
-  
   while (is_connected) {
     ssize_t received_bytes = recv(socket_fd, buffer, sizeof(buffer) - 1, 0);
     if (received_bytes > 0) {
       buffer[received_bytes] = '\0';
       std::string raw_message(buffer);
-      handle_message_received(raw_message);
+      handle_message(raw_message);
     } else if (received_bytes == 0) {
-      TerminalView::display_message("[INFO]: Connection closed by the served.");
+      TerminalView::display_message("[INFO]: Connection closed by the server.");
       disconnect();
       break;
     } else {
@@ -121,75 +120,67 @@ void Client::receive_message() {
 }
 
 /**
- * Sends a message to the server.
- * @param message The message content to be sent.
- */
-void Client::send_message(const std::string& message) {
-  if (is_connected)
-    if (send(socket_fd, message.c_str(), message.size(), 0) < 0)
-      TerminalView::display_error("[ERROR]: Failed to send message.");
-}
-
-/**
- * Handles a response message received from the server.
- * Determines the operation type and reacts accordingcit.
+ * Processes a parsed Message object received from the server.
+ *
  * @param incoming_msg a parsed Message object containing operation and result info.
- */
-void Client::handle_response(const Message& incoming_msg) {
+ **/
+void Client::handle_response(const Message& incoming_msg)
+{
   std::string operation = incoming_msg.get_operation();
   std::string result = incoming_msg.get_result();
+  std::string extra = incoming_msg.get_extra()
 
   if (operation == "IDENTIFY") {
     if (result == "SUCCESS") {
       TerminalView::display_message("[INFO]: Successful identification. Welcome to the chat!");
-      TerminalView::display_message("[INFO]: Type '/commands=' to see full commands chat.");
+      TerminalView::display_message("[INFO]: Type '/commands=' to see full chat commands.");
     }
     else if (result == "USER_ALREADY_EXISTS") {
-      TerminalView::display_message("[ALERT]: Username '" + incoming_msg.get_extra() + "' already exists. Disconnecting...");
+      TerminalView::display_message("[ALERT]: Username '" + extra + "' already exists. Disconnecting...");
       disconnect();
       return;
     }
   }
 
   if (operation == "TEXT")
-    TerminalView::display_message("[INFO]: User '" + incoming_msg.get_extra() + "' not found.");
+    TerminalView::display_message("[INFO]: User '" + extra + "' not found.");
 
   if (operation == "NEW_ROOM") {
     if (result == "SUCCESS")
-      TerminalView::display_message("[INFO]: Room '" + incoming_msg.get_extra() + "' successfully created.");
+      TerminalView::display_message("[INFO]: Room '" + extra + "' successfully created.");
     else if (result == "ROOM_ALREADY_EXISTS")
-      TerminalView::display_message("[INFO]: Room '" + incoming_msg.get_extra() + "' already exist.");
+      TerminalView::display_message("[INFO]: Room '" + extra + "' already exist.");
   }
 
   if (operation == "INVITE") {
     if (result == "NO_SUCH_ROOM")
-      TerminalView::display_message("[INFO]: Room '" + incoming_msg.get_extra() + "' does not exist.");
+      TerminalView::display_message("[INFO]: Room '" + extra + "' does not exist.");
     else if (result == "NO_SUCH_USER")
-      TerminalView::display_message("[INFO]: User '" + incoming_msg.get_extra() + "' not found.");
+      TerminalView::display_message("[INFO]: User '" + extra + "' not found.");
     else if (result == "NOT_JOINED")
-      TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + incoming_msg.get_extra() + ".");
+      TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + extra + ".");
     else if (result == "SELF_INVITE")
       TerminalView::display_message("[INFO]: You can not invite yourself to a room.");
     else if (result == "ALREADY_MEMBER_OR_INVITED")
-      TerminalView::display_message("[INFO]: User: " + incoming_msg.get_extra() + " already invited or member.");
+      TerminalView::display_message("[INFO]: User: " + extra + " already invited or member.");
   }
 
   if (operation == "JOIN_ROOM") {
     if (result == "SUCCESS")
-      TerminalView::display_message("[INFO]: Successfully joined to the room: " + incoming_msg.get_extra() + ".");
+      TerminalView::display_message("[INFO]: Successfully joined to the room: " + extra + ".");
     else if (result == "NO_SUCH_ROOM")
-      TerminalView::display_message("[INFO]: Room '" + incoming_msg.get_extra() + "' does not exist.");
+      TerminalView::display_message("[INFO]: Room '" + extra + "' does not exist.");
     else if (result == "NOT_INVITED")
-      TerminalView::display_message("[INFO]: You have not been invited to the room: " + incoming_msg.get_extra() + ".");
+      TerminalView::display_message("[INFO]: You have not been invited to the room: " + extra + ".");
     else if (result == "ALREADY_MEMBER ")
-      TerminalView::display_message("[INFO]: You have already joined the room: " + incoming_msg.get_extra() + ".");
+      TerminalView::display_message("[INFO]: You have already joined the room: " + extra + ".");
   }
 
   if (operation == "ROOM_USERS" || operation == "ROOM_TEXT" || operation == "LEAVE_ROOM") {
     if (result == "NO_SUCH_ROOM")
-      TerminalView::display_message("[INFO]: Room '" + incoming_msg.get_extra() + "' does not exist.");
+      TerminalView::display_message("[INFO]: Room '" + extra + "' does not exist.");
     else if (result == "NOT_JOINED")
-      TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + incoming_msg.get_extra() + ".");
+      TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + extra + ".");
   }
   
   if (operation == "INVALID") {
@@ -206,11 +197,12 @@ void Client::handle_response(const Message& incoming_msg) {
 }
 
 /**
- * Parses a raw JSON-formatted message string received from the server
- * and delegates handling based on its message type.
+ * Parses and routes an incoming raw JSON-formatted message string received from the server.
+ *
  * @param raw_message the raw JSON string received from the server.
- */
-void Client::handle_message_received(const std::string& raw_message) {
+ **/
+void Client::handle_message(const std::string& raw_message)
+{
   // Parse the incoming message
   Message incoming_msg;
   if (incoming_msg.parse(raw_message)) {
@@ -259,158 +251,10 @@ void Client::handle_message_received(const std::string& raw_message) {
 }
 
 /**
- *
- */
-bool Client::check_id(std::string& user_input) {
-  if (user_input.rfind("/id=", 0) == 0) {
-    std::string username = user_input.substr(4);
-    if (username.length() > 8 || username.length() < 1) {
-      TerminalView::display_message("[ALERT]: Invalid username. Disconnecting...");
-      return false;
-    }
-    Message identify_msg = Message::create_identify_message(username);
-    send_message(identify_msg.to_json());
-    return true;
-  }
-  TerminalView::display_message("[ALERT]: You must identify yourself before accessing the chat. Disconnecting...");
-  return false;
-}
-
-/**
- *
- */
-void Client::change_status(std::string& user_input) {
-  std::string status = user_input.substr(8);
-  if (status == "AWAY" || status == "ACTIVE" || status == "BUSY") {
-    Message status_msg = Message::create_status_message(status);
-    send_message(status_msg.to_json());
-    TerminalView::display_message("[INFO]: Your status succesfully changed to " + status + ".");
-  } else
-    TerminalView::display_message("[INFO]: Invalid status. Options are: AWAY, ACTIVE, or BUSY.");
-}
-
-/**
- *
- */
-void Client::direct_message(std::string& user_input) {
-  size_t message_detector = user_input.find(':');
-  if (message_detector != std::string::npos) {
-    std::string target_username = user_input.substr(4, message_detector - 4);
-    std::string message_text = user_input.substr(message_detector + 1);
-    Message private_msg = Message::create_private_text_message(target_username, message_text);
-    send_message(private_msg.to_json());
-  } else
-    TerminalView::display_message("[INFO]: Incorrect usage of /dm=<username>:<message>");
-}
-
-/**
- *
- */
-void Client::new_room(std::string& user_input) {
-  std::string roomname = user_input.substr(10);
-  if (roomname.length() > 16 || roomname.length() < 3) {
-    TerminalView::display_message("[INFO]: Invalid room name.");
-    return;
-  }
-  Message new_room_msg = Message::create_new_room_message(roomname);
-  send_message(new_room_msg.to_json());
-}
-
-/**
- *
- */
-void Client::invite_users(std::string& user_input) {
-  size_t roomname_detector = user_input.find(':');
-  if (roomname_detector != std::string::npos) {
-    std::string raw_usernames = user_input.substr(8, roomname_detector - 8);
-    std::string target_roomname = user_input.substr(roomname_detector + 1);
-    std::vector<std::string> usernames; //Vector to store the parsed usernames
-    std::stringstream stringstream(raw_usernames); //stringstream with raw usernames string to enable splitting
-    std::string username; //Temp string to hold each extracted username
-    //Loop for extract usernames separated by ';'
-    while (std::getline(stringstream, username, ';'))
-      if (!username.empty()) usernames.push_back(username);
-    Message invitation = Message::create_invite_message(target_roomname, usernames);
-    send_message(invitation.to_json());
-  } else {
-    TerminalView::display_message("[INFO] Incorrect usage of /invite= \n");
-    TerminalView::display_message("Usee: /invite=<username_1>;<username_2>;<username_3>:<roomname>");
-  }
-}
-
-/**
- *
- */
-void Client::join_room(std::string& user_input) {
-  std::string roomname = user_input.substr(11);
-  if (roomname.length() > 16 || roomname.length() < 1) {
-    TerminalView::display_message("[INFO]: Invalid roomname.");
-    return;
-  }
-  Message join_room_msg = Message::create_join_room_message(roomname);
-  send_message(join_room_msg.to_json());
-}
-
-/**
- *
- */
-void Client::room_users(std::string& user_input) {
-  std::string roomname = user_input.substr(12);
-  if (roomname.length() > 16 || roomname.length() < 1) {
-    TerminalView::display_message("[INFO]: Invalid roomname.");
-    return;
-  }
-  Message room_users_msg = Message::create_room_users_message(roomname);
-  send_message(room_users_msg.to_json());
-}
-
-/**
- *
- */
-void Client::room_text(std::string& user_input) {
-  size_t message_detector = user_input.find(':');
-  if (message_detector != std::string::npos) {
-    std::string target_roomname = user_input.substr(11, message_detector - 11);
-    if (target_roomname.length() > 16 || target_roomname.length() < 1) {
-      TerminalView::display_message("[ALERT]: Invalid roomname.");
-      return;
-    }
-    std::string message_text = user_input.substr(message_detector + 1);
-    Message room_msg = Message::create_room_text_message(target_roomname, message_text);
-    send_message(room_msg.to_json());
-  } else
-    TerminalView::display_message("[INFO] Incorrect usage of /room_text=<roomname>:<message>");
-}
-
-/**
- *
- */
-void Client::leave_room(std::string& user_input) {
-  std::string roomname = user_input.substr(12);
-  if (roomname.length() > 16 || roomname.length() < 1) {
-    TerminalView::display_message("[INFO]: Invalid roomname.");
-    return;
-  }
-  Message leave_room_msg = Message::create_leave_room_message(roomname);
-  send_message(leave_room_msg.to_json());
-}
-
-/**
- *
- */
-void Client::disconnect_user() {
-  if (!is_connected)
-    return;
-
-  Message disconnect_msg = Message::create_disconnect_message();
-  send_message(disconnect_msg.to_json());
-  disconnect();
-}
-
-/**
  * Handles user input and actions, including identification and chat interactions.
- */
-void Client::handle_user_actions() {
+ **/
+void Client::user_actions()
+{
   bool identified = false;
   
   while (is_connected) {  
@@ -455,4 +299,198 @@ void Client::handle_user_actions() {
       send_message(public_msg.to_json());
     }
   }
+}
+
+/**
+ * Validates  the user-provided ID format and availability.
+ *
+ * @param user_input Command input from the user.
+ * @return true if the ID is valid and sent, false otherwise.
+ **/
+bool Client::check_id(std::string& user_input)
+{
+  if (user_input.rfind("/id=", 0) != 0) {
+    TerminalView::display_message("[ALERT]: You must identify yourself before accessing the chat. Disconnecting...");
+    return false;
+  }
+  std::string username = user_input.substr(4);
+  if (username.length() > 8 || username.length() < 2) {
+    TerminalView::display_message("[ALERT]: Invalid username. Disconnecting...");
+    return false;
+  }
+  Message identify_msg = Message::create_identify_message(username);
+  send_message(identify_msg.to_json());
+  return true;
+}
+
+/**
+ * Sends a request for change the client's status.
+ *
+ * @param user_input Command input from the user.
+**/
+void Client::change_status(std::string& user_input)
+{
+  std::string status = user_input.substr(8);
+  if (status != "AWAY" || status != "ACTIVE" || status != "BUSY") {
+    TerminalView::display_message("[INFO]: Invalid status. Options are: AWAY, ACTIVE, or BUSY.");
+    return
+  }
+  Message status_msg = Message::create_status_message(status);
+  send_message(status_msg.to_json());
+  TerminalView::display_message("[INFO]: Your status succesfully changed to " + status + ".");
+}
+
+/**
+ * Sends a private message to the target user.
+ *
+ * @param user_input Command input from the user.
+ **/
+void Client::direct_message(std::string& user_input)
+{
+  size_t message_detector = user_input.find(':');
+  if (message_detector == std::string::npos) {
+    TerminalView::display_message("[INFO]: Incorrect usage of /dm=");
+    TerminalView::display_message("Use: /dm=<username>:<message>");
+    return;
+  }
+  std::string target_username = user_input.substr(4, message_detector - 4);
+  std::string message_text = user_input.substr(message_detector + 1);
+  Message private_msg = Message::create_private_text_message(target_username, message_text);
+  send_message(private_msg.to_json());
+}
+
+/**
+ * Sends a request for create a new chat room.
+ *
+ * @param user_input Command input from the user.
+ **/
+void Client::new_room(std::string& user_input)
+{
+  std::string roomname = user_input.substr(10);
+  if (roomname.length() > 16 || roomname.length() < 3) {
+    TerminalView::display_message("[INFO]: Invalid room name.");
+    return;
+  }
+  Message new_room_msg = Message::create_new_room_message(roomname);
+  send_message(new_room_msg.to_json());
+}
+
+/**
+ * Sends an invitation to multiple users to join a specific room.
+ *
+ * @param user_input Command input from the user.
+ **/
+void Client::invite_users(std::string& user_input)
+{
+  size_t roomname_detector = user_input.find(':');
+  if (roomname_detector != std::string::npos) {
+    std::string raw_usernames = user_input.substr(8, roomname_detector - 8);
+    std::string target_roomname = user_input.substr(roomname_detector + 1);
+    std::vector<std::string> usernames; //Vector to store the parsed usernames
+    std::stringstream stringstream(raw_usernames); //stringstream with raw usernames string to enable splitting
+    std::string username; //Temp string to hold each extracted username
+    //Loop for extract usernames separated by ';'
+    while (std::getline(stringstream, username, ';'))
+      if (!username.empty()) usernames.push_back(username);
+    Message invitation = Message::create_invite_message(target_roomname, usernames);
+    send_message(invitation.to_json());
+  } else {
+    TerminalView::display_message("[INFO] Incorrect usage of /invite=");
+    TerminalView::display_message("Use: /invite=<username_1>;<username_2>;<username_3>:<roomname>");
+  }
+}
+
+/**
+ * Sends a request to join a specific chat room.
+ *
+ * @param user_input Command input from user.
+ **/
+void Client::join_room(std::string& user_input)
+{
+  std::string roomname = user_input.substr(11);
+  if (roomname.length() > 16 || roomname.length() < 3) {
+    TerminalView::display_message("[INFO]: Invalid room name.");
+    return;
+  }
+  Message join_room_msg = Message::create_join_room_message(roomname);
+  send_message(join_room_msg.to_json());
+}
+
+/**
+ * Sends a request to lists currently users in a chat room.
+ *
+ * @param user_input Command input from the user.
+ **/
+void Client::room_users(std::string& user_input)
+{
+  std::string roomname = user_input.substr(12);
+  if (roomname.length() > 16 || roomname.length() < 3) {
+    TerminalView::display_message("[INFO]: Invalid room name.");
+    return;
+  }
+  Message room_users_msg = Message::create_room_users_message(roomname);
+  send_message(room_users_msg.to_json());
+}
+
+/**
+ * Sends a message to all users in the specific room.
+ *
+ * @param user_input Command input from the user.
+ **/
+void Client::room_text(std::string& user_input)
+{
+  size_t message_detector = user_input.find(':');
+  if (message_detector == std::string::npos) {
+    TerminalView::display_message("[INFO] Incorrect usage of /room_text=");
+     TerminalView::display_message("Use: /room_text=<roomname>:<message>");
+    return;
+  }
+  std::string target_roomname = user_input.substr(11, message_detector - 11);
+  if (target_roomname.length() > 16 || target_roomname.length() < 3) {
+    TerminalView::display_message("[ALERT]: Invalid roomname.");
+    return;
+  }
+  std::string message_text = user_input.substr(message_detector + 1);
+  Message room_msg = Message::create_room_text_message(target_roomname, message_text);
+  send_message(room_msg.to_json());
+}
+
+/**
+ * Sends a request to leave a specific room.
+ *
+ * @param user_input Command input from the user.
+ **/
+void Client::leave_room(std::string& user_input)
+{
+  std::string roomname = user_input.substr(12);
+  if (roomname.length() > 16 || roomname.length() < 3) {
+    TerminalView::display_message("[INFO]: Invalid roomname.");
+    return;
+  }
+  Message leave_room_msg = Message::create_leave_room_message(roomname);
+  send_message(leave_room_msg.to_json());
+}
+
+/**
+ * Sends a disconnect message to the server and closes the connection.
+ **/
+void Client::disconnect_user()
+{
+  if (!is_connected)
+    return;
+  Message disconnect_msg = Message::create_disconnect_message();
+  send_message(disconnect_msg.to_json());
+  disconnect();
+}
+
+/**
+ * Sends a message to the server.
+ *
+ * @param message The message content to be sent.
+ **/
+void Client::send_message(const std::string& message)
+{
+  if (is_connected)
+    if (send(socket_fd, message.c_str(), message.size(), 0) < 0)
+      TerminalView::display_error("[ERROR]: Failed to send message.");
 }

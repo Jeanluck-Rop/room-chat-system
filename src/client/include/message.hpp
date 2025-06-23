@@ -1,5 +1,4 @@
-#ifndef MESSAGE_HPP
-#define MESSAGE_HPP
+#pragma once
 
 #include <vector>
 #include <string>
@@ -65,5 +64,3 @@ private:
   // Auxiliar method to determine message type
   Type parse_type(const std::string& type_str) const;
 };
-
-#endif // MESSAGE_HPP

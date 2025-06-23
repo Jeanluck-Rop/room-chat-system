@@ -1,6 +1,7 @@
-#include <iostream>
-#include <csignal> // For handling signals like SIGINT
 #include <memory> // For using smart pointers like std::unique_ptr
+#include <csignal> // For handling signals like SIGINT
+#include <iostream>
+
 #include "client.hpp"
 
 /* */
