@@ -21,6 +21,14 @@ string TerminalView::get_user_input()
 }
 
 /**
+ * Prints the list of chat commands.
+ **/
+void TerminalView::print_commands()
+{
+  cout << COMMANDS << endl;
+}
+
+/**
  * Prints an informational message.
  *
  * @param text The message content to display.

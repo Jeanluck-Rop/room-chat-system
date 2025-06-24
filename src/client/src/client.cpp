@@ -269,7 +269,9 @@ void Client::user_actions()
       identified = true;
       continue;
     } 
-    
+
+    if (user_input.rfind("--comms", 0) == 0)
+      TerminalView::print_commands();
     if (user_input.rfind("--status", 0) == 0)
       change_status(user_input);
     else if (user_input.rfind("--users", 0) == 0) {

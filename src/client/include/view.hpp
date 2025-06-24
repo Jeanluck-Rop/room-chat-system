@@ -25,6 +25,11 @@ public:
   static std::string get_user_input();
 
   /**
+   * Prints the list of chat commands.
+   **/
+  static void print_commands();
+
+  /**
    * Prints an informational message.
    *
    * @param text The message content to display.
@@ -117,4 +122,30 @@ private:
   static constexpr const char* PRIVATE = "\033[38;5;27m";
   /* ANSI color code for room-related messages */
   static constexpr const char* ROOM    = "\033[38;5;127m";
+
+  /* String to print chat commands */
+  static constexpr const char* COMMANDS =
+    "\033[38;5;105m   * Client commands for the chat *\n"
+    "\033[38;5;105m\u2022 --comms\033[38;5;105m\n"
+    "\t Show this list of available commands.\n"
+    "\033[38;5;105m\u2022 --status <AWAY|ACTIVE|BUSY>\033[38;5;105m\n"
+    "\t Change your current status.\n"
+    "\033[38;5;105m\u2022 --users\033[38;5;105m\n"
+    "\t Show the list of connected users.\n"
+    "\033[38;5;105m\u2022 --dm <target_user> :<message>\033[38;5;105m\n"
+    "\t Send a direct (private) message to a user.\n"
+    "\033[38;5;105m\u2022 --new <roomname>\033[38;5;105m\n"
+    "\t Create a new room.\n"
+    "\033[38;5;105m\u2022 --invite <user1>;<user2> : <room>\033[38;5;105m\n"
+    "\t Invite users to a room.\n"
+    "\033[38;5;105m\u2022 --join <roomname>\033[38;5;105m\n"
+    "\t Join an existing room.\n"
+    "\033[38;5;105m\u2022 --roomies <roomname>\033[38;5;105m\n"
+    "\t Show users in the specified room.\n"
+    "\033[38;5;105m\u2022 --textroom <roomname> :<message>\033[38;5;105m\n"
+    "\t Send a message to a room.\n"
+    "\033[38;5;105m\u2022 --leave <roomname>\033[38;5;105m\n"
+    "\t Leave a room you are in.\n"
+    "\033[38;5;105m\u2022 --exit\033[38;5;105m\n"
+    "\t Disconnect from the chat server. \033[0m";
 };
