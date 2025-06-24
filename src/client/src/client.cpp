@@ -41,7 +41,6 @@ bool Client::connect_to_server(const std::string& server_ip, int port)
     throw std::runtime_error("Invalid server IP address.");
   if (connect(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0)
     throw std::runtime_error("Failed to connect to the server.");
-
   is_connected = true;
   return true;
 }
@@ -51,8 +50,8 @@ bool Client::connect_to_server(const std::string& server_ip, int port)
  **/
 void Client::run_client()
 {
-  TerminalView::display_message("[INFO]: Successfully connected to the server.");
-  TerminalView::display_message("[INFO]: You must identify yourself before accessing the chat: /id=<username>");
+  TerminalView::print_info("Successfully connected to the server");
+  TerminalView::print_info("You must identify yourself before accessing the chat with: /id=<username>");
   listener_thread = std::thread(&Client::receive_message, this);
   actions_thread = std::thread(&Client::user_actions, this);
   if (actions_thread.joinable())
@@ -67,8 +66,7 @@ void Client::run_client()
 void Client::disconnect()
 {
   static std::mutex disconnect_mutex;
-  std::lock_guard<std::mutex> lock(disconnect_mutex);  //Ensure only one thread disconnects
-  
+  std::lock_guard<std::mutex> lock(disconnect_mutex); //Ensure only one thread disconnects
   if (!is_connected)
     return;
   is_connected = false;
@@ -76,7 +74,7 @@ void Client::disconnect()
   if (socket_fd != -1)
     close(socket_fd);
   socket_fd = -1;
-  TerminalView::display_message("[INFO]: Disconnected from the server.");
+  TerminalView::print_info("Disconnected from the server");
 }
 
 /**
@@ -87,7 +85,7 @@ void Client::disconnect()
 void Client::signal_handler(int signal)
 {
   if (signal == SIGINT) {
-    TerminalView::display_message("\n[INFO]: Interruption received. Disconnecting...");
+    TerminalView::print_info("\nInterruption received, disconnecting..");
     instance().disconnect();
     exit(EXIT_SUCCESS);
   }
@@ -106,12 +104,12 @@ void Client::receive_message()
       std::string raw_message(buffer);
       handle_message(raw_message);
     } else if (received_bytes == 0) {
-      TerminalView::display_message("[INFO]: Connection closed by the server.");
+      TerminalView::print_server("Connection closed by the server.");
       disconnect();
       break;
     } else {
       if (errno != EINTR) {
-        TerminalView::display_message("[ALERT]: Error receiving data. Disconnecting.");
+        TerminalView::print_error("Error receiving data, disconnecting..");
         disconnect();
         break;
       }
@@ -128,68 +126,68 @@ void Client::handle_response(const Message& incoming_msg)
 {
   std::string operation = incoming_msg.get_operation();
   std::string result = incoming_msg.get_result();
-  std::string extra = incoming_msg.get_extra()
+  std::string extra = incoming_msg.get_extra();
 
   if (operation == "IDENTIFY") {
     if (result == "SUCCESS") {
-      TerminalView::display_message("[INFO]: Successful identification. Welcome to the chat!");
-      TerminalView::display_message("[INFO]: Type '/commands=' to see full chat commands.");
+      TerminalView::print_server("* Welcome to the chat! *");
+      TerminalView::print_info("Type --comms to see full chat commands");
     }
     else if (result == "USER_ALREADY_EXISTS") {
-      TerminalView::display_message("[ALERT]: Username '" + extra + "' already exists. Disconnecting...");
+      TerminalView::print_invalid("Username [" + extra + "] already exists, disconnecting...");
       disconnect();
       return;
     }
   }
 
   if (operation == "TEXT")
-    TerminalView::display_message("[INFO]: User '" + extra + "' not found.");
+    TerminalView::print_fail("User [" + extra + "] not found.");
 
   if (operation == "NEW_ROOM") {
     if (result == "SUCCESS")
-      TerminalView::display_message("[INFO]: Room '" + extra + "' successfully created.");
+      TerminalView::print_success("Room [" + extra + "] successfully created.");
     else if (result == "ROOM_ALREADY_EXISTS")
-      TerminalView::display_message("[INFO]: Room '" + extra + "' already exist.");
+      TerminalView::print_fail("Room [" + extra + "] already exist");
   }
 
   if (operation == "INVITE") {
     if (result == "NO_SUCH_ROOM")
-      TerminalView::display_message("[INFO]: Room '" + extra + "' does not exist.");
+      TerminalView::print_fail("Room [" + extra + "] does not exist.");
     else if (result == "NO_SUCH_USER")
-      TerminalView::display_message("[INFO]: User '" + extra + "' not found.");
+      TerminalView::print_fail("User [" + extra + "] not found.");
     else if (result == "NOT_JOINED")
-      TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + extra + ".");
+      TerminalView::print_server("You have not been joined or invited to the room [" + extra + "].");
     else if (result == "SELF_INVITE")
-      TerminalView::display_message("[INFO]: You can not invite yourself to a room.");
+      TerminalView::print_server("You can not invite yourself to a room.");
     else if (result == "ALREADY_MEMBER_OR_INVITED")
-      TerminalView::display_message("[INFO]: User: " + extra + " already invited or member.");
+      TerminalView::print_server("User [" + extra + "] already invited or member.");
   }
 
   if (operation == "JOIN_ROOM") {
     if (result == "SUCCESS")
-      TerminalView::display_message("[INFO]: Successfully joined to the room: " + extra + ".");
+      TerminalView::print_success("Successfully joined to the room [" + extra + "].");
     else if (result == "NO_SUCH_ROOM")
-      TerminalView::display_message("[INFO]: Room '" + extra + "' does not exist.");
+      TerminalView::print_server("Room [" + extra + "] does not exist.");
     else if (result == "NOT_INVITED")
-      TerminalView::display_message("[INFO]: You have not been invited to the room: " + extra + ".");
+      TerminalView::print_server("You have not been invited to the room [" + extra + "].");
     else if (result == "ALREADY_MEMBER ")
-      TerminalView::display_message("[INFO]: You have already joined the room: " + extra + ".");
+      TerminalView::print_server("You have already joined the room [" + extra + "].");
   }
 
   if (operation == "ROOM_USERS" || operation == "ROOM_TEXT" || operation == "LEAVE_ROOM") {
     if (result == "NO_SUCH_ROOM")
-      TerminalView::display_message("[INFO]: Room '" + extra + "' does not exist.");
+      TerminalView::print_fail("Room [" + extra + "] does not exist.");
     else if (result == "NOT_JOINED")
-      TerminalView::display_message("[INFO]: You have not been joined or invited to the room: " + extra + ".");
+      TerminalView::print_server("You have not been joined or invited to the room [" + extra + "].");
   }
   
   if (operation == "INVALID") {
     if (result == "NOT_IDENTIFIED") {
-      TerminalView::display_message("[ALERT]: Not identified. Disconnecting...");
+      TerminalView::print_invalid("Not identified, disconnecting...");
       disconnect();
       return;
     } else if (result == "INVALID") {
-      TerminalView::display_message("[ALERT]: Invalid operation. Disconnecting...");
+      TerminalView::print_invalid("Invalid operation, disconnecting...");
       disconnect_user();
       return;
     }
@@ -212,40 +210,40 @@ void Client::handle_message(const std::string& raw_message)
       handle_response(incoming_msg);
       break;
     case Message::Type::NEW_USER:
-      TerminalView::display_message("[INFO]: " + incoming_msg.get_username() + " joined the chat.");
+      TerminalView::print_server(incoming_msg.get_username() + " joined the chat.");
       break;
     case Message::Type::NEW_STATUS:
-      TerminalView::display_message("[INFO]: " + incoming_msg.get_username() + " changed status to " + incoming_msg.get_status() + ".");
+      TerminalView::print_server(incoming_msg.get_username() + " changed status to " + incoming_msg.get_status() + ".");
       break;
     case Message::Type::TEXT_FROM:
-      TerminalView::display_message("[PRIVATE] (" + incoming_msg.get_username() + "): " + incoming_msg.get_text());
+      TerminalView::print_private(incoming_msg.get_username(), incoming_msg.get_text());
       break;
     case Message::Type::PUBLIC_TEXT_FROM:
-      TerminalView::display_message("[PUBLIC] (" + incoming_msg.get_username() + "): " + incoming_msg.get_text());
+      TerminalView::print_public(incoming_msg.get_username(), incoming_msg.get_text());
       break;
     case Message::Type::USER_LIST:
-      TerminalView::display_message("\n[USERS LIST]:\n" + incoming_msg.get_users());
+      TerminalView::print_use("\n[USERS LIST]:\n" + incoming_msg.get_users());
       break;
     case Message::Type::INVITATION:
-      TerminalView::display_message("[INFO]: " + incoming_msg.get_username() + " invited you to the room: " + incoming_msg.get_roomname() + ".");
+      TerminalView::print_server(incoming_msg.get_username() + " invited you to the room [" + incoming_msg.get_roomname() + "].");
       break;
     case Message::Type::JOINED_ROOM:
-      TerminalView::display_message("[" + incoming_msg.get_roomname()  + "]: " + incoming_msg.get_username() + " joined the room.");
+      TerminalView::print_room("[" + incoming_msg.get_roomname() + "]: " + incoming_msg.get_username() + " joined the room.");
       break;
     case Message::Type::ROOM_USER_LIST:
-      TerminalView::display_message("\n[" + incoming_msg.get_roomname()  + " USERS LIST]:\n" + incoming_msg.get_users());
+      TerminalView::print_room("\n[" + incoming_msg.get_roomname()  + " USERS LIST]:\n" + incoming_msg.get_users());
       break;
     case Message::Type::ROOM_TEXT_FROM:
-      TerminalView::display_message("[" + incoming_msg.get_roomname()  + "] (" + incoming_msg.get_username() + "): " + incoming_msg.get_text());
+      TerminalView::print_room("[" + incoming_msg.get_roomname() + "] " + "(" + incoming_msg.get_username() + "): " + incoming_msg.get_text());
       break;
     case Message::Type::LEFT_ROOM:
-      TerminalView::display_message("[" + incoming_msg.get_roomname()  + "]: " + incoming_msg.get_username() + " left the room.");
+      TerminalView::print_room("[" + incoming_msg.get_roomname()  + "]: " + incoming_msg.get_username() + " left the room.");
       break;
     case Message::Type::DISCONNECTED:
-      TerminalView::display_message("[INFO]: " + incoming_msg.get_username() + " disconnected from the chat.");
+      TerminalView::print_server(incoming_msg.get_username() + " disconnected from the chat.");
       break;
     default:
-      TerminalView::display_message("[ALERT]: Unknown message type received.");
+      TerminalView::print_info("Unknown message type received");
     }
   }
 }
@@ -274,10 +272,10 @@ void Client::user_actions()
     
     if (user_input.rfind("/status=", 0) == 0)
       change_status(user_input);
-    else if (user_input.rfind("/users=", 0) == 0) {
+    else if (user_input.rfind("--users", 0) == 0) {
       Message users_list = Message::create_users_list_message();
       send_message(users_list.to_json());
-    } else if (user_input.rfind("/dm=", 0) == 0)
+    } else if (user_input.rfind("--dm", 0) == 0)
       direct_message(user_input);
     else if (user_input.rfind("/new_room=", 0) == 0)
       new_room(user_input);
@@ -287,11 +285,11 @@ void Client::user_actions()
       join_room(user_input);
     else if (user_input.rfind("/room_users=", 0) == 0)
       room_users(user_input);
-    else if (user_input.rfind("/room_text=", 0) == 0)
+    else if (user_input.rfind("/text_room=", 0) == 0)
       room_text(user_input);
     else if (user_input.rfind("/leave_room=", 0) == 0)
       leave_room(user_input);
-    else if (user_input == "/exit=") {
+    else if (user_input == "--exit") {
       disconnect_user();
       return;
     } else {    
@@ -310,12 +308,12 @@ void Client::user_actions()
 bool Client::check_id(std::string& user_input)
 {
   if (user_input.rfind("/id=", 0) != 0) {
-    TerminalView::display_message("[ALERT]: You must identify yourself before accessing the chat. Disconnecting...");
+    TerminalView::print_invalid("You must identify yourself before accessing the chat. Disconnecting...");
     return false;
   }
   std::string username = user_input.substr(4);
   if (username.length() > 8 || username.length() < 2) {
-    TerminalView::display_message("[ALERT]: Invalid username. Disconnecting...");
+    TerminalView::print_invalid("Invalid username, disconnecting...");
     return false;
   }
   Message identify_msg = Message::create_identify_message(username);
@@ -332,12 +330,12 @@ void Client::change_status(std::string& user_input)
 {
   std::string status = user_input.substr(8);
   if (status != "AWAY" || status != "ACTIVE" || status != "BUSY") {
-    TerminalView::display_message("[INFO]: Invalid status. Options are: AWAY, ACTIVE, or BUSY.");
-    return
+    TerminalView::print_info("Invalid status. Options are: [AWAY], [ACTIVE], [BUSY]");
+    return;
   }
   Message status_msg = Message::create_status_message(status);
   send_message(status_msg.to_json());
-  TerminalView::display_message("[INFO]: Your status succesfully changed to " + status + ".");
+  TerminalView::print_success("Your status succesfully changed to [" + status + "].");
 }
 
 /**
@@ -349,8 +347,8 @@ void Client::direct_message(std::string& user_input)
 {
   size_t message_detector = user_input.find(':');
   if (message_detector == std::string::npos) {
-    TerminalView::display_message("[INFO]: Incorrect usage of /dm=");
-    TerminalView::display_message("Use: /dm=<username>:<message>");
+    TerminalView::print_info("Incorrect use of --dm");
+    TerminalView::print_use("Use: --dm<username>:<message>");
     return;
   }
   std::string target_username = user_input.substr(4, message_detector - 4);
@@ -368,7 +366,7 @@ void Client::new_room(std::string& user_input)
 {
   std::string roomname = user_input.substr(10);
   if (roomname.length() > 16 || roomname.length() < 3) {
-    TerminalView::display_message("[INFO]: Invalid room name.");
+    TerminalView::print_info("Invalid room name");
     return;
   }
   Message new_room_msg = Message::create_new_room_message(roomname);
@@ -394,9 +392,10 @@ void Client::invite_users(std::string& user_input)
       if (!username.empty()) usernames.push_back(username);
     Message invitation = Message::create_invite_message(target_roomname, usernames);
     send_message(invitation.to_json());
+    TerminalView::print_success("Invitations sent.");
   } else {
-    TerminalView::display_message("[INFO] Incorrect usage of /invite=");
-    TerminalView::display_message("Use: /invite=<username_1>;<username_2>;<username_3>:<roomname>");
+    TerminalView::print_info("Incorrect use of /invite=");
+    TerminalView::print_use("Use: /invite=<username_1>;<username_2>;<username_3>:<roomname>");
   }
 }
 
@@ -409,7 +408,7 @@ void Client::join_room(std::string& user_input)
 {
   std::string roomname = user_input.substr(11);
   if (roomname.length() > 16 || roomname.length() < 3) {
-    TerminalView::display_message("[INFO]: Invalid room name.");
+    TerminalView::print_info("Invalid room name");
     return;
   }
   Message join_room_msg = Message::create_join_room_message(roomname);
@@ -425,7 +424,7 @@ void Client::room_users(std::string& user_input)
 {
   std::string roomname = user_input.substr(12);
   if (roomname.length() > 16 || roomname.length() < 3) {
-    TerminalView::display_message("[INFO]: Invalid room name.");
+    TerminalView::print_info("Invalid room name");
     return;
   }
   Message room_users_msg = Message::create_room_users_message(roomname);
@@ -441,13 +440,13 @@ void Client::room_text(std::string& user_input)
 {
   size_t message_detector = user_input.find(':');
   if (message_detector == std::string::npos) {
-    TerminalView::display_message("[INFO] Incorrect usage of /room_text=");
-     TerminalView::display_message("Use: /room_text=<roomname>:<message>");
+    TerminalView::print_info("Incorrect use of /room_text=");
+     TerminalView::print_use("Use: /room_text=<roomname>:<message>");
     return;
   }
   std::string target_roomname = user_input.substr(11, message_detector - 11);
   if (target_roomname.length() > 16 || target_roomname.length() < 3) {
-    TerminalView::display_message("[ALERT]: Invalid roomname.");
+    TerminalView::print_info("Invalid room name");
     return;
   }
   std::string message_text = user_input.substr(message_detector + 1);
@@ -464,7 +463,7 @@ void Client::leave_room(std::string& user_input)
 {
   std::string roomname = user_input.substr(12);
   if (roomname.length() > 16 || roomname.length() < 3) {
-    TerminalView::display_message("[INFO]: Invalid roomname.");
+    TerminalView::print_info("Invalid room name");
     return;
   }
   Message leave_room_msg = Message::create_leave_room_message(roomname);
@@ -492,5 +491,5 @@ void Client::send_message(const std::string& message)
 {
   if (is_connected)
     if (send(socket_fd, message.c_str(), message.size(), 0) < 0)
-      TerminalView::display_error("[ERROR]: Failed to send message.");
+      TerminalView::print_error("Failed to send message");
 }
