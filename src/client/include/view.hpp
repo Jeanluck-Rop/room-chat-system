@@ -77,9 +77,16 @@ public:
    * @param text The failure message to display.
    **/
   static void print_fail(const std::string& text);
+
+  /**
+   * Prints room events.
+   *
+   * @param text The room-related message to display.
+   **/
+  static void print_roomf(const std::string& text);
   
   /**
-   * Prints room-specific information or events.
+   * Prints room text.
    *
    * @param text The room-related message to display.
    **/
@@ -109,7 +116,7 @@ private:
   /* ANSI color code for invalid input messages */
   static constexpr const char* INVALID = "\033[38;5;196m";
   /* ANSI color code for error messages */
-  static constexpr const char* ERROR   = "\033[31m";
+  static constexpr const char* ERROR   = "\033[38;5;196m";
   /* ANSI color code for server messages */
   static constexpr const char* SERVER  = "\033[3;38;5;220m";
   /* ANSI color code for success messages */
@@ -142,7 +149,7 @@ private:
     "\t Join an existing room.\n"
     "\033[38;5;105m\u2022 --roomies <roomname>\033[38;5;105m\n"
     "\t Show users in the specified room.\n"
-    "\033[38;5;105m\u2022 --textroom <roomname> :<message>\033[38;5;105m\n"
+    "\033[38;5;105m\u2022 --textr <roomname> :<message>\033[38;5;105m\n"
     "\t Send a message to a room.\n"
     "\033[38;5;105m\u2022 --leave <roomname>\033[38;5;105m\n"
     "\t Leave a room you are in.\n"

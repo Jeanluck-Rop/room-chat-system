@@ -51,7 +51,7 @@ bool Client::connect_to_server(const std::string& server_ip, int port)
 void Client::run_client()
 {
   TerminalView::print_info("Successfully connected to the server");
-  TerminalView::print_info("You must identify yourself before accessing the chat with: --id <username>");
+  TerminalView::print_use("[INFO]: You must identify yourself before accessing the chat: --id <username>");
   listener_thread = std::thread(&Client::receive_message, this);
   actions_thread = std::thread(&Client::user_actions, this);
   if (actions_thread.joinable())
@@ -225,19 +225,19 @@ void Client::handle_message(const std::string& raw_message)
       TerminalView::print_use("\n[USERS LIST]:\n" + incoming_msg.get_users());
       break;
     case Message::Type::INVITATION:
-      TerminalView::print_server(incoming_msg.get_username() + " invited you to the room [" + incoming_msg.get_roomname() + "].");
+      TerminalView::print_roomf(incoming_msg.get_username() + " invited you to the room [" + incoming_msg.get_roomname() + "].");
       break;
     case Message::Type::JOINED_ROOM:
-      TerminalView::print_room("[" + incoming_msg.get_roomname() + "]: " + incoming_msg.get_username() + " joined the room.");
+      TerminalView::print_roomf("[" + incoming_msg.get_roomname() + "] " + incoming_msg.get_username() + " joined the room.");
       break;
     case Message::Type::ROOM_USER_LIST:
       TerminalView::print_room("\n[" + incoming_msg.get_roomname()  + " USERS LIST]:\n" + incoming_msg.get_users());
       break;
     case Message::Type::ROOM_TEXT_FROM:
-      TerminalView::print_room("[" + incoming_msg.get_roomname() + "] " + "(" + incoming_msg.get_username() + "): " + incoming_msg.get_text());
+      TerminalView::print_room("[" + incoming_msg.get_roomname() + "] " + "(" + incoming_msg.get_username() + "):" + incoming_msg.get_text());
       break;
     case Message::Type::LEFT_ROOM:
-      TerminalView::print_room("[" + incoming_msg.get_roomname()  + "]: " + incoming_msg.get_username() + " left the room.");
+      TerminalView::print_room("[" + incoming_msg.get_roomname()  + "] " + incoming_msg.get_username() + " left the room.");
       break;
     case Message::Type::DISCONNECTED:
       TerminalView::print_server(incoming_msg.get_username() + " disconnected from the chat.");
@@ -287,7 +287,7 @@ void Client::user_actions()
       join_room(user_input);
     else if (user_input.rfind("--roomies", 0) == 0)
       room_users(user_input);
-    else if (user_input.rfind("--textroom", 0) == 0)
+    else if (user_input.rfind("--textr", 0) == 0)
       room_text(user_input);
     else if (user_input.rfind("--leave", 0) == 0)
       leave_room(user_input);
@@ -352,7 +352,7 @@ void Client::direct_message(std::string& user_input)
   size_t message_detector = user_input.find(':');
   if (message_detector == std::string::npos) {
     TerminalView::print_info("Incorrect use of --dm");
-    TerminalView::print_use("Use: --dm <username> :<message>");
+    TerminalView::print_use("Use: --dm <username> : <message>");
     return;
   }
   std::string target_username = user_input.substr(4, message_detector - 4);
@@ -389,7 +389,7 @@ void Client::invite_users(std::string& user_input)
   size_t roomname_detector = user_input.find(':');
   if (roomname_detector == std::string::npos) {
     TerminalView::print_info("Incorrect use of --iv");
-    TerminalView::print_use("Use: --iv <username_1>;<username_2>;<username_3> : <roomname>");
+    TerminalView::print_use("Use: --invite <username_1>;<username_2>;<username_3> : <roomname>");
     return;
   }
   std::string raw_usernames = user_input.substr(8, roomname_detector - 8);
@@ -401,7 +401,6 @@ void Client::invite_users(std::string& user_input)
   //Loop for extract usernames separated by ';'
   while (std::getline(stringstream, username, ';')) {
     trim(username);
-    std::cout << "[" << username << "]" << std::endl; //debug
     if (!username.empty())
       usernames.push_back(username);
   }
@@ -453,11 +452,11 @@ void Client::room_text(std::string& user_input)
 {
   size_t message_detector = user_input.find(':');
   if (message_detector == std::string::npos) {
-    TerminalView::print_info("Incorrect use of --rt");
-     TerminalView::print_use("Use: --rt <roomname> :<message>");
+    TerminalView::print_info("Incorrect use of --room");
+     TerminalView::print_use("Use: --textr <roomname> : <message>");
     return;
   }
-  std::string target_roomname = user_input.substr(10, message_detector - 10);
+  std::string target_roomname = user_input.substr(7, message_detector - 7);
   trim(target_roomname);
   if (target_roomname.length() > 16 || target_roomname.length() < 3) {
     TerminalView::print_info("Invalid room name");

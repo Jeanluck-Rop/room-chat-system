@@ -99,7 +99,17 @@ void TerminalView::print_fail(const string& text)
 }
 
 /**
- * Prints room-specific information or events.
+ * Prints room events.
+ *
+ * @param text The room-related message to display.
+ **/
+void TerminalView::print_roomf(const string& text)
+{
+  cout << ROOM << "   " << u8"\u2022 " << text << ORIGIN << endl;
+}
+
+/**
+ * Prints room text.
  *
  * @param text The room-related message to display.
  **/
@@ -127,5 +137,5 @@ void TerminalView::print_public(const string& username, const string& text)
  **/
 void TerminalView::print_private(const string& username, const string& text)
 {
-  cout << PRIVATE << "[PRIVATE] (" << username << "): " << text << ORIGIN << endl;
+  cout << PRIVATE << "[PRIVATE] (" << username << "):" << text << ORIGIN << endl;
 }

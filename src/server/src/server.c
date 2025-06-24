@@ -9,6 +9,8 @@ Client *clients = NULL;
 static int server_fd = -1;
 /* Mutex to protect access to the global clients list */
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
+/* Mutex to protect access to the invited_rooms list of clients */
+pthread_mutex_t invitations_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * Print a message with a specified type (info, alert, or error).
@@ -88,9 +90,16 @@ static void broadcast_message(const char *message, int sender_socket)
  **/
 static bool was_invited(Client *client, const char *roomname)
 {
+  if (!client || !roomname)
+    return false;
+
+  pthread_mutex_lock(&invitations_mutex);
   for (int i = 0; i < client->invited_count; i++)
-    if (strcmp(client->invited_rooms[i], roomname) == 0)
+    if (client->invited_rooms[i] && strcmp(client->invited_rooms[i], roomname) == 0) {
+      pthread_mutex_unlock(&invitations_mutex);
       return true;
+    }
+  pthread_mutex_unlock(&invitations_mutex);
   return false;
 }
 
@@ -108,14 +117,20 @@ static void unmark_as_invited(Client *client, const char *roomname)
   if (!client || !roomname)
     return;
 
+  pthread_mutex_lock(&invitations_mutex);
+  if (!client->invited_rooms) {
+    pthread_mutex_unlock(&invitations_mutex);
+    return;
+  }
   for (int i = 0; i < client->invited_count; ++i) {
     if (strcmp(client->invited_rooms[i], roomname) == 0) {
       free(client->invited_rooms[i]);
       client->invited_rooms[i] = client->invited_rooms[client->invited_count - 1];
       client->invited_count--;
-      return;
+      break;
     }
   }
+  pthread_mutex_unlock(&invitations_mutex);
 }
 
 /**
@@ -127,20 +142,38 @@ static void unmark_as_invited(Client *client, const char *roomname)
  **/
 static bool mark_as_invited(Client *client, const char *roomname)
 {
-  if (was_invited(client, roomname))
-    return true;
-
+  if (!client || !roomname)
+    return false;
+  
+  pthread_mutex_lock(&invitations_mutex);
+  for (int i = 0; i < client->invited_count; i++) {
+    if (client->invited_rooms[i] && strcmp(client->invited_rooms[i], roomname) == 0) {
+      pthread_mutex_unlock(&invitations_mutex);
+      return true;
+    }
+  }
   if (client->invited_capacity == 0) {
     client->invited_capacity = 4;
     client->invited_rooms = malloc(sizeof(char *) * client->invited_capacity);
+    if (!client->invited_rooms) {
+      print_message("[ERROR]: malloc failed in mark_as_invited", 'e');
+      pthread_mutex_unlock(&invitations_mutex);
+      return false;
+    }
   } else if (client->invited_count == client->invited_capacity) {
     int new_capacity = client->invited_capacity * 2;
     char **new_rooms = realloc(client->invited_rooms, sizeof(char *) * new_capacity);
+    if (!new_rooms) {
+      pthread_mutex_unlock(&invitations_mutex);
+      print_message("realloc failed in mark_as_invited", 'e');
+      return false;
+    }
     client->invited_capacity = new_capacity;
     client->invited_rooms = new_rooms;
   }
-
   client->invited_rooms[client->invited_count++] = strdup(roomname);
+  pthread_mutex_unlock(&invitations_mutex);
+  
   return true;
 }
 
@@ -288,24 +321,25 @@ static void disconnect_client(Client *client)
   if (!client)
     return;
   
-  // Protection added for avoiding multiple disconnections
+  /* 1. Protection added for avoiding multiple disconnections */
   static pthread_mutex_t disconnect_mutex = PTHREAD_MUTEX_INITIALIZER;
   pthread_mutex_lock(&disconnect_mutex);
   if (client->is_disconnected) {
     pthread_mutex_unlock(&disconnect_mutex);
     return;
-  }  client->invited_rooms = NULL;
+  }
   client->is_disconnected = true;
   pthread_mutex_unlock(&disconnect_mutex);
-  //Get client rooms
+  /* 2. Get client rooms */
   pthread_mutex_lock(&rooms_mutex);
   Room *rooms_copy = NULL;
   Room *current_room = rooms;
   while (current_room) {
     for (int i = 0; i < current_room->client_count; ++i) {
       if (current_room->clients[i] == client) {
-	// Add room to copy list
 	Room *copy = malloc(sizeof(Room));
+	if (!copy)
+	  continue;
 	strncpy(copy->roomname, current_room->roomname, sizeof(copy->roomname));
 	copy->next = rooms_copy;
 	rooms_copy = copy;
@@ -315,7 +349,7 @@ static void disconnect_client(Client *client)
     current_room = current_room->next;
   }
   pthread_mutex_unlock(&rooms_mutex);
-  // Leave client rooms
+  /* 3. Leave each client rooms */
   while (rooms_copy) {
     Room *next = rooms_copy->next;
     Room *actual_room = find_room(rooms_copy->roomname);
@@ -324,6 +358,7 @@ static void disconnect_client(Client *client)
     free(rooms_copy);
     rooms_copy = next;
   }
+  /* 4. Notify client disconnection */
   if (strlen(client->username) > 0) {
     Message *client_disconnected = create_disconnected_message(client->username);
     char *json_str = to_json(client_disconnected);
@@ -331,7 +366,7 @@ static void disconnect_client(Client *client)
     free(json_str);
     free_message(client_disconnected);
   }
-  // Remove the client from the list
+  /* 5. Remove the client from the list */
   pthread_mutex_lock(&clients_mutex);
   Client **prev = &clients;
   Client *current = clients;
@@ -344,13 +379,16 @@ static void disconnect_client(Client *client)
     current = current->next;
   }
   pthread_mutex_unlock(&clients_mutex);
-   
+  /* 6. Free invitations memory */
+  pthread_mutex_lock(&invitations_mutex);
   for (int i = 0; i < client->invited_count; ++i)
     free(client->invited_rooms[i]);
   free(client->invited_rooms);
   client->invited_count = 0;
   client->invited_capacity = 0;
   client->invited_rooms = NULL;
+  pthread_mutex_unlock(&invitations_mutex);
+  /* 7. Close client socket and free client */
   close(client->socket_fd);
   free(client);
   cleanup_empty_rooms();

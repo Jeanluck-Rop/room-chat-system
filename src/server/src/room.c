@@ -44,8 +44,12 @@ void broadcast_to_room(Room *room, const char *message, int sender_socket)
   pthread_mutex_lock(&rooms_mutex);
   int count = room->client_count;
   Client **clients_copy = malloc(sizeof(Client*) * count);
+  if (!clients_copy) {
+    pthread_mutex_unlock(&rooms_mutex);
+    return;
+  }
   for (int i = 0; i < count; ++i)
-    clients_copy[i] = room->clients[i];  //Shallow copy
+    clients_copy[i] = room->clients[i];
   pthread_mutex_unlock(&rooms_mutex);
   
   for (int i = 0; i < count; ++i) {
@@ -133,7 +137,16 @@ bool remove_client_from_room(Room *room, Client *client)
  **/
 bool add_client_to_room(Room *room, Client *client)
 {
+  if (!room || !client)
+    return false;
+  
   pthread_mutex_lock(&rooms_mutex);
+  for (int i = 0; i < room->client_count; ++i) {
+    if (room->clients[i] == client) {
+      pthread_mutex_unlock(&rooms_mutex);
+      return true; // client already in room
+    }
+  }
   if (room->client_count >= room->capacity) {
     int new_capacity = room->capacity * 2;
     Client **new_clients = realloc(room->clients, sizeof(Client *) * new_capacity);
@@ -161,17 +174,20 @@ Room *create_room(const char *roomname)
   if (find_room(roomname) != NULL) {
     pthread_mutex_unlock(&rooms_mutex);
     return NULL;
-  }
-  
+  } 
   Room *room = malloc(sizeof(Room));
   if (!room) {
     pthread_mutex_unlock(&rooms_mutex);
     return NULL;
   }
-  
   strncpy(room->roomname, roomname, sizeof(room->roomname) - 1);
   room->roomname[sizeof(room->roomname) - 1] = '\0';
   room->clients = malloc(sizeof(Client *) * 15);
+  if (!room->clients) {
+    free(room);
+    pthread_mutex_unlock(&rooms_mutex);
+    return NULL;
+  }
   room->client_count = 0;
   room->capacity = 15;
   room->next = rooms;
