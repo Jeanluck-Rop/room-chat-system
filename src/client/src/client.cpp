@@ -237,7 +237,7 @@ void Client::handle_message(const std::string& raw_message)
       TerminalView::print_room("[" + incoming_msg.get_roomname() + "] " + "(" + incoming_msg.get_username() + "):" + incoming_msg.get_text());
       break;
     case Message::Type::LEFT_ROOM:
-      TerminalView::print_room("[" + incoming_msg.get_roomname()  + "] " + incoming_msg.get_username() + " left the room.");
+      TerminalView::print_roomf("[" + incoming_msg.get_roomname()  + "] " + incoming_msg.get_username() + " left the room.");
       break;
     case Message::Type::DISCONNECTED:
       TerminalView::print_server(incoming_msg.get_username() + " disconnected from the chat.");

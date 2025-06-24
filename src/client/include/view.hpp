@@ -129,6 +129,8 @@ private:
   static constexpr const char* PRIVATE = "\033[38;5;27m";
   /* ANSI color code for room-related messages */
   static constexpr const char* ROOM    = "\033[38;5;127m";
+  /* ANSI color code for room-related notifies */
+  static constexpr const char* ROOMF   = "\033[3;38;5;127m";
 
   /* String to print chat commands */
   static constexpr const char* COMMANDS =

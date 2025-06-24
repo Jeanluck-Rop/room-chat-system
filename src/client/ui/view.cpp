@@ -105,7 +105,7 @@ void TerminalView::print_fail(const string& text)
  **/
 void TerminalView::print_roomf(const string& text)
 {
-  cout << ROOM << "   " << u8"\u2022 " << text << ORIGIN << endl;
+  cout << ROOMF << "   " << u8"\u2022 " << text << ORIGIN << endl;
 }
 
 /**
