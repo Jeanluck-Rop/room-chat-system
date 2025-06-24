@@ -169,6 +169,13 @@ private:
   void leave_room(std::string& user_input);
 
   /**
+   * Removes trailing whitespace (spaces and tabs) from a string.
+   *
+   * @param str The string to modify in-place.
+   **/
+  void trim(std::string& str);
+  
+  /**
    * Sends a disconnect message to the server and closes the connection.
    **/
   void disconnect_user();

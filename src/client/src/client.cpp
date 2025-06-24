@@ -51,7 +51,7 @@ bool Client::connect_to_server(const std::string& server_ip, int port)
 void Client::run_client()
 {
   TerminalView::print_info("Successfully connected to the server");
-  TerminalView::print_info("You must identify yourself before accessing the chat with: /id=<username>");
+  TerminalView::print_info("You must identify yourself before accessing the chat with: --id <username>");
   listener_thread = std::thread(&Client::receive_message, this);
   actions_thread = std::thread(&Client::user_actions, this);
   if (actions_thread.joinable())
@@ -270,24 +270,24 @@ void Client::user_actions()
       continue;
     } 
     
-    if (user_input.rfind("/status=", 0) == 0)
+    if (user_input.rfind("--status", 0) == 0)
       change_status(user_input);
     else if (user_input.rfind("--users", 0) == 0) {
       Message users_list = Message::create_users_list_message();
       send_message(users_list.to_json());
     } else if (user_input.rfind("--dm", 0) == 0)
       direct_message(user_input);
-    else if (user_input.rfind("/new_room=", 0) == 0)
+    else if (user_input.rfind("--new", 0) == 0)
       new_room(user_input);
-    else if (user_input.rfind("/invite=", 0) == 0)
+    else if (user_input.rfind("--invite", 0) == 0)
       invite_users(user_input);
-    else if (user_input.rfind("/join_room=", 0) == 0)
+    else if (user_input.rfind("--join", 0) == 0)
       join_room(user_input);
-    else if (user_input.rfind("/room_users=", 0) == 0)
+    else if (user_input.rfind("--roomies", 0) == 0)
       room_users(user_input);
-    else if (user_input.rfind("/text_room=", 0) == 0)
+    else if (user_input.rfind("--textroom", 0) == 0)
       room_text(user_input);
-    else if (user_input.rfind("/leave_room=", 0) == 0)
+    else if (user_input.rfind("--leave", 0) == 0)
       leave_room(user_input);
     else if (user_input == "--exit") {
       disconnect_user();
@@ -307,11 +307,12 @@ void Client::user_actions()
  **/
 bool Client::check_id(std::string& user_input)
 {
-  if (user_input.rfind("/id=", 0) != 0) {
+  if (user_input.rfind("--id", 0) != 0) {
     TerminalView::print_invalid("You must identify yourself before accessing the chat. Disconnecting...");
     return false;
   }
   std::string username = user_input.substr(4);
+  trim(username);
   if (username.length() > 8 || username.length() < 2) {
     TerminalView::print_invalid("Invalid username, disconnecting...");
     return false;
@@ -329,6 +330,7 @@ bool Client::check_id(std::string& user_input)
 void Client::change_status(std::string& user_input)
 {
   std::string status = user_input.substr(8);
+  trim(status);
   if (status != "AWAY" || status != "ACTIVE" || status != "BUSY") {
     TerminalView::print_info("Invalid status. Options are: [AWAY], [ACTIVE], [BUSY]");
     return;
@@ -348,11 +350,12 @@ void Client::direct_message(std::string& user_input)
   size_t message_detector = user_input.find(':');
   if (message_detector == std::string::npos) {
     TerminalView::print_info("Incorrect use of --dm");
-    TerminalView::print_use("Use: --dm<username>:<message>");
+    TerminalView::print_use("Use: --dm <username> :<message>");
     return;
   }
   std::string target_username = user_input.substr(4, message_detector - 4);
   std::string message_text = user_input.substr(message_detector + 1);
+  trim(target_username);
   Message private_msg = Message::create_private_text_message(target_username, message_text);
   send_message(private_msg.to_json());
 }
@@ -364,7 +367,8 @@ void Client::direct_message(std::string& user_input)
  **/
 void Client::new_room(std::string& user_input)
 {
-  std::string roomname = user_input.substr(10);
+  std::string roomname = user_input.substr(5);
+  trim(roomname);
   if (roomname.length() > 16 || roomname.length() < 3) {
     TerminalView::print_info("Invalid room name");
     return;
@@ -381,22 +385,27 @@ void Client::new_room(std::string& user_input)
 void Client::invite_users(std::string& user_input)
 {
   size_t roomname_detector = user_input.find(':');
-  if (roomname_detector != std::string::npos) {
-    std::string raw_usernames = user_input.substr(8, roomname_detector - 8);
-    std::string target_roomname = user_input.substr(roomname_detector + 1);
-    std::vector<std::string> usernames; //Vector to store the parsed usernames
-    std::stringstream stringstream(raw_usernames); //stringstream with raw usernames string to enable splitting
-    std::string username; //Temp string to hold each extracted username
-    //Loop for extract usernames separated by ';'
-    while (std::getline(stringstream, username, ';'))
-      if (!username.empty()) usernames.push_back(username);
-    Message invitation = Message::create_invite_message(target_roomname, usernames);
-    send_message(invitation.to_json());
-    TerminalView::print_success("Invitations sent.");
-  } else {
-    TerminalView::print_info("Incorrect use of /invite=");
-    TerminalView::print_use("Use: /invite=<username_1>;<username_2>;<username_3>:<roomname>");
+  if (roomname_detector == std::string::npos) {
+    TerminalView::print_info("Incorrect use of --iv");
+    TerminalView::print_use("Use: --iv <username_1>;<username_2>;<username_3> : <roomname>");
+    return;
   }
+  std::string raw_usernames = user_input.substr(8, roomname_detector - 8);
+  std::string target_roomname = user_input.substr(roomname_detector + 1);
+  trim(target_roomname);
+  std::vector<std::string> usernames;            //Vector to store the parsed usernames
+  std::stringstream stringstream(raw_usernames); //stringstream with raw usernames string to enable splitting
+  std::string username;                          //Temp string to hold each extracted username
+  //Loop for extract usernames separated by ';'
+  while (std::getline(stringstream, username, ';')) {
+    trim(username);
+    std::cout << "[" << username << "]" << std::endl; //debug
+    if (!username.empty())
+      usernames.push_back(username);
+  }
+  Message invitation = Message::create_invite_message(target_roomname, usernames);
+  send_message(invitation.to_json());
+  TerminalView::print_success("Invitation(s) sent.");
 }
 
 /**
@@ -406,7 +415,8 @@ void Client::invite_users(std::string& user_input)
  **/
 void Client::join_room(std::string& user_input)
 {
-  std::string roomname = user_input.substr(11);
+  std::string roomname = user_input.substr(6);
+  trim(roomname);
   if (roomname.length() > 16 || roomname.length() < 3) {
     TerminalView::print_info("Invalid room name");
     return;
@@ -422,7 +432,8 @@ void Client::join_room(std::string& user_input)
  **/
 void Client::room_users(std::string& user_input)
 {
-  std::string roomname = user_input.substr(12);
+  std::string roomname = user_input.substr(9);
+  trim(roomname);
   if (roomname.length() > 16 || roomname.length() < 3) {
     TerminalView::print_info("Invalid room name");
     return;
@@ -440,11 +451,12 @@ void Client::room_text(std::string& user_input)
 {
   size_t message_detector = user_input.find(':');
   if (message_detector == std::string::npos) {
-    TerminalView::print_info("Incorrect use of /room_text=");
-     TerminalView::print_use("Use: /room_text=<roomname>:<message>");
+    TerminalView::print_info("Incorrect use of --rt");
+     TerminalView::print_use("Use: --rt <roomname> :<message>");
     return;
   }
-  std::string target_roomname = user_input.substr(11, message_detector - 11);
+  std::string target_roomname = user_input.substr(10, message_detector - 10);
+  trim(target_roomname);
   if (target_roomname.length() > 16 || target_roomname.length() < 3) {
     TerminalView::print_info("Invalid room name");
     return;
@@ -461,13 +473,39 @@ void Client::room_text(std::string& user_input)
  **/
 void Client::leave_room(std::string& user_input)
 {
-  std::string roomname = user_input.substr(12);
+  std::string roomname = user_input.substr(7);
+  trim(roomname);
   if (roomname.length() > 16 || roomname.length() < 3) {
     TerminalView::print_info("Invalid room name");
     return;
   }
   Message leave_room_msg = Message::create_leave_room_message(roomname);
   send_message(leave_room_msg.to_json());
+}
+
+/**
+ * Removes leading and trailing whitespace (spaces and tabs) from a string.
+ * 
+ * @param str The string to be trimmed.
+ **/
+void Client::trim(std::string& str)
+{
+  // Trim the beginning
+  str.erase(str.begin(),
+	    std::find_if(str.begin(),
+			 str.end(),
+			 [](unsigned char ch)
+			 {
+			   return !std::isspace(ch);
+			 }));
+  // Trim the end
+  str.erase(std::find_if(
+			 str.rbegin(),
+			 str.rend(),
+			 [](unsigned char ch)
+			 {
+			   return !std::isspace(ch);
+			 }).base(), str.end());
 }
 
 /**
