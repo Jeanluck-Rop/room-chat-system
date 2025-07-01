@@ -65,6 +65,13 @@ public:
   static void print_server(const std::string& text);
 
   /**
+   * Prints an error message from the server.
+   *
+   * @param text The server error message to display.
+   **/
+  static void print_server_error(const std::string& text);
+    
+  /**
    * Prints a success message in green.
    *
    * @param text The success message to display.

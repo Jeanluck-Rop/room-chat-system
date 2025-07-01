@@ -140,18 +140,36 @@ void Client::handle_response(const Message& incoming_msg)
     }
   }
 
-  if (operation == "TEXT")
-    TerminalView::print_fail("User [" + extra + "] not found.");
-
+  if (operation == "STATUS")
+    TerminalView::print_fail("Invalid new status.");
+  
+  if (operation == "PUBLIC_TEXT")
+    TerminalView::print_fail("Invalid public text content.");
+  
+  if (operation == "TEXT") {
+    if (result == "INVALID")
+      TerminalView::print_fail("Invalid username or private text content.");
+    else if (result == "NO_SUCH_USER")
+      TerminalView::print_fail("User [" + extra + "] not found.");
+  }
+  
   if (operation == "NEW_ROOM") {
     if (result == "SUCCESS")
       TerminalView::print_success("Room [" + extra + "] successfully created.");
+    else if (result == "INVALID")
+      TerminalView::print_fail("Invalid roomname.");
     else if (result == "ROOM_ALREADY_EXISTS")
       TerminalView::print_fail("Room [" + extra + "] already exist");
+    else if (result == "ERROR_JOINING")
+      TerminalView::print_server_error("There was an error while joining the room [" + extra + "].");
+    else if (result == "ERROR_MARKING")
+      TerminalView::print_server_error("There was an error marking the user [" + extra + "] as invited.");
   }
 
   if (operation == "INVITE") {
-    if (result == "NO_SUCH_ROOM")
+    if (result == "INVALID")
+      TerminalView::print_fail("Invalid roomname.");
+    else if (result == "NO_SUCH_ROOM")
       TerminalView::print_fail("Room [" + extra + "] does not exist.");
     else if (result == "NO_SUCH_USER")
       TerminalView::print_fail("User [" + extra + "] not found.");
@@ -161,21 +179,29 @@ void Client::handle_response(const Message& incoming_msg)
       TerminalView::print_server("You can not invite yourself to a room.");
     else if (result == "ALREADY_MEMBER_OR_INVITED")
       TerminalView::print_server("User [" + extra + "] already invited or member.");
+    else if (result == "ERROR_MARKING")
+      TerminalView::print_server_error("There was an error marking the user [" + extra + "] as invited.");
   }
 
   if (operation == "JOIN_ROOM") {
     if (result == "SUCCESS")
       TerminalView::print_success("Successfully joined to the room [" + extra + "].");
+    else if (result == "INVALID")
+      TerminalView::print_fail("Invalid roomname.");
     else if (result == "NO_SUCH_ROOM")
       TerminalView::print_server("Room [" + extra + "] does not exist.");
     else if (result == "NOT_INVITED")
       TerminalView::print_server("You have not been invited to the room [" + extra + "].");
-    else if (result == "ALREADY_MEMBER ")
+    else if (result == "ALREADY_MEMBER")
       TerminalView::print_server("You have already joined the room [" + extra + "].");
+    else if (result == "ERROR_JOINING")
+      TerminalView::print_server_error("There was an error while joining the room [" + extra + "].");
   }
-
+  
   if (operation == "ROOM_USERS" || operation == "ROOM_TEXT" || operation == "LEAVE_ROOM") {
-    if (result == "NO_SUCH_ROOM")
+    if (result == "INVALID")
+      TerminalView::print_fail("Invalid roomname or text content.");
+    else if (result == "NO_SUCH_ROOM")
       TerminalView::print_fail("Room [" + extra + "] does not exist.");
     else if (result == "NOT_JOINED")
       TerminalView::print_server("You have not been joined or invited to the room [" + extra + "].");
@@ -272,7 +298,7 @@ void Client::user_actions()
 
     if (user_input.rfind("--comms", 0) == 0)
       TerminalView::print_commands();
-    if (user_input.rfind("--status", 0) == 0)
+    else if (user_input.rfind("--status", 0) == 0)
       change_status(user_input);
     else if (user_input.rfind("--users", 0) == 0) {
       Message users_list = Message::create_users_list_message();
@@ -291,7 +317,7 @@ void Client::user_actions()
       room_text(user_input);
     else if (user_input.rfind("--leave", 0) == 0)
       leave_room(user_input);
-    else if (user_input == "--exit") {
+    else if (user_input.rfind("--exit", 0) == 0) {
       disconnect_user();
       return;
     } else {    

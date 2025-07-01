@@ -79,6 +79,16 @@ void TerminalView::print_server(const string& text)
 }
 
 /**
+ * Prints an error message from the server.
+ *
+ * @param text The server error message to display.
+ **/
+void TerminalView::print_server_error(const string& text)
+{
+  cout << ERROR << "   " << u8"\u2022 " << text << ORIGIN << endl;
+}
+
+/**
  * Prints a success message in green.
  *
  * @param text The success message to display.

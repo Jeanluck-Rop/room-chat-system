@@ -38,6 +38,13 @@ Changes the user status:
   "status": "AWAY" }
 ```
 
+If the target username or the text content is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "STATUS",
+  "result": "INVALID" }
+```
+
 If the status was successfully changed, the server sends the message NEW_STATUS to the rest of connected users:
 ```
 { "type": "NEW_STATUS",
@@ -77,6 +84,13 @@ If the recipient user exists, the server doesn't respond and sends the message T
   "text": "<text_content>" }
 ```
 
+If the target username or the text content is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "TEXT",
+  "result": "INVALID" }
+```
+
 If the recipient user doesn't exists, the server respond:
 ```
 { "type": "RESPONSE",
@@ -93,6 +107,13 @@ Sends a public text to all connected users:
   "text": "<text_content>" }
 ```
 
+If the text content is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "PUBLIC_TEXT",
+  "result": "INVALID" }
+```
+
 The server doesn't respond and sends the message PUBLIC_TEXT_FROM to the rest of connected users:
 ```
 { "type": "PUBLIC_TEXT_FROM",
@@ -106,6 +127,13 @@ Creates a chat room:
 ```
 { "type": "NEW_ROOM",
   "roomname": "<roomname_to_create>" }
+```
+
+If the room is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "NEW_ROOM",
+  "result": "INVALID" }
 ```
 
 If the room is created successfully, the server responds with:
@@ -125,6 +153,21 @@ If the room name already exists, the server responds with:
   "extra": "<roomname>" }
 ```
 
+If there was an error adding the user to the room, the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "NEW_ROOM",
+  "result": "ERROR_JOINING" }
+```
+
+If there was an error marking as invited on or more users, the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "NEW_ROOM",
+  "result": "ERROR_MARKING",
+  "extra": "<username>" }
+```
+
 
 ## INVITE
 Invites one or multiple users to a room; only users who are already in a room can invite others to it:
@@ -139,6 +182,13 @@ The room and all the users must exist. In that case, the server sends no respons
 { "type": "INVITATION",
   "username" "<invited_user>",
   "roomname": "<invited_room>" }
+```
+
+If the room is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "INVITE",
+  "result": "INVALID" }
 ```
 
 If the room does not exist, the server responds:
@@ -181,6 +231,14 @@ If one or more of the users are already invited or member of the room, the serve
   "extra": "<invalid_username>" }
 ```
 
+If there was an error marking as invited on or more users, the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "INVITE",
+  "result": "ERROR_MARKING",
+  "extra": "<username>" }
+```
+
 If a user is already in the room or has already been invited, that user is ignored and does not receive the message INVITATION.
 
 
@@ -198,6 +256,13 @@ If the room exists and the user was previously invited, the server responds:
   "operation": "JOIN_ROOM",
   "result": "SUCCESS",
   "extra": "<roomname>" }
+```
+
+If the room is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "JOIN_ROOM",
+  "result": "INVALID" }
 ```
 
 The user then joins the room, and the server sends the message JOINED_ROOM to all users in the room:
@@ -223,6 +288,14 @@ If the user was not previously invited to the room, the server responds:
   "extra": "<roomname>" }
 ```
 
+If there was an error adding the client to the room, the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "JOIN_ROOM",
+  "result": "ERROR_JOINING",
+  "extra": "<roomname>" }
+```
+
 
 ## ROOM_USERS
 Returns the list of users in the room:
@@ -239,6 +312,13 @@ If the room exists and the user has joined it, the server responds with a dictio
              "<user_2>": "<status>",
              "<user_3>": "<status>",
              "<user_4>": "<status>" } }
+```
+
+If the room is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "ROOM_USERS",
+  "result": "INVALID" }
 ```
 
 If the room does not exist, the server responds:
@@ -274,6 +354,13 @@ If the room exists and the user has joined it, the server sends no response but 
   "text": "<text_content>" }
 ```
 
+If the room or the text content is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "ROOM_TEXT",
+  "result": "INVALID" }
+```
+
 If the room does not exist, the server responds:
 ```
 { "type": "RESPONSE",
@@ -303,6 +390,13 @@ If the room exist and the user has joined it, the server does not respond and se
 { "type": "LEFT_ROOM",
   "roomname": "<leaved_room>",
   "username": "<leaver>" }
+```
+
+If the room is invalid the server responds:
+```
+{ "type": "RESPONSE",
+  "operation": "LEAVE_ROOM",
+  "result": "INVALID" }
 ```
 
 If the room does not exist the server responds:

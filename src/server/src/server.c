@@ -403,8 +403,11 @@ static void disconnect_client(Client *client)
 static void leave_room(Client *client, Message *incoming_message)
 {
   const char *roomname = get_roomname(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0)
+  if (!roomname || strcmp(roomname, "") == 0) {
+    response(client, "LEAVE_ROOM", "INVALID", "");
+    printf("[INFO] Client [%s] tried to leave an invalid room.\n", client->username);
     return;
+  }
   
   Room *room_to_leave = find_room(roomname);
   if (!room_to_leave) {
@@ -432,8 +435,11 @@ static void send_room_text(Client *client, Message *incoming_message)
   cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
   const char *text_content = get_text(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0 || !text_content || strcmp(text_content, "") == 0)
+  if (!roomname || strcmp(roomname, "") == 0 || !text_content || strcmp(text_content, "") == 0) {
+    response(client, "ROOM_TEXT", "INVALID", "");
+    printf("[INFO] Client [%s] tried to send an invalid text or send a text to an invalid room.\n", client->username);
     return;
+  }
   
   Room *target_room = find_room(roomname);
   if (!target_room) {
@@ -458,9 +464,12 @@ static void send_room_text(Client *client, Message *incoming_message)
 static void send_room_users(Client *client, Message *incoming_message)
 {
   const char *roomname = get_roomname(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0)
+  if (!roomname || strcmp(roomname, "") == 0) {
+    response(client, "ROOM_USERS", "INVALID", "");
+    printf("[INFO] Client [%s] tried to invite users an invalid room.\n", client->username);
     return;
-
+  }
+  
   Room *target_room = find_room(roomname);
   if (!target_room) {
     response(client, "ROOM_USERS", "NO_SUCH_ROOM", roomname);
@@ -508,8 +517,11 @@ static void join_room(Client *client, Message *incoming_message)
 {
   cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0) 
+  if (!roomname || strcmp(roomname, "") == 0) {
+    response(client, "JOIN_ROOM", "INVALID", "");
+    printf("[INFO] Client [%s] tried to join an invalid room.\n", client->username);
     return;
+  }
   
   Room *room_to_join = find_room(roomname);
   if (!room_to_join) {
@@ -523,11 +535,12 @@ static void join_room(Client *client, Message *incoming_message)
     return;
   }
   if(is_member(client->username, roomname)) {
-    printf("[INFO]: Client [%s] is already member of the room [%s].\n", client->username, roomname);
     response(client, "JOIN_ROOM", "ALREADY_MEMBER", roomname);
+    printf("[INFO]: Client [%s] is already member of the room [%s].\n", client->username, roomname);
     return;
   }
   if (!add_client_to_room(room_to_join, client)) {
+    response(client, "JOIN_ROOM", "ERROR_JOINING", roomname);
     printf("[ALERT] Could not add [%s] to requested room [%s].\n", client->username, roomname);
     return;
   }
@@ -546,8 +559,11 @@ static void send_invitation(Client *client, Message *incoming_message)
 {
   cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0)
+  if (!roomname || strcmp(roomname, "") == 0) {
+    response(client, "INVITE", "INVALID", "");
+    printf("[INFO] Client [%s] tried to invite users to an invalid room.\n", client->username);
     return;
+  }
   
   Room *target_room = find_room(roomname);
   if (!target_room) {
@@ -573,6 +589,7 @@ static void send_invitation(Client *client, Message *incoming_message)
     Client *exists = find_client(guests_list[i]);
     if (!exists) {
       response(client, "INVITE", "NO_SUCH_USER", guests_list[i]);
+      printf("[INFO]: Client [%s] tried to invite an non existing user [%s] to the room [%s].\n", client->username, exists->username, roomname);
       continue;
     }
     if (strcmp(exists->username, client->username) == 0) {
@@ -581,11 +598,12 @@ static void send_invitation(Client *client, Message *incoming_message)
       continue;
     }
     if (was_invited(exists, roomname) || is_member(exists->username, roomname)) {
-      printf("[INFO]: Client [%s] is already invited or member of [%s].\n", exists->username, roomname);
       response(client, "INVITE", "ALREADY_MEMBER_OR_INVITED", guests_list[i]);
+      printf("[INFO]: Client [%s] is already invited or member of [%s].\n", exists->username, roomname);
       continue;
     }
     if (!mark_as_invited(exists, roomname)) {
+      response(client, "INVITE", "ERROR_MARKING", guests_list[i]);
       printf("[ERROR]: Could not mark [%s] as invited to room [%s].\n", exists->username, roomname);
       continue;
     }
@@ -608,8 +626,11 @@ static void create_new_room(Client *client, Message *incoming_message)
 {
   cleanup_empty_rooms();
   const char *roomname = get_roomname(incoming_message);
-  if (!roomname || strcmp(roomname, "") == 0)
+  if (!roomname || strcmp(roomname, "") == 0) {
+    response(client, "NEW_ROOM", "INVALID", "");
+    printf("[INFO] Client [%s] tried to create a room with an invalid name.\n", client->username);
     return;
+  }
   
   Room *new_room = create_room(roomname);
   if (!new_room) {
@@ -618,10 +639,13 @@ static void create_new_room(Client *client, Message *incoming_message)
     return;
   }
   if (!add_client_to_room(new_room, client)) {
+    response(client, "NEW_ROOM", "ERROR_JOINING", roomname);
     printf("[ALERT]: Could not add [%s] to new room created.\n", client->username);
+    cleanup_empty_rooms();
     return;
   }
   if (!mark_as_invited(client, roomname)) {
+    response(client, "INVITE", "ERROR_MARKING", client->username);
     printf("[ALERT]: Could not mark [%s] as invited to the new room [%s].\n", client->username, roomname);
     return;
   }
@@ -638,8 +662,11 @@ static void create_new_room(Client *client, Message *incoming_message)
 static void send_public_text(Client *client, Message *incoming_message)
 {
   const char *text_content = get_text(incoming_message);
-  if (!text_content || strcmp(text_content, "") == 0)
+  if (!text_content || strcmp(text_content, "") == 0) {
+    response(client, "PUBLIC_TEXT", "INVALID", "");
+    printf("[INFO] Client [%s] tried to send an invalid public text.\n", client->username);
     return;
+  }
   broadcast_json(client, "PT", client->username, text_content);
 }
 
@@ -653,15 +680,19 @@ static void send_private_text(Client *client, Message *incoming_message)
 {
   const char *text_content = get_text(incoming_message);
   const char *target_username = get_username(incoming_message);
-  if (!text_content || !target_username || strcmp(text_content, "") == 0 || strcmp(target_username, "") == 0)
+  if (!text_content || !target_username || strcmp(text_content, "") == 0 || strcmp(target_username, "") == 0) {
+    response(client, "TEXT", "INVALID", "");
+    printf("[INFO] Client [%s] tried to text an invalid user or send an invalid private text.\n", client->username);
     return;
+  }
   
   pthread_mutex_lock(&clients_mutex);
   Client *target_client = find_client(target_username);
   pthread_mutex_unlock(&clients_mutex);
-  
+
   if (!target_client) {
     response(client, "TEXT", "NO_SUCH_USER", target_username);
+    printf("[INFO]: Client [%s] tried to send a private text to an non existing user [%s].\n", client->username, target_client->username);
     return;
   }
   send_json(target_client, "PT", client->username, text_content);
@@ -719,8 +750,11 @@ static void send_users_list(Client *client, Message *incoming_message)
 static void change_status(Client *client, Message *incoming_message)
 {
   const char *new_status = get_status(incoming_message);
-  if (!new_status)
+  if (!new_status) {
+    response(client, "STATUS", "INVALID", "");
+    printf("[INFO] Client [%s] sent an invalid change status request.\n", client->username);
     return;
+  }
 
   printf("[INFO]: Client [%s] changed his status to [%s].\n", client->username, new_status);
   strncpy(client->status, new_status, sizeof(client->status) - 1);
