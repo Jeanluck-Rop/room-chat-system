@@ -53,9 +53,9 @@ public:
   void run_client();
 
   /**
-   * Disconnects the client gracefully from the server.
+   * Handles user actions, identification and chat interactions.
    **/
-  void disconnect();
+  void user_actions();
 
   /**
    * Signal handler for handling interruptions like Ctrl+C.
@@ -95,11 +95,6 @@ private:
    * @param raw_message the raw JSON string received from the server.
    **/
   void handle_message(const std::string& raw_message);
-
-  /**
-   * Handles user input and actions, including identification and chat interactions.
-   **/
-  void user_actions();
 
   /**
    * Validates  the user-provided ID format and availability.
@@ -186,4 +181,9 @@ private:
    * @param message The message content to be sent.
    **/
   void send_message(const std::string& message);
+
+  /**
+   * Disconnects the client gracefully from the server.
+   **/
+  void disconnect();
 };

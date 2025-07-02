@@ -61,23 +61,6 @@ void Client::run_client()
 }
 
 /**
- * Disconnects the client gracefully from the server.
- **/
-void Client::disconnect()
-{
-  static std::mutex disconnect_mutex;
-  std::lock_guard<std::mutex> lock(disconnect_mutex); //Ensure only one thread disconnects
-  if (!is_connected)
-    return;
-  is_connected = false;
-  shutdown(socket_fd, SHUT_RDWR); //Close both socket sides
-  if (socket_fd != -1)
-    close(socket_fd);
-  socket_fd = -1;
-  TerminalView::print_info("Disconnected from the server");
-}
-
-/**
  * Signal handler for handling interruptions like Ctrl+C.
  *
  * @param signal The signal number received.
@@ -132,8 +115,7 @@ void Client::handle_response(const Message& incoming_msg)
     if (result == "SUCCESS") {
       TerminalView::print_server("* Welcome to the chat! *");
       TerminalView::print_info("Type --comms to see full chat commands");
-    }
-    else if (result == "USER_ALREADY_EXISTS") {
+    } else if (result == "USER_ALREADY_EXISTS") {
       TerminalView::print_invalid("Username [" + extra + "] already exists, disconnecting...");
       disconnect();
       return;
@@ -557,4 +539,21 @@ void Client::send_message(const std::string& message)
   if (is_connected)
     if (send(socket_fd, message.c_str(), message.size(), 0) < 0)
       TerminalView::print_error("Failed to send message");
+}
+
+/**
+ * Disconnects the client gracefully from the server.
+ **/
+void Client::disconnect()
+{
+  static std::mutex disconnect_mutex;
+  std::lock_guard<std::mutex> lock(disconnect_mutex); //Ensure only one thread disconnects
+  if (!is_connected)
+    return;
+  is_connected = false;
+  shutdown(socket_fd, SHUT_RDWR); //Close both socket sides
+  if (socket_fd != -1)
+    close(socket_fd);
+  socket_fd = -1;
+  TerminalView::print_info("Disconnected from the server");
 }
