@@ -9,7 +9,8 @@ extern "C"
 {
 #endif
 
-void launch_gui(char* server_ip, int port);
+  //void launch_gui(char* server_ip, int port);
+  void launch_gui();
 
 #ifdef __cplusplus
 }

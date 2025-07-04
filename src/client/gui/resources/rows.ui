@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- Row Type 1 -->
+  <object class="AdwActionRow" id="row_type_1">
+    <style>
+      <class name="public-row"/>
+    </style>
+  </object>
+
+  <!-- Row Type 2 -->
+  <object class="AdwActionRow" id="row_type_2">
+    <style>
+      <class name="user-row"/>
+    </style>
+  </object>
+
+  <!-- Row Type 3 -->
+  <object class="AdwActionRow" id="row_type_3">
+    <style>
+      <class name="room-row"/>
+    </style>
+  </object>
+</interface>

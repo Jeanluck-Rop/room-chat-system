@@ -20,9 +20,28 @@ include_directories(${GTK4_INCLUDE_DIRS} ${ADWAITA_INCLUDE_DIRS})
 link_directories(${GTK4_LIBRARY_DIRS} ${ADWAITA_LIBRARY_DIRS})
 add_definitions(${GTK4_CFLAGS_OTHER} ${ADWAITA_CFLAGS_OTHER})
 
+# Path to XML resources
+set(RESOURCE_XML ${CMAKE_CURRENT_SOURCE_DIR}/gui/resources.gresource.xml)
+set(RESOURCE_C ${CMAKE_CURRENT_BINARY_DIR}/resources.c)
+
+#
+add_custom_command(
+  OUTPUT ${RESOURCE_C}
+  COMMAND glib-compile-resources
+    --generate-source
+    --target=${RESOURCE_C}
+    --sourcedir ${CMAKE_CURRENT_SOURCE_DIR}/gui/resources
+    ${RESOURCE_XML}
+  DEPENDS ${RESOURCE_XML}
+)
+
+#
+add_custom_target(resources_target DEPENDS ${RESOURCE_C})
+
 # Source code files
 set(C_SOURCES
-    gui/view.c
+  gui/view.c
+  ${RESOURCE_C}
 )
   
 set(CPP_SOURCES
@@ -38,8 +57,15 @@ add_library(gui_c STATIC ${C_SOURCES})
 # Create static library to compile the client in C++
 add_library(client_library STATIC ${CPP_SOURCES})
 
+#
+add_dependencies(gui_c resources_target)
+
+####
 # Create main executable
-add_executable(client src/main.cpp)
+add_executable(client src/main.cpp ${RESOURCE_C})
+#
+add_dependencies(client resources_target)
 
 # Link static library with executable
-target_link_libraries(client client_library gui_c ${GTK4_LIBRARIES} ${ADWAITA_LIBRARIES})
+target_link_libraries(client client_library
+  gui_c ${GTK4_LIBRARIES} ${ADWAITA_LIBRARIES})
