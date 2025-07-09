@@ -1,140 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object class="AdwNavigationSplitView" id="chat">
-    <!-- SIDEBAR: for list chats and notifies -->
-    <property name="sidebar">
-      <object class="AdwNavigationPage" id="sidebar_page">
-        <property name="tag">sidebar</property>
-        <property name="child">
-	  <!-- Divide the sidebar in two sections -->
+  <object class="GtkApplicationWindow" id="chat_window">
+    <property name="title">Chat App</property>
+    <property name="default-width">1000</property>
+    <property name="default-height">800</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">horizontal</property>
+	<!-- SIDEBAR-->
+	<child>
 	  <object class="GtkBox">
 	    <property name="orientation">vertical</property>
-	    <!-- <style>
-		 <class name="sidebar-style"/> //remove and delegate margins and spacing to a css
-		 </style> -->
-	    <property name="spacing">6</property>
-	    <!-- Header -->
+            <property name="hexpand">false</property>
+	    <property name="width-request">350</property>
+	    <style>
+	      <class name="sidebar-section"/>
+	    </style>
+	    <!-- Sidebar Header -->
             <child>
-              <object class="GtkBox">
+              <object class="GtkBox" id="sidebar_header">
 		<property name="orientation">horizontal</property>
-		<!-- <style>
-		     <class name="sidebar-header"/> //remove and delegate margins and spacing to a css
-		     </style> -->
-		<property name="spacing">6</property>
-		<property name="margin-top">6</property>
-		<property name="margin-bottom">6</property>
-		<property name="margin-start">6</property>
-		<property name="margin-end">6</property>
-		<property name="halign">start</property>
+		<property name="spacing">12</property>
+		<style>
+		  <class name="sidebar-header"/>
+		</style>
 		<child>
-		  <object class="GtkButton" id="sidebar_button">
-		    <!-- <style>
-			 <class name="notifies-button"/> //remove delegate margins and spacing to a css
-			 </style> -->
+		  <object class="GtkButton" id="notifs_button">
                     <property name="label">N</property> <!-- Import icon -->
+		    <style>
+		      <class name="notifs-button"/>
+		    </style>
 		  </object>
 		</child>
 		<child>
 		  <object class="GtkLabel">
                     <property name="label">Chats</property>
-		    <!-- <style>
-			 <class name="title-sidebar"/> //remove delegate margins and spacing to a css
-			 </style> -->
-                    <property name="xalign">0</property>
+		    <property name="halign">center</property>
+		    <property name="valign">center</property>
+		    <style>
+		      <class name="title-sidebar"/>
+		    </style>
 		  </object>
 		</child>
               </object>
             </child>
-	    <!-- CHATS LIST -->
+	    <!-- Sidebar chats list -->
 	    <child>
 	      <object class="GtkScrolledWindow">
 		<property name="vexpand">True</property>
 		<child>
-		  <object class="GtkListBox" id="chats_list">
+		  <object class="GtkBox" id="chats_list">
+		    <property name="orientation">vertical</property>
 		    <style>
-		      <class name="boxed-list"/>
-		      <!-- <class name="chats-list"/> -->
+		      <class name="chats-list"/>
 		    </style>
 		  </object>
 		</child>
 	      </object>
 	    </child>
 	  </object>
-        </property>
-      </object>
-    </property>
-    <!-- MAIN CONTENT: for chat info, chat message and write/send a message-->
-    <property name="content">
-      <object class="AdwNavigationPage" id="main_content">
-	<property name="tag">content</property>
-	<property name="child">
-          <object class="GtkBox">
+	</child>
+	
+	<!-- MAIN CONTENT -->
+	<child>
+	  <object class="GtkBox" id="main_content">
 	    <property name="orientation">vertical</property>
-	    <!-- <style>
-		 <class name="main-content"/> //remove and delegate margins and spacing to a css
-		 </style> -->
-	    <property name="spacing">6</property>
-	    <!-- Header -->
-            <child>
-              <object class="GtkBox" id="chat_header">
-		<property name="orientation">horizontal</property>
-		<!-- <style>
-		     <class name="main-header-style"/> //remove and delegate margins and spacing to a css
-		     </style> -->
-		<property name="margin-start">6</property>
-                <property name="margin-end">6</property>
-		<!-- Use a different header.ui for each row1, row2, row3 -->
-              </object>
-            </child>
-	    <!-- ZONA DE MENSAJES -->
-            <child>
-              <object class="GtkScrolledWindow">
-		<property name="vexpand">True</property>
-		<child>
-                  <object class="GtkBox" id="messages_box">
-		    <property name="orientation">vertical</property>
-		    <!-- <style>
-			 <class name="messages-box-style"/> //remove and delegate margins and spacing to a css
-			 </style> -->
-                    <property name="spacing">6</property>
-                    <property name="margin-start">6</property>
-                    <property name="margin-end">6</property>
-		  </object>
-		</child>
-              </object>
-            </child>
-            <!-- TEXT ENTRY -->
-            <child>
-              <object class="GtkBox">
-		<property name="orientation">horizontal</property>
-		<!-- <style>
-		     <class name="type-message-style"/> //remove and delegate margins and spacing to a css
-		     </style> -->
-		<property name="margin-start">6</property>
-                <property name="margin-end">6</property>
-		<property name="spacing">6</property>
-		<child>
-                  <object class="GtkEntry" id="message_entry">
-                    <property name="hexpand">True</property>
-                    <property name="placeholder-text">Type a message</property>
-		    <!-- <style>
-			 <class name="type-entry"/> //remove and delegate margins and spacing to a css
-			 </style> -->
-                  </object>
-		</child>
-		<child>
-                  <object class="GtkButton" id="send_button">
-		    <!-- <style>
-			 <class name="title-sidebar"/> //remove delegate margins and spacing to a css
-			 </style> //Import Icon--> 
-                    <property name="label">Send</property>
-                  </object>
-		</child>
-              </object>
-            </child>
+	    <property name="hexpand">true</property>
+	    <style>
+	      <class name="main-content"/>
+	    </style>
 	  </object>
-	</property>
+	</child>
       </object>
-    </property>
+    </child>
   </object>
 </interface>

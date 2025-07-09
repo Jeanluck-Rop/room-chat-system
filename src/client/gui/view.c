@@ -1,123 +1,138 @@
 #include "view.h"
 
-extern GResource *resources_get_resource(void);
+/**
+ * Class constants and variables.
+ **/
+static GtkWidget *port_entry = NULL;
+static GtkWidget *ip_entry = NULL;
+static int current_port = 0;
 
-static const char *status[] = { "Active", "Away", "Busy" };
+/**
+ * Auxiliar functions.
+ **/
 
 /* */
-static void
-display_chats(GtkWidget *listbox)
+int
+get_port()
 {
-  GtkBuilder *row_builder = gtk_builder_new_from_resource("/org/chat/client/resources/rows.ui");
-
-  for (int i = 0; i < 18; ++i) {
-    const char *template_id;
-
-    // Fake data for the moment
-    if (i % 3 == 0)
-      template_id = "row_type_1";
-    else if (i % 3 == 1)
-      template_id = "row_type_2";
-    else
-      template_id = "row_type_3";
-
-    GtkWidget *row = GTK_WIDGET(gtk_builder_get_object(row_builder, template_id));
-    if (!row)
-      continue;
-
-    GtkWidget *row_clone = g_object_new(G_OBJECT_TYPE(row), NULL);
-
-    if (i % 3 == 0)
-      g_object_set(row_clone, "title", "PUBLIC CHAT", NULL);
-    else if (i % 3 == 1) {
-      gchar *user = g_strdup_printf("user_%d", i);
-      gchar *stat = g_strdup_printf("STATUS: %s", status[i % 3]);
-      g_object_set(row_clone, "title", user, "subtitle", stat, NULL);
-      g_free(user);
-      g_free(stat);
-    } else {
-      gchar *room = g_strdup_printf("ROOM CHAT: Room_%d", i);
-      g_object_set(row_clone, "title", room, NULL);
-      g_free(room);
-    }
-
-    gtk_list_box_append(GTK_LIST_BOX(listbox), row_clone);
-  }
-
-  g_object_unref(row_builder);
+  const char* port_text = gtk_editable_get_text(GTK_EDITABLE(port_entry));
+  return atoi(port_text);
 }
+
+/* */
+const char*
+get_ip()
+{
+  return gtk_editable_get_text(GTK_EDITABLE(ip_entry));
+}
+
+
+/**
+ * Main functions to handle the gui
+ **/
+
 
 /* */
 static void
 enter_chat(GtkButton *button,
-	      gpointer user_data)
+	   gpointer user_data)
 {
-  GtkWidget *toolbar_view = GTK_WIDGET(user_data);
+  GtkWindow *current_window = GTK_WINDOW(user_data);
+  GtkApplication *app = GTK_APPLICATION(g_application_get_default());
+  
+  int port = get_port();
+  const char* ip = get_ip();
+  if (port < 1024 || port > 49151) {
+    printf("Port number must be between 1024 and 49151.\n");
+    return;
+  }
+  printf("- Port: [%d] \n- IP: [%s]\n", port, ip);
 
-  GtkBuilder *chat_builder = gtk_builder_new_from_resource("/org/chat/client/resources/chat.ui");
-  GtkWidget *chat = GTK_WIDGET(gtk_builder_get_object(chat_builder, "chat"));
-
-  adw_toolbar_view_set_content(ADW_TOOLBAR_VIEW(toolbar_view), chat);
-
-  GtkWidget *chats_list;
-  chats_list = GTK_WIDGET(gtk_builder_get_object(chat_builder, "chats_list"));
-  display_chats(chats_list);
-
-  g_object_unref(chat_builder);
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_resource(provider, "/org/chat/client/resources/css/chat.css");
+  gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+					     GTK_STYLE_PROVIDER(provider),
+					     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  GtkBuilder *builder;
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/chat.ui");
+  GtkWindow *chat_window;
+  chat_window = GTK_WINDOW(gtk_builder_get_object(builder, "chat_window"));
+  gtk_window_set_application(chat_window, app);
+  gtk_widget_set_visible(GTK_WIDGET(current_window), FALSE);
+  //gtk_window_maximize(chat_window);
+  gtk_window_destroy(current_window);
+  
+  gtk_window_present(chat_window);
+  g_object_unref(builder);
 }
 
 /* */
 static void
 quit(GtkButton *button,
-		gpointer user_data)
+     gpointer user_data)
 {
   g_application_quit(g_application_get_default());
 }
 
 /* */
 static void
-enter_server(GtkWidget *toolbar_view)
+on_port_changed(GtkEditable *editable,
+		gpointer user_data)
 {
-  GtkBuilder *home_builder;
-  home_builder = gtk_builder_new_from_resource("/org/chat/client/resources/home.ui");
-  GtkWidget *home;
-  home = GTK_WIDGET(gtk_builder_get_object(home_builder, "home"));
-  GtkWidget *btn_connect;
-  btn_connect = GTK_WIDGET(gtk_builder_get_object(home_builder, "connect"));
-  GtkWidget *btn_quit;
-  btn_quit = GTK_WIDGET(gtk_builder_get_object(home_builder, "quit"));
-  
-  g_signal_connect(btn_connect, "clicked", G_CALLBACK(enter_chat), toolbar_view);
-  g_signal_connect(btn_quit, "clicked", G_CALLBACK(quit), NULL);
-  adw_toolbar_view_set_content(ADW_TOOLBAR_VIEW(toolbar_view), home);
-  g_object_unref(home_builder);
+  const char* text = gtk_editable_get_text(editable);
+  current_port = atoi(text);
 }
 
 /* */
 static void
-activate(GtkApplication *app)
+activate(GtkApplication *app,
+	 gpointer user_data)
 {
-  g_resources_register(resources_get_resource());
+  //g_resources_register(resources_get_resource());
+  StartData *data = (StartData *)user_data;
+  current_port = data->port;
   
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_resource(provider, "/org/chat/client/resources/css/start.css");
+  gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+					     GTK_STYLE_PROVIDER(provider),
+					     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/window.ui");
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/start.ui");
   GtkWindow *window;
-  window = GTK_WINDOW(gtk_builder_get_object(builder, "main_window"));
+  window = GTK_WINDOW(gtk_builder_get_object(builder, "start_window"));
   gtk_window_set_application(window, app);
-  GtkWidget *toolbar_view;
-  toolbar_view = GTK_WIDGET(gtk_builder_get_object(builder, "toolbar_view"));
+
+  port_entry = GTK_WIDGET(gtk_builder_get_object(builder, "port_entry"));
+  ip_entry = GTK_WIDGET(gtk_builder_get_object(builder, "ip_entry"));
+  g_signal_connect(port_entry, "changed", G_CALLBACK(on_port_changed), NULL);
+  char port_str[16];
+  snprintf(port_str, sizeof(port_str), "%d", data->port);
+  gtk_editable_set_text(GTK_EDITABLE(ip_entry), data->server_ip);
+  gtk_editable_set_text(GTK_EDITABLE(port_entry), port_str);
   
-  enter_server(toolbar_view);
+  GtkWidget *btn_connect;
+  btn_connect = GTK_WIDGET(gtk_builder_get_object(builder, "connect_button"));
+  GtkWidget *btn_quit;
+  btn_quit = GTK_WIDGET(gtk_builder_get_object(builder, "quit_button"));
+  g_signal_connect(btn_connect, "clicked", G_CALLBACK(enter_chat), window);
+  g_signal_connect(btn_quit, "clicked", G_CALLBACK(quit), NULL);
+  
   gtk_window_present(window);
   g_object_unref(builder);
 }
 
-/* void launch_gui(char* server_ip, int port) */
+//launch_gui()
 void
-launch_gui()
+launch_gui(char* server_ip,
+	   int port)
 {
-  g_autoptr(AdwApplication) app = NULL;
-  app = adw_application_new("org.chat.client", G_APPLICATION_DEFAULT_FLAGS);
-  g_signal_connect(app, "activate", G_CALLBACK (activate), NULL);
+  StartData *data = g_new(StartData, 1);
+  data->server_ip = g_strdup(server_ip);
+  data->port = port;
+
+  GtkApplication *app;
+  app = gtk_application_new("org.chat.client", G_APPLICATION_DEFAULT_FLAGS);
+  g_signal_connect_data(app, "activate", G_CALLBACK (activate), data, (GClosureNotify)g_free, G_CONNECT_AFTER);
   g_application_run(G_APPLICATION (app), 0, NULL);
 }

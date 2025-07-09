@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkBox" id="row_page">
+    <property name="orientation">vertical</property>
+    <!-- <style>
+	 <class name="public-page"/> //remove and delegate margins and spacing to a css
+	 </style> -->
+    <property name="spacing">6</property>
+    <!-- Header -->
+    <child>
+      <object class="GtkBox" id="chat_header">
+	<property name="orientation">horizontal</property>
+	<!-- <style>
+	     <class name="public-chat-header"/> //remove and delegate margins and spacing to a css
+	     </style> -->
+	<property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+	<property name="spacing">0</property>
+	<child>
+	  <object class="GtkBox" id="header_left">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">3</property>
+	    <child>
+              <object class="GtkButton" id="header_button">
+	      <!-- <style>
+		   <class name="public-info"/> //remove and delegate margins and spacing to a css
+		   </style> -->
+	      </object>
+	    </child>
+	    <child>
+              <object class="GtkLabel" id="header_title">
+		<property name="label">PUBLIC CHAT</property>
+              </object>
+	    </child>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="header_right">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">6</property>
+	    <child>
+              <object class="GtkButton" id="info_button">
+                <property name="label">i</property>
+                <style>
+                  <class name="circular-button"/>
+                </style>
+              </object>
+            </child>
+          </object>
+	</child>
+      </object>
+    </child>
+    <!-- MESSAGES ZONE -->
+    <child>
+      <object class="GtkScrolledWindow">
+	<property name="vexpand">True</property>
+	<child>
+          <object class="GtkBox" id="messages_box">
+	    <property name="orientation">vertical</property>
+	    <!-- <style>
+		 <class name="messages-box-style"/> //remove and delegate margins and spacing to a css
+		 </style> -->
+            <property name="spacing">6</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+	  </object>
+	</child>
+      </object>
+    </child>
+    <!-- TEXT ENTRY -->
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">horizontal</property>
+	<!-- <style>
+	     <class name="type-message-style"/> //remove and delegate margins and spacing to a css
+	     </style> -->
+	<property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+	<property name="spacing">6</property>
+	<child>
+          <object class="GtkEntry" id="message_entry">
+            <property name="hexpand">True</property>
+            <property name="placeholder-text">Type a message</property>
+	    <!-- <style>
+		 <class name="type-entry"/> //remove and delegate margins and spacing to a css
+		 </style> -->
+          </object>
+	</child>
+	<child>
+          <object class="GtkButton" id="send_button">
+	    <!-- <style>
+		 <class name="title-sidebar"/> //remove delegate margins and spacing to a css
+		 </style> //Import Icon--> 
+            <property name="label">Send</property>
+          </object>
+	</child>
+      </object>
+    </child>
+  </object>
+</interface>

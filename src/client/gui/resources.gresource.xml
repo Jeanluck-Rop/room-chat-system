@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/org/chat/client/resources">
-    <file>window.ui</file>
-    <file>home.ui</file>
+    <!-- UI -->
+    <file>start.ui</file>
     <file>chat.ui</file>
     <file>rows.ui</file>
+    <file>main_page.ui</file>
+    
+    <!-- CSS -->
+    <file>css/start.css</file>
+    <file>css/chat.css</file>
   </gresource>
 </gresources>

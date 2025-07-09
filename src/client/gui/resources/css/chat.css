@@ -1,0 +1,25 @@
+#chat_window {
+}
+
+.sidebar-section {
+    min-width: 150px;
+    background: #142d4c;
+}
+
+.sidebar-header {
+}
+
+.notifs-button {
+}
+
+.title-sidebar {
+    color: white;
+}
+
+.chats-list {
+}
+
+.main-content {
+    min-width: 350px;
+    background: #385170;
+}
