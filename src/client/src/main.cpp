@@ -13,7 +13,7 @@ int
 main(int num_args,
      char *argv[])
 {
-  /*if (num_args != 3) {
+  if (num_args != 3) {
     std::cerr << "Use: " << argv[0] << " <server_ip> <port>" << std::endl;
     return EXIT_FAILURE;
   }
@@ -30,11 +30,10 @@ main(int num_args,
     {
       std::cerr << "[ERROR] Invalid port: " << e.what() << std::endl;
       return EXIT_FAILURE;
-      }*/
+    }
 
-  std::signal(SIGINT, Client::signal_handler);
+  //std::signal(SIGINT, Client::signal_handler);
   cout << "Launching gui client...\n";
-  //launch_gui(server_ip, port);
-  launch_gui();
+  launch_gui(server_ip, port);
   return EXIT_SUCCESS;
 }

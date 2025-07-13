@@ -1,20 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object class="AdwActionRow" id="public_row">
-    <style>
-      <class name="public-row"/>
-    </style>
+  <!-- Public Chat Row -->
+  <object class="GtkListBoxRow" id="public_row">
+    <child>
+      <object class="GtkBox" id="public_labels">
+        <property name="orientation">horizontal</property>
+        <property name="spacing">12</property>
+        <style>
+          <class name="public-row"/>
+        </style>
+        <child>
+          <object class="GtkLabel" id="public_row_label">
+            <property name="label">Public Chat</property>
+          </object>
+        </child>
+      </object>
+    </child>
   </object>
-  
-  <object class="AdwActionRow" id="user_row">
-    <style>
-      <class name="user-row"/>
-    </style>
+
+  <!-- User Chat Row -->
+  <object class="GtkListBoxRow" id="user_row">
+    <child>
+      <object class="GtkBox" id="user_labels">
+        <property name="orientation">horizontal</property>
+        <property name="spacing">12</property>
+        <style>
+          <class name="user-row"/>
+        </style>
+        <child>
+          <object class="GtkLabel" id="user_row_label">
+            <property name="label">Username</property>
+          </object>
+        </child>
+      </object>
+    </child>
   </object>
- 
-  <object class="AdwActionRow" id="room_row">
-    <style>
-      <class name="room-row"/>
-    </style>
+
+  <!-- Room Chat Row -->
+  <object class="GtkListBoxRow" id="room_row">
+    <child>
+      <object class="GtkBox" id="room_labels">
+        <property name="orientation">horizontal</property>
+        <property name="spacing">12</property>
+        <style>
+          <class name="room-row"/>
+        </style>
+        <child>
+          <object class="GtkLabel" id="room_row_label">
+            <property name="label">ROOMNAME</property>
+          </object>
+        </child>
+      </object>
+    </child>
   </object>
 </interface>

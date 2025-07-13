@@ -10,7 +10,7 @@
 extern "C"
 {
 #endif
-  
+  ///
   typedef struct
   {
     char* server_ip;
@@ -18,6 +18,36 @@ extern "C"
   }
     StartData;
 
+  ///
+  typedef enum
+  {
+   CHAT_TYPE_PUBLIC,
+   CHAT_TYPE_ROOM,
+   CHAT_TYPE_USER
+  }
+    ChatType;
+
+  ///
+  typedef struct
+  {
+    char *name;
+    ChatType type;
+    GList *messages;
+    GtkWidget *row_widget;
+  }
+    Chat;
+  
+  ///
+  typedef struct
+  {
+    char *sender;
+    char *content;
+  }
+    ChatMessage;  
+
+  /**
+   *
+   **/
   void launch_gui(char* server_ip, int port);
   
 #ifdef __cplusplus

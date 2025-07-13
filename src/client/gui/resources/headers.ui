@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- PUBLIC HEADER -->
+  <object class="GtkBox" id="public_header">
+    <property name="orientation">horizontal</property>
+    <property name="spacing">6</property>
+    <style>
+      <class name="public-header"/>
+    </style>
+    <child>
+      <object class="GtkLabel" id="public_title">
+        <property name="label">Public Chat</property>
+        <property name="xalign">0</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="public_users_count">
+        <property name="label">0 users</property>
+        <property name="xalign">1</property>
+      </object>
+    </child>
+  </object>
+
+    <!-- USER HEADER -->
+  <object class="GtkBox" id="user_header">
+    <property name="orientation">horizontal</property>
+    <property name="spacing">6</property>
+    <style>
+      <class name="user-header"/>
+    </style>
+    <child>
+      <object class="GtkLabel" id="user_name_label">
+        <property name="label">User Name</property>
+        <property name="xalign">0</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="user_status_label">
+        <property name="label">Active</property>
+        <property name="xalign">1</property>
+      </object>
+    </child>
+  </object>
+
+    <!-- ROOM HEADER -->
+  <object class="GtkBox" id="room_header">
+    <property name="orientation">horizontal</property>
+    <property name="spacing">6</property>
+    <style>
+      <class name="room-header"/>
+    </style>
+    <child>
+      <object class="GtkLabel" id="room_name_label">
+        <property name="label">Room Name</property>
+        <property name="xalign">0</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="room_users_count">
+        <property name="label">1 members</property>
+        <property name="xalign">1</property>
+      </object>
+    </child>
+  </object>
+</interface>

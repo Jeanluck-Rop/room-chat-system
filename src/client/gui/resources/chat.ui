@@ -7,6 +7,7 @@
     <child>
       <object class="GtkBox">
 	<property name="orientation">horizontal</property>
+	
 	<!-- SIDEBAR-->
 	<child>
 	  <object class="GtkBox">
@@ -49,8 +50,8 @@
 	      <object class="GtkScrolledWindow">
 		<property name="vexpand">True</property>
 		<child>
-		  <object class="GtkBox" id="chats_list">
-		    <property name="orientation">vertical</property>
+		  <object class="GtkListBox" id="chats_list">
+		    <property name="selection-mode">none</property>
 		    <style>
 		      <class name="chats-list"/>
 		    </style>
