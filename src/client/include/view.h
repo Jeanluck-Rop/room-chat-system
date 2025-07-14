@@ -38,12 +38,21 @@ extern "C"
     Chat;
   
   ///
+  typedef enum
+  {
+    MESSAGE_TYPE_NORMAL,
+    MESSAGE_TYPE_INFO
+  }
+    MessageType;
+
+  ///
   typedef struct
   {
+    MessageType type;
     char *sender;
     char *content;
   }
-    ChatMessage;  
+    ChatMessage;
 
   /**
    *

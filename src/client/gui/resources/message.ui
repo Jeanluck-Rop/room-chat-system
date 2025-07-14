@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkStack" id="message_root">
+    <!-- NORMAL MESSAGE -->
+    <child>
+      <object class="GtkBox" id="message_form">
+	<property name="orientation">vertical</property>
+	<property name="halign">start</property>
+	<property name="spacing">4</property>
+	<style>
+	  <class name="message-form"/>
+	</style>
+	<child>
+	  <object class="GtkLabel" id="sender_label">
+            <property name="label">Sender</property>
+            <property name="halign">start</property>
+            <style>
+              <class name="sender-label"/>
+            </style>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkLabel" id="content_label">
+            <property name="label">Message content goes here</property>
+            <property name="halign">start</property>
+            <style>
+              <class name="message-content"/>
+            </style>
+	  </object>
+	</child>
+      </object>
+    </child>
+    
+    <!-- INFO MESSAGE -->
+    <child>
+      <object class="GtkBox" id="info_message_form">
+	<property name="halign">center</property>
+	<style>
+	  <class name="info-message"/>
+	</style>
+	<child>
+	  <object class="GtkLabel" id="info_label">
+            <property name="label">Chat info</property>
+            <property name="halign">center</property>
+            <style>
+              <class name="info-label"/>
+            </style>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+</interface>

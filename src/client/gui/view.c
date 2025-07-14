@@ -63,6 +63,19 @@ clear_widget(GtkWidget *widget)
 }
 
 /* */
+ChatMessage
+*create_message(MessageType type,
+		const char *sender,
+		const char *content)
+{
+  ChatMessage *msg = g_new0(ChatMessage, 1);
+  msg->type = type;
+  msg->sender = g_strdup(sender);
+  msg->content = g_strdup(content);
+  return msg;
+}
+
+/* */
 static void
 load_css(const char *resource_path)
 {
@@ -80,6 +93,38 @@ load_css(const char *resource_path)
  * Main functions to handle the gui
  *
  **/
+
+/* */
+GtkWidget
+*build_message(ChatMessage *msg)
+{
+ 
+  GtkBuilder *builder;
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/message.ui");
+  GtkWidget *root;
+  root = GTK_WIDGET(gtk_builder_get_object(builder, "message_root"));
+  
+  GtkWidget *msg_box;
+  if (msg->type == MESSAGE_TYPE_INFO) {
+    msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "info_message_form"));
+    GtkWidget *content_label;
+    content_label= GTK_WIDGET(gtk_builder_get_object(builder, "info_label"));
+    gtk_label_set_text(GTK_LABEL(content_label), msg->content);
+  } else {
+    msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "message_form"));
+    GtkWidget *sender_label;
+    sender_label = GTK_WIDGET(gtk_builder_get_object(builder, "sender_label"));
+    GtkWidget *content_label;
+    content_label = GTK_WIDGET(gtk_builder_get_object(builder, "content_label"));
+    gtk_label_set_text(GTK_LABEL(sender_label), msg->sender);
+    gtk_label_set_text(GTK_LABEL(content_label), msg->content);
+  }
+
+  g_object_ref(msg_box);
+  g_object_unref(builder);
+  return msg_box;
+}
+
 /* */
 void
 load_main_page(Chat *chat)
@@ -126,6 +171,14 @@ load_main_page(Chat *chat)
   }
 
   //load messages logic
+  for (GList *l = chat->messages; l; l = l->next) {
+    ChatMessage *msg = l->data;
+    GtkWidget *widget = build_message(msg);
+    if (GTK_IS_WIDGET(widget))
+      gtk_box_append(GTK_BOX(messages_box), widget);
+    else
+      g_warning("build_message failed for: %s", msg->sender);
+  }
   
   //send button logic
 
@@ -221,11 +274,44 @@ enter_chat(GtkButton *button,
   chats_list = GTK_WIDGET(gtk_builder_get_object(builder, "chats_list"));
 
   Chat *public_chat = new_chat_row("Public Chat", CHAT_TYPE_PUBLIC);
-  load_main_page(public_chat);
-  //testing
-  new_chat_row("Room A", CHAT_TYPE_ROOM);
-  new_chat_row("Alice", CHAT_TYPE_USER);
 
+  ///testing
+  Chat *user_chat = new_chat_row("Alice", CHAT_TYPE_USER);
+  Chat *room_chat = new_chat_row("Room A", CHAT_TYPE_ROOM);
+  ChatMessage *inf1 = create_message(MESSAGE_TYPE_INFO, "info", "Bienvenido al chat público");
+  public_chat->messages = g_list_append(public_chat->messages, inf1);
+  ChatMessage *m1 = create_message(MESSAGE_TYPE_NORMAL, "Alice", "¡Hola a todos!");
+  public_chat->messages = g_list_append(public_chat->messages, m1);
+  ChatMessage *m2 = create_message(MESSAGE_TYPE_NORMAL, "Bob", "¿Cómo están?");
+  public_chat->messages = g_list_append(public_chat->messages, m2);
+  ChatMessage *m3 = create_message(MESSAGE_TYPE_NORMAL, "Carmen", "¡Qué bueno ver tanta gente aquí!");
+  public_chat->messages = g_list_append(public_chat->messages, m3);
+  ChatMessage *m4 = create_message(MESSAGE_TYPE_NORMAL, "David", "¿Alguien ha visto las noticias de hoy?");
+  public_chat->messages = g_list_append(public_chat->messages, m4);
+  ChatMessage *inf2 = create_message(MESSAGE_TYPE_INFO, "info", "Te has unido a la sala: Room A");
+  room_chat->messages = g_list_append(room_chat->messages, inf2);
+  ChatMessage *r1 = create_message(MESSAGE_TYPE_NORMAL, "Marco", "Todo bien por aquí.");
+  room_chat->messages = g_list_append(room_chat->messages, r1);
+  ChatMessage *r2 = create_message(MESSAGE_TYPE_NORMAL, "Mafer", "¡Hola a todos los de Room A!");
+  room_chat->messages = g_list_append(room_chat->messages, r2);
+  ChatMessage *r3 = create_message(MESSAGE_TYPE_NORMAL, "Nora", "¿Qué proyectos están haciendo?");
+  room_chat->messages = g_list_append(room_chat->messages, r3);
+  ChatMessage *r4 = create_message(MESSAGE_TYPE_NORMAL, "Leo", "Yo estoy trabajando en una app de recetas :)");
+  room_chat->messages = g_list_append(room_chat->messages, r4);
+  ChatMessage *inf3 = create_message(MESSAGE_TYPE_INFO, "info", "Alice te ha enviado una solicitud de mensaje");
+  user_chat->messages = g_list_append(user_chat->messages, inf3);
+  ChatMessage *u1 = create_message(MESSAGE_TYPE_NORMAL, "Alice", "¡Hola! ¿Cómo estás?");
+  user_chat->messages = g_list_append(user_chat->messages, u1);
+  ChatMessage *u2 = create_message(MESSAGE_TYPE_NORMAL, "Tú", "¡Hola Alice! Bien, ¿y tú?");
+  user_chat->messages = g_list_append(user_chat->messages, u2);
+  ChatMessage *u3 = create_message(MESSAGE_TYPE_NORMAL, "Alice", "Estaba viendo si querías colaborar en un proyecto.");
+  user_chat->messages = g_list_append(user_chat->messages, u3);
+  ChatMessage *u4 = create_message(MESSAGE_TYPE_NORMAL, "Tú", "¡Claro! ¿Qué tienes en mente?");
+  user_chat->messages = g_list_append(user_chat->messages, u4);
+  ///
+  
+  load_main_page(public_chat);
+    
   g_signal_connect(chats_list, "row-activated", G_CALLBACK(on_row_selected), NULL);
   
   gtk_window_set_application(chat_window, app);
