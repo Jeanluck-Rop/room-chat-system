@@ -15,5 +15,6 @@
     <file>css/rows.css</file>
     <file>css/main_page.css</file>
     <file>css/headers.css</file>
+    <file>css/notifies.css</file>
   </gresource>
 </gresources>

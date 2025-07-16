@@ -11,41 +11,28 @@ GtkWidget *main_content = NULL;
 GtkWidget *chats_list = NULL;
 GList *all_chats = NULL;
 
+static GtkWidget *notifs_button = NULL;
+static GtkPopover *notifs_popover = NULL;
+static GtkWidget *notifs_box = NULL;
+static GList *notifications = NULL;
+
+
 /**
  *
- * Auxiliar functions.
+ * Auxiliar functions
  *
  **/
-/* */
-int
-get_port()
-{
-  const char* port_text = gtk_editable_get_text(GTK_EDITABLE(port_entry));
-  return atoi(port_text);
-}
 
-/* */
-const char
-*get_ip()
-{
-  return gtk_editable_get_text(GTK_EDITABLE(ip_entry));
-}
-
+/*     Functions for handle gtk widgets     */
 /* */
 static void
-quit(GtkButton *button,
-     gpointer user_data)
+load_css(const char *resource_path)
 {
-  g_application_quit(g_application_get_default());
-}
-
-/* */
-static void
-on_port_changed(GtkEditable *editable,
-		gpointer user_data)
-{
-  const char* text = gtk_editable_get_text(editable);
-  current_port = atoi(text);
+  GtkCssProvider *provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_resource(provider, resource_path);
+  gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+					     GTK_STYLE_PROVIDER(provider),
+					     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
 /* */
@@ -61,9 +48,49 @@ clear_widget(GtkWidget *widget)
     child = next;
   }
 }
+///
+
+
+/*     Functions for handle the user beginning connection     */
 
 /* */
-ChatMessage
+static int
+get_port()
+{
+  const char* port_text = gtk_editable_get_text(GTK_EDITABLE(port_entry));
+  return atoi(port_text);
+}
+
+/* */
+static const char
+*get_ip()
+{
+  return gtk_editable_get_text(GTK_EDITABLE(ip_entry));
+}
+
+/* */
+static void
+on_port_changed(GtkEditable *editable,
+		gpointer user_data)
+{
+  const char* text = gtk_editable_get_text(editable);
+  current_port = atoi(text);
+}
+
+/* */
+static void
+quit(GtkButton *button,
+     gpointer user_data)
+{
+  g_application_quit(g_application_get_default());
+}
+///
+
+
+/*     Functions for handle the user beginning connection     */
+
+/* */
+static ChatMessage
 *create_message(MessageType type,
 		const char *sender,
 		const char *content)
@@ -76,26 +103,7 @@ ChatMessage
 }
 
 /* */
-static void
-load_css(const char *resource_path)
-{
-  GtkCssProvider *provider = gtk_css_provider_new();
-  gtk_css_provider_load_from_resource(provider, resource_path);
-  gtk_style_context_add_provider_for_display(gdk_display_get_default(),
-					     GTK_STYLE_PROVIDER(provider),
-					     GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-}
-///////
-
-
-/**
- *
- * Main functions to handle the gui
- *
- **/
-
-/* */
-GtkWidget
+static GtkWidget
 *build_message(ChatMessage *msg)
 {
  
@@ -124,6 +132,113 @@ GtkWidget
   g_object_unref(builder);
   return msg_box;
 }
+///
+
+
+/*     Functions for handle the notifications     */
+
+/* */
+void
+add_notify(const char *msg)
+{
+  notifications = g_list_append(notifications, g_strdup(msg));
+  gtk_widget_add_css_class(notifs_button, "has-notifications");
+}
+
+/* */
+static void
+remove_notify(const char *msg)
+{
+  GList *found = g_list_find_custom(notifications, msg, (GCompareFunc)g_strcmp0);
+  if (found) {
+    g_free(found->data);
+    notifications = g_list_delete_link(notifications, found);
+  }
+  
+  if (!notifications)
+    gtk_widget_remove_css_class(notifs_button, "has-notifications");
+}
+
+/* */
+static void
+on_notify_clicked(GtkButton *button,
+		  gpointer user_data)
+{
+  const char *msg = gtk_button_get_label(button);
+  remove_notify(msg);
+  gtk_popover_popdown(notifs_popover);
+}
+
+/* */
+static void
+display_notifications(GtkButton *button,
+		      gpointer user_data)
+{
+  clear_widget(notifs_box);   //clear previous childs
+  for (GList *l = notifications; l; l = l->next) {
+    GtkWidget *btn = gtk_button_new_with_label((char*)l->data);
+    gtk_widget_add_css_class(btn, "notif-item");
+    g_signal_connect(btn, "clicked", G_CALLBACK(on_notify_clicked), NULL);
+    gtk_box_append(GTK_BOX(notifs_box), btn);
+  }
+  
+  gtk_popover_popup(notifs_popover);
+}
+///
+
+
+
+/*     Functions for handle the chat rows    */
+
+/* */
+static Chat
+*new_chat_row(const char *name,
+	     ChatType type)
+{
+  const char *row_id = NULL;
+  const char *label_id = NULL;
+  switch (type) {
+    case CHAT_TYPE_PUBLIC:
+      row_id = "public_row";
+      label_id = "public_row_label";
+      break;
+    case CHAT_TYPE_USER:
+      row_id = "user_row";
+      label_id = "user_row_label";
+      break;
+    case CHAT_TYPE_ROOM:
+      row_id = "room_row";
+      label_id = "room_row_label";
+      break;
+  }
+
+  GtkBuilder *builder;
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/rows.ui");
+  GtkWidget *row;
+  row = GTK_WIDGET(gtk_builder_get_object(builder, row_id));
+  GtkWidget *label;
+  label = GTK_WIDGET(gtk_builder_get_object(builder, label_id));
+  
+  gtk_label_set_text(GTK_LABEL(label), name);
+  Chat *chat = g_new0(Chat, 1);
+  chat->name = g_strdup(name);
+  chat->type = type;
+  chat->messages = NULL;
+  chat->row_widget = GTK_WIDGET(row);
+  g_object_set_data(G_OBJECT(row), "chat-data", chat);
+
+  //insert new chat
+  gtk_list_box_append(GTK_LIST_BOX(chats_list), GTK_WIDGET(row));
+  all_chats = g_list_append(all_chats, chat);
+  g_object_unref(builder);
+  return chat;
+}
+
+/**
+ *
+ * Main functions to handle the gui
+ *
+ **/
 
 /* */
 void
@@ -197,50 +312,9 @@ on_row_selected(GtkListBox *box,
   if (chat != NULL)
     load_main_page(chat);
 }
+///
 
-/* */
-Chat
-*new_chat_row(const char *name,
-	     ChatType type)
-{
-  const char *row_id = NULL;
-  const char *label_id = NULL;
-  switch (type) {
-    case CHAT_TYPE_PUBLIC:
-      row_id = "public_row";
-      label_id = "public_row_label";
-      break;
-    case CHAT_TYPE_USER:
-      row_id = "user_row";
-      label_id = "user_row_label";
-      break;
-    case CHAT_TYPE_ROOM:
-      row_id = "room_row";
-      label_id = "room_row_label";
-      break;
-  }
 
-  GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/rows.ui");
-  GtkWidget *row;
-  row = GTK_WIDGET(gtk_builder_get_object(builder, row_id));
-  GtkWidget *label;
-  label = GTK_WIDGET(gtk_builder_get_object(builder, label_id));
-  
-  gtk_label_set_text(GTK_LABEL(label), name);
-  Chat *chat = g_new0(Chat, 1);
-  chat->name = g_strdup(name);
-  chat->type = type;
-  chat->messages = NULL;
-  chat->row_widget = GTK_WIDGET(row);
-  g_object_set_data(G_OBJECT(row), "chat-data", chat);
-
-  //insert new chat
-  gtk_list_box_append(GTK_LIST_BOX(chats_list), GTK_WIDGET(row));
-  all_chats = g_list_append(all_chats, chat);
-  g_object_unref(builder);
-  return chat;
-}
 
 /* */
 static void
@@ -264,6 +338,7 @@ enter_chat(GtkButton *button,
   load_css("/org/chat/client/resources/css/rows.css");
   load_css("/org/chat/client/resources/css/headers.css");
   load_css("/org/chat/client/resources/css/main_page.css");
+  load_css("/org/chat/client/resources/css/notifies.css");
   
   GtkBuilder *builder;
   builder = gtk_builder_new_from_resource("/org/chat/client/resources/chat.ui");
@@ -311,8 +386,18 @@ enter_chat(GtkButton *button,
   ///
   
   load_main_page(public_chat);
-    
   g_signal_connect(chats_list, "row-activated", G_CALLBACK(on_row_selected), NULL);
+
+  notifs_button = GTK_WIDGET(gtk_builder_get_object(builder, "notifs_button"));
+  notifs_popover = GTK_POPOVER(gtk_builder_get_object(builder, "notifs_popover"));
+  notifs_box = GTK_WIDGET(gtk_builder_get_object(builder, "notifs_box"));
+  g_signal_connect(notifs_button, "clicked", G_CALLBACK(display_notifications), NULL);
+
+  //testing
+  add_notify("Nueva solicitud de mensaje");
+  add_notify("Alicen se unió al chat");
+  add_notify("Alice te invito al cuarto [Pumitas]");
+  ///
   
   gtk_window_set_application(chat_window, app);
   gtk_widget_set_visible(GTK_WIDGET(current_window), FALSE);

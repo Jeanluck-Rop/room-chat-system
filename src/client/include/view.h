@@ -53,11 +53,12 @@ extern "C"
     char *content;
   }
     ChatMessage;
-
-  /**
-   *
-   **/
+  
+  /* */
   void launch_gui(char* server_ip, int port);
+
+  /* */
+  void add_notify(const char *msg);
   
 #ifdef __cplusplus
 }

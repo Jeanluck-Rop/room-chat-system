@@ -1,0 +1,12 @@
+.has-notifications {
+    background-image: radial-gradient(circle, red 3px, white 4px);
+    background-repeat: no-repeat;
+    background-position: top right;
+    background-size: 10px 10px;
+}
+
+.notif-item {
+}
+
+.notif-item:hover {
+}

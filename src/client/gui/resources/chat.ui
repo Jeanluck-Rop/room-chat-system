@@ -31,6 +31,19 @@
 		    <style>
 		      <class name="notifs-button"/>
 		    </style>
+		    
+		    <child>
+		      <object class="GtkPopover" id="notifs_popover">
+			<property name="position">bottom</property>
+			<child>
+			  <object class="GtkBox" id="notifs_box">
+			    <property name="orientation">vertical</property>
+			    <property name="spacing">4</property>
+			  </object>
+			</child>
+		      </object>
+		    </child>
+		    
 		  </object>
 		</child>
 		<child>
