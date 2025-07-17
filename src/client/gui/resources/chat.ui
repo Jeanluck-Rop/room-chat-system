@@ -26,27 +26,6 @@
 		  <class name="sidebar-header"/>
 		</style>
 		<child>
-		  <object class="GtkButton" id="notifs_button">
-                    <property name="label">N</property> <!-- Import icon -->
-		    <style>
-		      <class name="notifs-button"/>
-		    </style>
-		    
-		    <child>
-		      <object class="GtkPopover" id="notifs_popover">
-			<property name="position">bottom</property>
-			<child>
-			  <object class="GtkBox" id="notifs_box">
-			    <property name="orientation">vertical</property>
-			    <property name="spacing">4</property>
-			  </object>
-			</child>
-		      </object>
-		    </child>
-		    
-		  </object>
-		</child>
-		<child>
 		  <object class="GtkLabel">
                     <property name="label">Chats</property>
 		    <property name="halign">center</property>
@@ -56,7 +35,26 @@
 		    </style>
 		  </object>
 		</child>
-              </object>
+		<child>
+		  <object class="GtkButton" id="notifs_button">
+                    <property name="label">N</property> <!-- Import icon -->
+		    <style>
+		      <class name="notifs-button"/>
+		    </style>
+		  </object>
+		</child>
+		<child>
+		  <object class="GtkPopover" id="notifs_popover">
+		    <property name="position">bottom</property>
+		    <child>
+		      <object class="GtkBox" id="notifs_box">
+			<property name="orientation">vertical</property>
+			<property name="spacing">4</property>
+		      </object>
+		    </child>
+		  </object>
+		</child>
+	      </object>
             </child>
 	    <!-- Sidebar chats list -->
 	    <child>

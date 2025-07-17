@@ -12,7 +12,9 @@
         <property name="margin-end">6</property>
 	<property name="spacing">0</property>
 	<child>
-	  <object class="GtkBox" id="header_left"/>
+	  <object class="GtkListBox" id="header_left">
+	    <property name="hexpand">True</property>
+	  </object>
 	</child>
 	<child>
 	  <object class="GtkBox" id="header_right">
@@ -21,12 +23,72 @@
             <property name="spacing">6</property>
 	    <child>
               <object class="GtkButton" id="info_button">
-                <property name="label">i</property>  <!-- Import Icon -->
+		<child>
+		  <object class="GtkLabel">
+		    <property name="label">I</property><!-- Import Icon -->
+		  </object>
+		</child>
                 <style>
                   <class name="info-button"/>
                 </style>
-              </object>
+	      </object>
             </child>
+	    <child>
+	      <object class="GtkPopover" id="chat_actions_popover">
+		<property name="position">bottom</property>
+		<child>
+		  <object class="GtkBox" id="actions_box">
+		    <property name="orientation">vertical</property>
+		    <property name="spacing">4</property>
+		    <child>
+		      <object class="GtkButton" id="change_status">
+			<property name="label">Change Status</property>
+			<style>
+			  <class name="actions-item"/>
+			</style>
+		      </object>
+		    </child>
+		    <child>
+		      <object class="GtkButton" id="new_room">
+			<property name="label">New Room</property>
+			<style>
+			  <class name="actions-item"/>
+			</style>
+		      </object>
+		    </child>
+		    <child>
+		      <object class="GtkButton" id="invite_users">
+			<property name="label">Invite Users to Room</property>
+		      </object>
+		    </child>
+		    <child>
+		      <object class="GtkButton" id="leave_room">
+			<property name="label">Leave Room</property>
+			<style>
+			  <class name="actions-item"/>
+			</style>
+		      </object>
+		    </child>
+		    <child>
+		      <object class="GtkButton" id="disconnect_user">
+			<property name="label">Disconnect</property>
+			<style>
+			  <class name="actions-item"/>
+			</style>
+		      </object>
+		    </child>
+		  </object>
+		</child>
+	      </object>
+	    </child>
+	    <child>
+              <object class="GtkButton" id="disconnect_button">
+                <property name="label">D</property>  <!-- Import Icon -->
+                <style>
+                  <class name="disconnect-button"/>
+                </style>
+	      </object>
+	    </child>
           </object>
 	</child>
       </object>
@@ -55,6 +117,7 @@
 	<property name="orientation">horizontal</property>
 	<property name="margin-start">6</property>
         <property name="margin-end">6</property>
+        <property name="margin-bottom">6</property>
 	<property name="spacing">6</property>
 	<child>
           <object class="GtkEntry" id="message_entry">
