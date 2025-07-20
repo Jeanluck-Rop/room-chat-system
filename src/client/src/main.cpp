@@ -34,6 +34,6 @@ main(int num_args,
 
   //std::signal(SIGINT, Client::signal_handler);
   cout << "Launching gui client...\n";
-  launch_gui(server_ip, port);
+  launch_gui(port, server_ip);
   return EXIT_SUCCESS;
 }

@@ -2,16 +2,27 @@
 <interface>
   <!-- Public Chat Row -->
   <object class="GtkListBoxRow" id="public_row">
+    <property name="name">public_row</property>
+    <property name="selectable">True</property>
+    <style>
+      <class name="public-row"/>
+    </style>
     <child>
       <object class="GtkBox" id="public_labels">
-        <property name="orientation">horizontal</property>
-        <property name="spacing">12</property>
-        <style>
-          <class name="public-row"/>
-        </style>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <property name="hexpand">True</property>
+	<property name="vexpand">True</property>
         <child>
           <object class="GtkLabel" id="public_row_label">
+	    <property name="halign">start</property>
             <property name="label">Public Chat</property>
+          </object>
+        </child>
+	<child>
+          <object class="GtkLabel" id="public_recent_label">
+	    <property name="halign">start</property>
+            <property name="label">Welcome</property>
           </object>
         </child>
       </object>
@@ -20,16 +31,27 @@
 
   <!-- User Chat Row -->
   <object class="GtkListBoxRow" id="user_row">
+    <property name="name">user_row</property>
+    <property name="selectable">True</property>
+    <style>
+      <class name="user-row"/>
+    </style>
     <child>
       <object class="GtkBox" id="user_labels">
-        <property name="orientation">horizontal</property>
-        <property name="spacing">12</property>
-        <style>
-          <class name="user-row"/>
-        </style>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+	<property name="hexpand">True</property>
+	<property name="vexpand">True</property>
         <child>
           <object class="GtkLabel" id="user_row_label">
+	    <property name="halign">start</property>
             <property name="label">Username</property>
+          </object>
+        </child>
+	<child>
+          <object class="GtkLabel" id="user_recent_label">
+	    <property name="halign">start</property>
+            <property name="label">Hello</property>
           </object>
         </child>
       </object>
@@ -38,16 +60,27 @@
 
   <!-- Room Chat Row -->
   <object class="GtkListBoxRow" id="room_row">
+    <property name="name">room_row</property>
+    <property name="selectable">True</property>
+    <style>
+      <class name="room-row"/>
+    </style>
     <child>
       <object class="GtkBox" id="room_labels">
-        <property name="orientation">horizontal</property>
-        <property name="spacing">12</property>
-        <style>
-          <class name="room-row"/>
-        </style>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+	<property name="hexpand">True</property>
+	<property name="vexpand">True</property>
         <child>
           <object class="GtkLabel" id="room_row_label">
+	    <property name="halign">start</property>
             <property name="label">ROOMNAME</property>
+          </object>
+        </child>
+	<child>
+          <object class="GtkLabel" id="room_recent_label">
+	    <property name="halign">start</property>
+            <property name="label">Welcome</property>
           </object>
         </child>
       </object>

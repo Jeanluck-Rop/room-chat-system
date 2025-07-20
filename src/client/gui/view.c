@@ -1,21 +1,5 @@
 #include "view.h"
 
-/**
- * Class constants and variables.
- **/
-static GtkWidget *port_entry = NULL;
-static GtkWidget *ip_entry = NULL;
-static int current_port = 0;
-
-GtkWidget *main_content = NULL;
-GtkWidget *chats_list = NULL;
-GList *all_chats = NULL;
-
-static GtkWidget *notifs_button = NULL;
-static GtkPopover *notifs_popover = NULL;
-static GtkWidget *notifs_box = NULL;
-static GList *notifications = NULL;
-
 static GtkPopover *actions_popover = NULL;
 
 /**
@@ -24,7 +8,8 @@ static GtkPopover *actions_popover = NULL;
  *
  **/
 
-/*     Functions for handle gtk widgets     */
+/*     Functions for handle gtk widgets and structs     */
+
 /* */
 static void
 load_css(const char *resource_path)
@@ -37,13 +22,35 @@ load_css(const char *resource_path)
 }
 
 /* */
+static ChatData*
+get_chat_data()
+{
+  GtkWindow *window = GTK_WINDOW(gtk_application_get_active_window(GTK_APPLICATION(g_application_get_default())));
+  return g_object_get_data(G_OBJECT(window), "chat-data");
+}
+
+/* */
+static Chat*
+get_chat(const char *name)
+{
+  ChatData *chatty = get_chat_data();
+  for (GList *l = chatty->chats; l != NULL; l = l->next) {
+    Chat *chat = l->data;
+    if (g_strcmp0(chat->name, name) == 0) {
+      return chat;
+    }
+  }
+  return NULL; // Not found
+}
+
+/* */
 static void
 clear_widget(GtkWidget *widget)
 {
   GtkWidget *child;
+  GtkWidget *next;
   child = gtk_widget_get_first_child(widget);
   while (child != NULL) {
-    GtkWidget *next;
     next = gtk_widget_get_next_sibling(child);
     gtk_widget_unparent(child);
     child = next;
@@ -52,56 +59,8 @@ clear_widget(GtkWidget *widget)
 ///
 
 
-/*     Functions for handle the user beginning connection     */
-
-/* */
-static int
-get_port()
-{
-  const char* port_text = gtk_editable_get_text(GTK_EDITABLE(port_entry));
-  return atoi(port_text);
-}
-
-/* */
-static const char
-*get_ip()
-{
-  return gtk_editable_get_text(GTK_EDITABLE(ip_entry));
-}
-
-/* */
-static void
-on_port_changed(GtkEditable *editable,
-		gpointer user_data)
-{
-  const char* text = gtk_editable_get_text(editable);
-  current_port = atoi(text);
-}
-
-/* */
-static void
-quit(GtkButton *button,
-     gpointer user_data)
-{
-  g_application_quit(g_application_get_default());
-}
-///
-
 
 /*     Functions for handle the user beginning connection     */
-
-/* */
-static ChatMessage
-*create_message(MessageType type,
-		const char *sender,
-		const char *content)
-{
-  ChatMessage *msg = g_new0(ChatMessage, 1);
-  msg->type = type;
-  msg->sender = g_strdup(sender);
-  msg->content = g_strdup(content);
-  return msg;
-}
 
 /* */
 static GtkWidget
@@ -114,7 +73,7 @@ static GtkWidget
   root = GTK_WIDGET(gtk_builder_get_object(builder, "message_root"));
   
   GtkWidget *msg_box;
-  if (msg->type == MESSAGE_TYPE_INFO) {
+  if (msg->type == INFO_MESSAGE) {
     msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "info_message_form"));
     GtkWidget *content_label;
     content_label= GTK_WIDGET(gtk_builder_get_object(builder, "info_label"));
@@ -136,102 +95,86 @@ static GtkWidget
 ///
 
 
-/*     Functions for handle the notifications     */
-
-/* */
-void
-add_notify(const char *msg)
-{
-  notifications = g_list_append(notifications, g_strdup(msg));
-  gtk_widget_add_css_class(notifs_button, "has-notifications");
-}
+/*     Functions for handle the actions button and delegate each chat action     */
 
 /* */
 static void
-remove_notify(const char *msg)
-{
-  GList *found = g_list_find_custom(notifications, msg, (GCompareFunc)g_strcmp0);
-  if (found) {
-    g_free(found->data);
-    notifications = g_list_delete_link(notifications, found);
-  }
-  
-  if (!notifications)
-    gtk_widget_remove_css_class(notifs_button, "has-notifications");
-}
-
-/* */
-static void
-on_notify_clicked(GtkButton *button,
-		  gpointer user_data)
-{
-  const char *msg = gtk_button_get_label(button);
-  remove_notify(msg);
-  gtk_popover_popdown(notifs_popover);
-}
-
-/* */
-static void
-display_notifications(GtkButton *button,
+change_status_clicked(GtkButton *button,
 		      gpointer user_data)
 {
-  clear_widget(notifs_box);   //clear previous childs
-  for (GList *l = notifications; l; l = l->next) {
-    GtkWidget *btn = gtk_button_new_with_label((char*)l->data);
-    gtk_widget_add_css_class(btn, "notif-item");
-    g_signal_connect(btn, "clicked", G_CALLBACK(on_notify_clicked), NULL);
-    gtk_box_append(GTK_BOX(notifs_box), btn);
-  }
-  
-  gtk_popover_popup(notifs_popover);
+  printf("Change status clicked\n");
+  gtk_popover_popdown(actions_popover);
 }
-///
-
-
-/*     Functions for handle the chat rows    */
 
 /* */
-Chat
-*new_chat_row(ChatType type,
-	      const char *name)
+static void
+new_room_clicked(GtkButton *button,
+		 gpointer user_data)
 {
-  const char *row_id = NULL;
-  const char *label_id = NULL;
-  switch (type) {
-  case CHAT_TYPE_PUBLIC:
-    row_id = "public_row";
-    label_id = "public_row_label";
-    break;
-  case CHAT_TYPE_USER:
-    row_id = "user_row";
-    label_id = "user_row_label";
-    break;
-  case CHAT_TYPE_ROOM:
-    row_id = "room_row";
-    label_id = "room_row_label";
-    break;
-  }
+  printf("New room clicked\n");
+  gtk_popover_popdown(actions_popover);
+}
 
-  GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/rows.ui");
-  GtkWidget *row;
-  row = GTK_WIDGET(gtk_builder_get_object(builder, row_id));
-  GtkWidget *label;
-  label = GTK_WIDGET(gtk_builder_get_object(builder, label_id));
+/* */
+static void
+invite_users_clicked(GtkButton *button,
+		     gpointer user_data)
+{
+  printf("Invite users clicked\n");
+  gtk_popover_popdown(actions_popover);
+}
+
+/* */
+static void
+leave_room_clicked(GtkButton *button,
+		   gpointer user_data)
+{
+  printf("Leave room clicked\n");
+  gtk_popover_popdown(actions_popover);
+}
+
+/* */
+static void
+disconnect_user_clicked(GtkButton *button,
+			gpointer user_data)
+{
+  printf("Disconnect user clicked\n");
+  gtk_popover_popdown(actions_popover);
+  g_application_quit(g_application_get_default());
+}
+
+/* */
+static void
+display_user_actions(GtkButton *button,
+		     gpointer user_data)
+{
+  GtkPopover *popover = GTK_POPOVER(user_data);
+  gtk_popover_popup(popover);
+}
+
+/* */
+static void
+set_actions_btn(GtkBuilder *builder)
+{
+  GtkWidget *actions_button;
+  actions_button = GTK_WIDGET(gtk_builder_get_object(builder, "info_button"));
+  actions_popover = GTK_POPOVER(gtk_builder_get_object(builder, "chat_actions_popover"));
+  g_signal_connect(actions_button, "clicked", G_CALLBACK(display_user_actions), actions_popover);
   
-  gtk_label_set_text(GTK_LABEL(label), name);
-  Chat *chat = g_new0(Chat, 1);
-  chat->name = g_strdup(name);
-  chat->type = type;
-  chat->messages = NULL;
-  chat->row_widget = GTK_WIDGET(row);
-  g_object_set_data(G_OBJECT(row), "chat-data", chat);
-
-  //insert new chat
-  gtk_list_box_append(GTK_LIST_BOX(chats_list), GTK_WIDGET(row));
-  all_chats = g_list_append(all_chats, chat);
-  g_object_unref(builder);
-  return chat;
+  GtkWidget *disconnect_button;
+  disconnect_button = GTK_WIDGET(gtk_builder_get_object(builder, "disconnect_button"));
+  g_signal_connect(disconnect_button, "clicked", G_CALLBACK(disconnect_user_clicked), NULL);
+  
+  GtkWidget *change_status_btn = GTK_WIDGET(gtk_builder_get_object(builder, "change_status"));
+  g_signal_connect(change_status_btn, "clicked", G_CALLBACK(change_status_clicked), NULL);
+  GtkWidget *new_room_btn = GTK_WIDGET(gtk_builder_get_object(builder, "new_room"));
+  g_signal_connect(new_room_btn, "clicked", G_CALLBACK(new_room_clicked), NULL);
+  GtkWidget *invite_users_btn = GTK_WIDGET(gtk_builder_get_object(builder, "invite_users"));
+  g_signal_connect(invite_users_btn, "clicked", G_CALLBACK(invite_users_clicked), NULL);
+  GtkWidget *leave_room_btn = GTK_WIDGET(gtk_builder_get_object(builder, "leave_room"));
+  g_signal_connect(leave_room_btn, "clicked", G_CALLBACK(leave_room_clicked), NULL);
+  GtkWidget *disconnect_user_btn = GTK_WIDGET(gtk_builder_get_object(builder, "disconnect_user"));
+  g_signal_connect(disconnect_user_btn, "clicked", G_CALLBACK(disconnect_user_clicked), NULL);
 }
 ///
 
@@ -358,109 +301,26 @@ on_header_activated(GtkListBox *box,
   g_signal_connect(info_window, "close-request", G_CALLBACK(on_dialog_close), NULL);
   gtk_window_present(info_window);
 }
-///
-
-
-/*     Functions for handle the actions button and delegate each chat action     */
 
 /* */
 static void
-change_status_clicked(GtkButton *button,
-		      gpointer user_data)
-{
-  printf("Change status clicked\n");
-  gtk_popover_popdown(actions_popover);
-}
-
-/* */
-static void
-new_room_clicked(GtkButton *button,
-		 gpointer user_data)
-{
-  printf("New room clicked\n");
-  gtk_popover_popdown(actions_popover);
-}
-
-/* */
-static void
-invite_users_clicked(GtkButton *button,
-		     gpointer user_data)
-{
-  printf("Invite users clicked\n");
-  gtk_popover_popdown(actions_popover);
-}
-
-/* */
-static void
-leave_room_clicked(GtkButton *button,
-		   gpointer user_data)
-{
-  printf("Leave room clicked\n");
-  gtk_popover_popdown(actions_popover);
-}
-
-/* */
-static void
-disconnect_user_clicked(GtkButton *button,
-			gpointer user_data)
-{
-  printf("Disconnect user clicked\n");
-  gtk_popover_popdown(actions_popover);
-  g_application_quit(g_application_get_default());
-}
-
-/* */
-static void
-display_user_actions(GtkButton *button,
-		     gpointer user_data)
-{
-  GtkPopover *popover = GTK_POPOVER(user_data);
-  gtk_popover_popup(popover);
-}
-///
-
-
-/**
- *
- * Main functions to handle the gui
- *
- **/
-
-/* */
-static void
-load_main_page(Chat *chat)
+set_header(Chat *chat, GtkWidget *header)
 {
   GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/main_page.ui");
-  GtkWidget *row_page;
-  row_page = GTK_WIDGET(gtk_builder_get_object(builder, "row_page"));
-  GtkWidget *header_left;
-  header_left = GTK_WIDGET(gtk_builder_get_object(builder, "header_left"));
-  GtkWidget *messages_box;
-  messages_box = GTK_WIDGET(gtk_builder_get_object(builder, "messages_box"));
-  GtkWidget *message_entry;
-  message_entry = GTK_WIDGET(gtk_builder_get_object(builder, "message_entry"));
-  GtkWidget *send_button;
-  send_button = GTK_WIDGET(gtk_builder_get_object(builder, "send_button"));
-  
-  //clean previous content
-  clear_widget(main_content);
-
-  //load header
-  GtkBuilder *header_builder;
-  header_builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
   GtkWidget *label;
   const char *header_id;
+  
   switch (chat->type) {
-  case CHAT_TYPE_USER:
+  case USER_CHAT:
     header_id = "user_header";
-    label = GTK_WIDGET(gtk_builder_get_object(header_builder, "user_name_label"));
+    label = GTK_WIDGET(gtk_builder_get_object(builder, "user_name_label"));
     if (label)
       gtk_label_set_text(GTK_LABEL(label), chat->name);
     break;
-  case CHAT_TYPE_ROOM:
+  case ROOM_CHAT:
     header_id = "room_header";
-    label = GTK_WIDGET(gtk_builder_get_object(header_builder, "room_name_label"));
+    label = GTK_WIDGET(gtk_builder_get_object(builder, "room_name_label"));
     if (label)
       gtk_label_set_text(GTK_LABEL(label), chat->name);
     break;
@@ -469,35 +329,47 @@ load_main_page(Chat *chat)
     break;
   }
   GtkWidget *custom_header;
-  custom_header = GTK_WIDGET(gtk_builder_get_object(header_builder, header_id));
-  if (!header_builder)
-    return;
-  gtk_list_box_append(GTK_LIST_BOX(header_left), GTK_WIDGET(custom_header));
+  custom_header = GTK_WIDGET(gtk_builder_get_object(builder, header_id));
+  
+  gtk_list_box_append(GTK_LIST_BOX(header), GTK_WIDGET(custom_header));
   gtk_widget_set_visible(custom_header, TRUE);
-  g_signal_connect(header_left, "row-activated", G_CALLBACK(on_header_activated), header_builder);
+  g_signal_connect(header, "row-activated", G_CALLBACK(on_header_activated), builder);
+}
+///
 
-  //user actions button
+
+/*     Load the main page of the chat     */
+
+/* */
+static void
+load_main_page(Chat *chat,
+	       gpointer user_data)
+{
+  ChatData *chatty = (ChatData *)user_data;
+    
+  GtkBuilder *builder;
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/main_page.ui");
+  GtkWidget *row_page;
+  row_page = GTK_WIDGET(gtk_builder_get_object(builder, "row_page"));
+  GtkWidget *header_left;
+  header_left = GTK_WIDGET(gtk_builder_get_object(builder, "header_left"));
   GtkWidget *header_right;
   header_right = GTK_WIDGET(gtk_builder_get_object(builder, "header_right"));
-  GtkWidget *actions_button;
-  actions_button = GTK_WIDGET(gtk_builder_get_object(builder, "info_button"));
-  actions_popover = GTK_POPOVER(gtk_builder_get_object(builder, "chat_actions_popover"));
-  g_signal_connect(actions_button, "clicked", G_CALLBACK(display_user_actions), actions_popover);
-
-  GtkWidget *disconnect_button;
-  disconnect_button = GTK_WIDGET(gtk_builder_get_object(builder, "disconnect_button"));
-  g_signal_connect(disconnect_button, "clicked", G_CALLBACK(disconnect_user_clicked), NULL);
+  GtkWidget *messages_box;
+  messages_box = GTK_WIDGET(gtk_builder_get_object(builder, "messages_box"));
+  GtkWidget *message_entry;
+  message_entry = GTK_WIDGET(gtk_builder_get_object(builder, "message_entry"));
+  GtkWidget *send_button;
+  send_button = GTK_WIDGET(gtk_builder_get_object(builder, "send_button"));
   
-  GtkWidget *change_status_btn = GTK_WIDGET(gtk_builder_get_object(builder, "change_status"));
-  g_signal_connect(change_status_btn, "clicked", G_CALLBACK(change_status_clicked), NULL);
-  GtkWidget *new_room_btn = GTK_WIDGET(gtk_builder_get_object(builder, "new_room"));
-  g_signal_connect(new_room_btn, "clicked", G_CALLBACK(new_room_clicked), NULL);
-  GtkWidget *invite_users_btn = GTK_WIDGET(gtk_builder_get_object(builder, "invite_users"));
-  g_signal_connect(invite_users_btn, "clicked", G_CALLBACK(invite_users_clicked), NULL);
-  GtkWidget *leave_room_btn = GTK_WIDGET(gtk_builder_get_object(builder, "leave_room"));
-  g_signal_connect(leave_room_btn, "clicked", G_CALLBACK(leave_room_clicked), NULL);
-  GtkWidget *disconnect_user_btn = GTK_WIDGET(gtk_builder_get_object(builder, "disconnect_user"));
-  g_signal_connect(disconnect_user_btn, "clicked", G_CALLBACK(disconnect_user_clicked), NULL);
+  //clean previous content
+  clear_widget(chatty->main_content);
+
+  //load header
+  set_header(chat, header_left);
+
+  //load user actions button
+  set_actions_btn(builder);
   
   //load messages logic
   for (GList *l = chat->messages; l; l = l->next) {
@@ -511,10 +383,14 @@ load_main_page(Chat *chat)
   
   //send button logic
 
-  gtk_box_append(GTK_BOX(main_content), row_page);
-  gtk_widget_set_visible(main_content, TRUE);
+  gtk_box_append(GTK_BOX(chatty->main_content), row_page);
+  gtk_widget_set_visible(chatty->main_content, TRUE);
   g_object_unref(builder);
 }
+///
+
+
+/*     Functions for handle the chat rows and their messages    */
 
 /* */
 static void
@@ -524,49 +400,165 @@ on_row_selected(GtkListBox *box,
 {
   Chat *chat = g_object_get_data(G_OBJECT(row), "chat-data");
   if (chat != NULL)
-    load_main_page(chat);
+    load_main_page(chat, user_data);
+}
+
+/* */
+void
+add_new_message(MessageType type,
+		const char* chat_name,
+		const char* sender,
+		const char* content)
+{
+  Chat *chat = get_chat(chat_name);
+  
+  ChatMessage *msg = g_new0(ChatMessage, 1);
+  msg->type = type;
+  msg->sender = g_strdup(sender);
+  msg->content = g_strdup(content);
+  //actualizamos el gui para que se muestre el
+
+  chat->messages = g_list_append(chat->messages, msg);
+}
+
+/* */
+void
+new_chat_row(ChatType type,
+	     const char* name,
+	     const char* msg)
+{
+  ChatData *chatty = get_chat_data();
+
+  const char* row_id;
+  const char* label_id;
+  const char* recent_id;
+
+  switch (type) {
+  case PUBLIC_CHAT:
+    row_id = "public_row";
+    label_id = "public_row_label";
+    recent_id = "public_recent_label";
+    break;
+  case USER_CHAT:
+    row_id = "user_row";
+    label_id = "user_row_label";
+    recent_id = "user_recent_label";
+    break;
+  case ROOM_CHAT:
+    row_id = "room_row";
+    label_id = "room_row_label";
+    recent_id = "room_recent_label";
+    break;
+  default:
+    return; //cant happen
+  }
+
+  GtkBuilder *builder;
+  builder = gtk_builder_new_from_resource("/org/chat/client/resources/rows.ui");
+  GtkWidget *row;
+  row = GTK_WIDGET(gtk_builder_get_object(builder, row_id));
+  GtkWidget *label;
+  label = GTK_WIDGET(gtk_builder_get_object(builder, label_id));
+  GtkWidget *recent;
+  recent = GTK_WIDGET(gtk_builder_get_object(builder, recent_id));
+  
+  gtk_label_set_text(GTK_LABEL(label), name);
+  gtk_label_set_text(GTK_LABEL(recent), msg);
+
+  Chat *chat = g_new0(Chat, 1);
+  chat->name = g_strdup(name);
+  chat->type = type;
+  chat->messages = NULL;
+  chat->row_widget = GTK_WIDGET(row);
+  g_object_set_data(G_OBJECT(row), "chat-data", chat);
+  
+  //insert new chat
+  gtk_list_box_append(GTK_LIST_BOX(chatty->chats_list), GTK_WIDGET(row));
+  chatty->chats = g_list_append(chatty->chats, chat);
+  
+  MessageType msgtp = (type == USER_CHAT) ? NORMAL_MESSAGE : INFO_MESSAGE;
+  const char *sender = (type == USER_CHAT) ? name : "info";
+  
+  add_new_message(msgtp, name, sender, msg);
+   
+  g_object_unref(builder);
 }
 ///
 
 
+/*     Functions for handle the notifications     */
+
+/* */
+void
+add_notify(const char *msg)
+{
+  //get the chat window
+  ChatData *chatty = get_chat_data();
+  
+  chatty->notifs->list = g_list_append(chatty->notifs->list, g_strdup(msg));
+  gtk_widget_add_css_class(chatty->notifs->button, "has-notifications");
+}
 
 /* */
 static void
-enter_chat(GtkButton *button,
-	   gpointer user_data)
+remove_notify(const char *msg,
+	      gpointer user_data)
 {
-  int port = get_port();
-  const char* ip = get_ip();
-  if (port < 1024 || port > 49151) {
-    printf("Port number must be between 1024 and 49151.\n");
-    return;
+  Notifs *notifs = (Notifs *)user_data;
+  GList *found = g_list_find_custom(notifs->list, msg, (GCompareFunc)g_strcmp0);
+  if (found) {
+    g_free(found->data);
+    notifs->list = g_list_delete_link(notifs->list, found);
   }
-  printf("- Port: [%d] \n- IP: [%s]\n", port, ip);
   
-  GtkWindow *current_window;
-  current_window = GTK_WINDOW(user_data);
-  GtkApplication *app;
-  app = GTK_APPLICATION(g_application_get_default());
+  if (!notifs->list)
+    gtk_widget_remove_css_class(notifs->button, "has-notifications");
+}
+
+/* */
+static void
+on_notify_clicked(GtkButton *button,
+		  gpointer user_data)
+{
+  Notifs *notifs = (Notifs *)user_data;
+  const char *msg = gtk_button_get_label(button);
+  remove_notify(msg, user_data);
+  gtk_popover_popdown(notifs->popover);
+}
+
+/* */
+static void
+display_notifications(GtkButton *button,
+		      gpointer user_data)
+{
+  Notifs *notifs = (Notifs *)user_data;
+  clear_widget(notifs->box);   //clear previous childs
+  for (GList *l = notifs->list; l; l = l->next) {
+    GtkWidget *btn = gtk_button_new_with_label((char*)l->data);
+    gtk_widget_add_css_class(btn, "notif-item");
+    g_signal_connect(btn, "clicked", G_CALLBACK(on_notify_clicked), notifs);
+    gtk_box_append(GTK_BOX(notifs->box), btn);
+  }
   
-  load_css("/org/chat/client/resources/css/chat.css");
-  load_css("/org/chat/client/resources/css/rows.css");
-  load_css("/org/chat/client/resources/css/headers.css");
-  load_css("/org/chat/client/resources/css/main_page.css");
-  load_css("/org/chat/client/resources/css/notifies.css");
-  
-  GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/chat.ui");
-  GtkWindow *chat_window;
-  chat_window = GTK_WINDOW(gtk_builder_get_object(builder, "chat_window"));
+  gtk_popover_popup(notifs->popover);
+}
 
-  main_content = GTK_WIDGET(gtk_builder_get_object(builder, "main_content"));
-  chats_list = GTK_WIDGET(gtk_builder_get_object(builder, "chats_list"));
+/* */
+static void
+set_notifs(ChatData *chatty)
+{
+  Notifs *notifs = g_new(Notifs, 1);
+  notifs->button = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_button"));
+  notifs->popover = GTK_POPOVER(gtk_builder_get_object(chatty->builder, "notifs_popover"));
+  notifs->box = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_box"));
+  g_signal_connect(notifs->button, "clicked", G_CALLBACK(display_notifications), notifs);
+  chatty->notifs = notifs;
+}
+///
 
-  Chat *public_chat = new_chat_row(CHAT_TYPE_PUBLIC, "Public Chat");
-
-  ///testing
-  Chat *user_chat = new_chat_row(CHAT_TYPE_USER, "Alice");
-  Chat *room_chat = new_chat_row(CHAT_TYPE_ROOM, "Room A");
+/*static void fake_chat_info(Chat *public_chat) {
+  Chat *user_chat = new_chat_row(USER_CHAT, "Alice");
+  Chat *room_chat = new_chat_row(ROOM_CHAT, "Room A");
   ChatMessage *inf1 = create_message(MESSAGE_TYPE_INFO, "info", "Bienvenido al chat público");
   public_chat->messages = g_list_append(public_chat->messages, inf1);
   ChatMessage *m1 = create_message(MESSAGE_TYPE_NORMAL, "Alice", "¡Hola a todos!");
@@ -597,27 +589,117 @@ enter_chat(GtkButton *button,
   user_chat->messages = g_list_append(user_chat->messages, u3);
   ChatMessage *u4 = create_message(MESSAGE_TYPE_NORMAL, "Tú", "¡Claro! ¿Qué tienes en mente?");
   user_chat->messages = g_list_append(user_chat->messages, u4);
-  ///
   
-  load_main_page(public_chat);
-  g_signal_connect(chats_list, "row-activated", G_CALLBACK(on_row_selected), NULL);
-
-  notifs_button = GTK_WIDGET(gtk_builder_get_object(builder, "notifs_button"));
-  notifs_popover = GTK_POPOVER(gtk_builder_get_object(builder, "notifs_popover"));
-  notifs_box = GTK_WIDGET(gtk_builder_get_object(builder, "notifs_box"));
-  g_signal_connect(notifs_button, "clicked", G_CALLBACK(display_notifications), NULL);
-
-  //testing
   add_notify("Nueva solicitud de mensaje");
   add_notify("Alicen se unió al chat");
   add_notify("Alice te invito al cuarto [Pumitas]");
-  ///
+  } */
+
+/* Enter the chat */
+
+/* */
+static void
+enter_chat()
+{
+  ChatData *chatty = g_new0(ChatData, 1); //allocate memory for the ChatData struct
+  chatty->app = GTK_APPLICATION(g_application_get_default());
+
+  //Load the css
+  load_css("/org/chat/client/resources/css/chat.css");
+  load_css("/org/chat/client/resources/css/rows.css");
+  load_css("/org/chat/client/resources/css/headers.css");
+  load_css("/org/chat/client/resources/css/main_page.css");
+  load_css("/org/chat/client/resources/css/notifies.css");
+
+  //Define the chat builder
+  chatty->builder = gtk_builder_new_from_resource("/org/chat/client/resources/chat.ui");
   
-  gtk_window_set_application(chat_window, app);
+  //
+  chatty->window = GTK_WINDOW(gtk_builder_get_object(chatty->builder, "chat_window"));
+  chatty->chats_list = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "chats_list"));
+  chatty->main_content = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "main_content"));
+
+  //
+  gtk_window_set_application(chatty->window, chatty->app);
+  g_object_set_data(G_OBJECT(chatty->window), "chat-data", chatty);
+  
+  //
+  set_notifs(chatty);
+  
+  //
+  new_chat_row(PUBLIC_CHAT, "Public Chat", "Welcome to the Public Chat!");
+  Chat *public_chat = get_chat("Public Chat");
+  
+  //
+  g_signal_connect(chatty->chats_list, "row-activated", G_CALLBACK(on_row_selected), chatty);
+    
+  //
+  load_main_page(public_chat, chatty);
+
+  //testing fake_chat_info(public_chat);
+
+  //
+  gtk_window_present(chatty->window);
+  g_object_unref(chatty->builder);
+}
+///
+
+
+/*     Functions for handle the user initial connection     */
+
+/* */
+static int
+get_port(StartData *data)
+{
+  const char* port_text = gtk_editable_get_text(GTK_EDITABLE(data->port_entry));
+  return atoi(port_text);
+}
+
+/* */
+static const char*
+get_ip(StartData *data)
+{
+  return gtk_editable_get_text(GTK_EDITABLE(data->ip_entry));
+}
+
+/* */
+static void
+on_port_changed(GtkEditable *editable,
+	        gpointer user_data)
+{
+  StartData *data = (StartData *)user_data;
+  const char* text = gtk_editable_get_text(editable);
+  data->port = atoi(text);
+}
+
+/* */
+static void
+quit(GtkButton *button,
+     gpointer user_data)
+{
+  g_application_quit(g_application_get_default());
+}
+
+/* */
+static void
+validate_data(GtkButton *button,
+	      gpointer user_data)
+{
+  StartData *data = (StartData *)user_data;
+  int port = get_port(data);
+  const char* ip = get_ip(data);
+  
+  if (port < 1024 || port > 49151) {
+    printf("Port number must be between 1024 and 49151.\n");
+    return;
+  }
+  printf("- Port: [%d] \n- IP: [%s]\n", port, ip);
+  
+  GtkWindow *current_window = data->window;
   gtk_widget_set_visible(GTK_WIDGET(current_window), FALSE);
-  gtk_window_destroy(current_window); 
-  gtk_window_present(chat_window);
-  g_object_unref(builder);
+  gtk_window_destroy(current_window);
+  g_free(user_data); //free de StartData struct, we no longer need it
+  enter_chat();
 }
 
 /* */
@@ -625,48 +707,57 @@ static void
 activate(GtkApplication *app,
 	 gpointer user_data)
 {
+  //parse the gpointer to the StartData struct
   StartData *data = (StartData *)user_data;
-  current_port = data->port;
-
   load_css("/org/chat/client/resources/css/start.css");
+  
   GtkBuilder *builder;
   builder = gtk_builder_new_from_resource("/org/chat/client/resources/start.ui");
   GtkWindow *window;
   window = GTK_WINDOW(gtk_builder_get_object(builder, "start_window"));
   gtk_window_set_application(window, app);
 
+  //reference the initial widgets
+  data->window = window;
+  data->port_entry = GTK_WIDGET(gtk_builder_get_object(builder, "port_entry"));
+  data->ip_entry = GTK_WIDGET(gtk_builder_get_object(builder, "ip_entry"));
+  g_signal_connect(data->port_entry, "changed", G_CALLBACK(on_port_changed), data);
+
   //set given port and ip 
-  port_entry = GTK_WIDGET(gtk_builder_get_object(builder, "port_entry"));
-  ip_entry = GTK_WIDGET(gtk_builder_get_object(builder, "ip_entry"));
-  g_signal_connect(port_entry, "changed", G_CALLBACK(on_port_changed), NULL);
   char port_str[16];
   snprintf(port_str, sizeof(port_str), "%d", data->port);
-  gtk_editable_set_text(GTK_EDITABLE(port_entry), port_str);
-  gtk_editable_set_text(GTK_EDITABLE(ip_entry), data->server_ip);
-  
+  gtk_editable_set_text(GTK_EDITABLE(data->port_entry), port_str);
+  gtk_editable_set_text(GTK_EDITABLE(data->ip_entry), data->server_ip);
+
+  //conect to the server
   GtkWidget *btn_connect;
   btn_connect = GTK_WIDGET(gtk_builder_get_object(builder, "connect_button"));
-  g_signal_connect(btn_connect, "clicked", G_CALLBACK(enter_chat), window);
-  
+  g_signal_connect(btn_connect, "clicked", G_CALLBACK(validate_data), data);
+
+  //cancel and quit the program
   GtkWidget *btn_quit;
   btn_quit = GTK_WIDGET(gtk_builder_get_object(builder, "quit_button"));
   g_signal_connect(btn_quit, "clicked", G_CALLBACK(quit), NULL);
-    
+
+  //show the window
   gtk_window_present(window);
   g_object_unref(builder);
 }
 
 /* */
 void
-launch_gui(char* server_ip,
-	   int port)
+launch_gui(int port,
+	   char* server_ip)
 {
-  StartData *data = g_new(StartData, 1);
+  //allocate memory to the user initial data struct
+  StartData *data = g_new0(StartData, 1);
   data->server_ip = g_strdup(server_ip);
   data->port = port;
 
+  //Create the gtk app and connect it with the active signal
   GtkApplication *app;
   app = gtk_application_new("org.chat.client", G_APPLICATION_DEFAULT_FLAGS);
   g_signal_connect_data(app, "activate", G_CALLBACK (activate), data, (GClosureNotify)g_free, G_CONNECT_AFTER);
+  //Run the gtk application
   g_application_run(G_APPLICATION (app), 0, NULL);
 }
