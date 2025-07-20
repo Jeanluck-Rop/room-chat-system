@@ -46,6 +46,16 @@ extern "C"
     GtkPopover *popover;
   }
     Notifs;
+
+    ///
+  typedef struct
+  {
+    char* name;
+    ChatType type;
+    GList *messages;
+    GtkWidget *row;
+  }
+    Chat;
   
   ///
   typedef struct
@@ -55,21 +65,12 @@ extern "C"
     GtkWindow *window;
     GtkWidget *chats_list;
     GtkWidget *main_content;
+    GtkWidget *messages_box;
     GList *chats;
+    Chat *current_chat;
     Notifs *notifs;
   }
     ChatData;
-  
-  ///
-  typedef struct
-  {
-    char* name;
-    ChatType type;
-    GList *messages;
-    GtkWidget *row_widget;
-  }
-    Chat;
- 
 
   ///
   typedef struct

@@ -63,8 +63,8 @@ clear_widget(GtkWidget *widget)
 /*     Functions for handle the user beginning connection     */
 
 /* */
-static GtkWidget
-*build_message(ChatMessage *msg)
+static GtkWidget*
+build_message(ChatMessage *msg)
 {
  
   GtkBuilder *builder;
@@ -345,8 +345,12 @@ static void
 load_main_page(Chat *chat,
 	       gpointer user_data)
 {
+  if (chat->row)
+    gtk_widget_remove_css_class(chat->row, "new-message");
+
   ChatData *chatty = (ChatData *)user_data;
-    
+  chatty->current_chat = chat;
+  
   GtkBuilder *builder;
   builder = gtk_builder_new_from_resource("/org/chat/client/resources/main_page.ui");
   GtkWidget *row_page;
@@ -355,8 +359,8 @@ load_main_page(Chat *chat,
   header_left = GTK_WIDGET(gtk_builder_get_object(builder, "header_left"));
   GtkWidget *header_right;
   header_right = GTK_WIDGET(gtk_builder_get_object(builder, "header_right"));
-  GtkWidget *messages_box;
-  messages_box = GTK_WIDGET(gtk_builder_get_object(builder, "messages_box"));
+  //GtkWidget *messages_box;
+  chatty->messages_box = GTK_WIDGET(gtk_builder_get_object(builder, "messages_box"));
   GtkWidget *message_entry;
   message_entry = GTK_WIDGET(gtk_builder_get_object(builder, "message_entry"));
   GtkWidget *send_button;
@@ -375,10 +379,7 @@ load_main_page(Chat *chat,
   for (GList *l = chat->messages; l; l = l->next) {
     ChatMessage *msg = l->data;
     GtkWidget *widget = build_message(msg);
-    if (GTK_IS_WIDGET(widget))
-      gtk_box_append(GTK_BOX(messages_box), widget);
-    else
-      g_warning("build_message failed for: %s", msg->sender);
+    gtk_box_append(GTK_BOX(chatty->messages_box), widget);
   }
   
   //send button logic
@@ -416,9 +417,16 @@ add_new_message(MessageType type,
   msg->type = type;
   msg->sender = g_strdup(sender);
   msg->content = g_strdup(content);
-  //actualizamos el gui para que se muestre el
-
   chat->messages = g_list_append(chat->messages, msg);
+  
+  //update the gui to show the newest message
+  ChatData *chatty = get_chat_data();
+  
+  if (chatty->current_chat && g_strcmp0(chatty->current_chat->name, chat_name) == 0) {
+    GtkWidget *msg_widget = build_message(msg);
+    gtk_box_append(GTK_BOX(chatty->messages_box), msg_widget);
+  } else if (chat->row)
+    gtk_widget_add_css_class(chat->row, "new-message");
 }
 
 /* */
@@ -469,7 +477,7 @@ new_chat_row(ChatType type,
   chat->name = g_strdup(name);
   chat->type = type;
   chat->messages = NULL;
-  chat->row_widget = GTK_WIDGET(row);
+  chat->row = GTK_WIDGET(row);
   g_object_set_data(G_OBJECT(row), "chat-data", chat);
   
   //insert new chat
@@ -494,9 +502,11 @@ add_notify(const char *msg)
 {
   //get the chat window
   ChatData *chatty = get_chat_data();
-  
+  g_print("Todo Bien X\n");
   chatty->notifs->list = g_list_append(chatty->notifs->list, g_strdup(msg));
+  g_print("Todo Bien Y\n");
   gtk_widget_add_css_class(chatty->notifs->button, "has-notifications");
+  g_print("Todo Bien Z\n");
 }
 
 /* */
@@ -532,12 +542,20 @@ display_notifications(GtkButton *button,
 		      gpointer user_data)
 {
   Notifs *notifs = (Notifs *)user_data;
-  clear_widget(notifs->box);   //clear previous childs
-  for (GList *l = notifs->list; l; l = l->next) {
-    GtkWidget *btn = gtk_button_new_with_label((char*)l->data);
-    gtk_widget_add_css_class(btn, "notif-item");
-    g_signal_connect(btn, "clicked", G_CALLBACK(on_notify_clicked), notifs);
-    gtk_box_append(GTK_BOX(notifs->box), btn);
+  clear_widget(notifs->box); //clear previous childs
+
+  if (notifs->list == NULL) {
+    // No hay notificaciones, mostrar mensaje por defecto
+    GtkWidget *label = gtk_label_new("No notifications yet");
+    gtk_widget_add_css_class(label, "no-notifs-label");
+    gtk_box_append(GTK_BOX(notifs->box), label);
+  } else {
+    for (GList *l = notifs->list; l; l = l->next) {
+      GtkWidget *btn = gtk_button_new_with_label((char*)l->data);
+      gtk_widget_add_css_class(btn, "notif-item");
+      g_signal_connect(btn, "clicked", G_CALLBACK(on_notify_clicked), notifs);
+      gtk_box_append(GTK_BOX(notifs->box), btn);
+    }
   }
   
   gtk_popover_popup(notifs->popover);
@@ -547,7 +565,7 @@ display_notifications(GtkButton *button,
 static void
 set_notifs(ChatData *chatty)
 {
-  Notifs *notifs = g_new(Notifs, 1);
+  Notifs *notifs = g_new0(Notifs, 1);
   notifs->button = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_button"));
   notifs->popover = GTK_POPOVER(gtk_builder_get_object(chatty->builder, "notifs_popover"));
   notifs->box = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_box"));

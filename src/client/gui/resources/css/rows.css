@@ -6,3 +6,10 @@
 
 .room-row {
 }
+
+.new-message {
+    background-image: radial-gradient(circle, blue 3px, white 4px);
+    background-repeat: no-repeat;
+    background-position: top right;
+    background-size: 10px 10px;
+}

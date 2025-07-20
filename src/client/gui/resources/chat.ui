@@ -27,9 +27,8 @@
 		</style>
 		<child>
 		  <object class="GtkLabel">
+		    <property name="hexpand">True</property>
                     <property name="label">Chats</property>
-		    <property name="halign">center</property>
-		    <property name="valign">center</property>
 		    <style>
 		      <class name="title-sidebar"/>
 		    </style>
