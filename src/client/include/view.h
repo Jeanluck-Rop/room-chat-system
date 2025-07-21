@@ -54,6 +54,7 @@ extern "C"
     ChatType type;
     GList *messages;
     GtkWidget *row;
+    GtkWidget *recent_label;
   }
     Chat;
   
@@ -80,7 +81,11 @@ extern "C"
     MessageType type;
   }
     ChatMessage;
-  
+
+
+  /* */
+  void add_notify(const char* msg);
+
   /**
    * Launch the initial graphic user interface
    *
@@ -90,18 +95,18 @@ extern "C"
   void launch_gui(int port, char* server_ip);
 
   /* */
-  void add_new_message(MessageType type, const char* chat_name, const char* sender, const char* content);
+  static void load_main_page(Chat *chat, gpointer user_data);
 
   /* */
-  void new_chat_row(ChatType type, const char* name, const char* msg);
+  static void add_new_message(Chat *chat, ChatData *chatty, MessageType type, const char* sender, const char* content);
   
   /* */
-  void add_notify(const char* msg);
+  static Chat* new_chat_row(ChatData *chatty, ChatType type, const char* name, const char* msg);
 
+   
   /**
    * Class constants and variables.
    **/
-  
   
 #ifdef __cplusplus
 }
