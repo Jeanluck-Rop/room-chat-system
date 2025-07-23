@@ -4,10 +4,11 @@
     <!-- UI -->
     <file>start.ui</file>
     <file>chat.ui</file>
-    <file>main_page.ui</file>
     <file>rows.ui</file>
+    <file>main_page.ui</file>
     <file>headers.ui</file>
     <file>message.ui</file>
+    <file>actions.ui</file>
     
     <!-- CSS -->
     <file>css/start.css</file>

@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- CHANGE STATUS DIALOG -->
+  <object class="GtkWindow" id="change_status_window">
+    <property name="title">Change your status</property>
+    <property name="default-width">300</property>
+    <property name="default-height">200</property>
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">vertical</property>
+	<property name="spacing">10</property>
+	<child>
+	  <object class="GtkLabel" id="change_status_label">
+	    <property name="halign">center</property>
+	    <property name="label">Select your new status</property>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="change_status_buttons">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkButton" id="active_button">
+		<property name="label">Active</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="away_button">
+		<property name="label">Away</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="busy_button">
+		<property name="label">Busy</property>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+
+  <!-- NEW ROOM DIALOG -->
+  <object class="GtkWindow" id="new_room_window">
+    <property name="title">New Room Name</property>
+    <property name="default-width">300</property>
+    <property name="default-height">200</property>
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">vertical</property>
+	<property name="spacing">10</property>
+	<child>
+	  <object class="GtkLabel" id="new_room_label">
+	    <property name="halign">center</property>
+	    <property name="label">Write the name of your new room</property>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkEntry" id="new_room_name">
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="new_room_config_buttons">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkButton" id="new_room_cancel_button">
+		<property name="label">Cancel</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="new_room_accept_button">
+		<property name="label">Accept</property>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+  
+  <!-- INVITE USERS DIALOG -->
+  <object class="GtkWindow" id="invite_users_window">
+    <property name="title">Invite Users</property>
+    <property name="default-width">350</property>
+    <property name="default-height">600</property>
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">vertical</property>
+	<property name="spacing">10</property>
+	<child>
+	  <object class="GtkBox">
+	    <property name="orientation">vertical</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkLabel" id="select_room_label">
+		<property name="label">Select the room to invite the users:</property>
+	      </object>
+	    </child>
+    	    <child>
+	      <object class="GtkScrolledWindow">
+		<property name="vexpand">True</property>
+		<child>
+		  <object class="GtkListBox" id="rooms_available_list">
+		    <property name="selection-mode">none</property>
+		    <style>
+		      <class name="rooms-av-list"/>
+		    </style>
+		  </object>
+		</child>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox">
+	    <property name="orientation">vertical</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkLabel" id="select_users_label">
+		<property name="label">Room Name</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkScrolledWindow">
+		<property name="vexpand">True</property>
+		<child>
+		  <object class="GtkListBox" id="users_available_list">
+		    <property name="selection-mode">none</property>
+		    <style>
+		      <class name="users-av-list"/>
+		    </style>
+		  </object>
+		</child>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="invite_users_config_buttons">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkButton" id="invite_users_cancel_button">
+		<property name="label">Cancel</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="invite_users_accept_button">
+		<property name="label">Accept</property>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListBoxRow" id="room_av_list_item">
+    <property name="visible">False</property>
+    <style>
+      <class name="room-av-list-item"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">horizontal</property>
+	<property name="spacing">6</property>
+	<child>
+          <object class="GtkLabel" id="roomname_label">
+            <property name="label">roomname</property>
+            <property name="hexpand">True</property>
+            <property name="halign">start</property>
+          </object>
+	</child>
+	<child>
+          <object class="GtkButton" id="select_room_button">
+            <property name="label">Select</property>
+          </object>
+	</child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListBoxRow" id="user_av_list_item">
+    <property name="visible">False</property>
+    <style>
+      <class name="user-av-list-item"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">horizontal</property>
+	<property name="spacing">6</property>
+	<child>
+          <object class="GtkLabel" id="username_label">
+            <property name="label">username</property>
+            <property name="hexpand">True</property>
+            <property name="halign">start</property>
+          </object>
+	</child>
+	<child>
+          <object class="GtkButton" id="add_user_button">
+            <property name="label">Add</property>
+          </object>
+	</child>
+      </object>
+    </child>
+  </object>
+
+  <!-- LEAVE ROOM DIALOG -->
+  <object class="GtkWindow" id="leave_room_window">
+    <property name="title">Leave Room</property>
+    <property name="default-width">300</property>
+    <property name="default-height">200</property>
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">vertical</property>
+	<property name="spacing">10</property>
+	<child>
+	  <object class="GtkLabel" id="select_leave_room_label">
+	    <property name="label">Select the room you want to leave:</property>
+	  </object>
+	</child>
+    	<child>
+	  <object class="GtkScrolledWindow">
+	    <property name="vexpand">True</property>
+	    <child>
+	      <object class="GtkListBox" id="rooms_in_list">
+		<property name="selection-mode">none</property>
+		<style>
+		  <class name="rooms-in-list"/>
+		</style>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="leave_room_config_buttons">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkButton" id="leave_room_cancel_button">
+		<property name="label">Cancel</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="leave_room_accept_button">
+		<property name="label">Accept</property>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListBoxRow" id="room_in_list_item">
+    <property name="visible">False</property>
+    <style>
+      <class name="room-in-list-item"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">horizontal</property>
+	<property name="spacing">6</property>
+	<child>
+          <object class="GtkLabel" id="room_name_label">
+            <property name="label">roomname</property>
+            <property name="hexpand">True</property>
+            <property name="halign">start</property>
+          </object>
+	</child>
+	<child>
+          <object class="GtkButton" id="select_room_btn">
+            <property name="label">Select</property>
+          </object>
+	</child>
+      </object>
+    </child>
+  </object>
+  
+  <!-- DISCONNECT DIALOG -->
+  <object class="GtkWindow" id="disconnect_window">
+    <property name="title">Disconnect</property>
+    <property name="default-width">300</property>
+    <property name="default-height">200</property>
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">vertical</property>
+	<property name="spacing">10</property>
+	<child>
+	  <object class="GtkLabel" id="disconnect_label">
+	    <property name="halign">center</property>
+	    <property name="label">Are you sure you want to disconnect from server?</property>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="disconnect_buttons">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkButton" id="cancel_disconnect_button">
+		<property name="label">Cancel</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="accept_disconnect_button">
+		<property name="label">Accept</property>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+
+</interface>

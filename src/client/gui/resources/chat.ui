@@ -37,6 +37,7 @@
 		<child>
 		  <object class="GtkButton" id="notifs_button">
                     <property name="label">N</property> <!-- Import icon -->
+		    <property name="halign">end</property>
 		    <style>
 		      <class name="notifs-button"/>
 		    </style>
@@ -45,6 +46,7 @@
 		<child>
 		  <object class="GtkPopover" id="notifs_popover">
 		    <property name="position">bottom</property>
+		    <property name="position">left</property>
 		    <child>
 		      <object class="GtkBox" id="notifs_box">
 			<property name="orientation">vertical</property>

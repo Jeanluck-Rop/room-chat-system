@@ -18,10 +18,18 @@ extern "C"
   }
     ChatType;
 
-    ///
+  typedef enum
+  {
+   NORMAL_NOTIF,
+   INVITE_NOTIF
+  }
+    NotifyType;
+  
+  ///
   typedef enum
   {
     NORMAL_MESSAGE,
+    OWN_MESSAGE,
     INFO_MESSAGE
   }
     MessageType;
@@ -82,9 +90,28 @@ extern "C"
   }
     ChatMessage;
 
-
+  ///
+  typedef struct
+  {
+    GtkWidget *main_button;
+    GtkPopover *popover;
+    GtkBuilder *builder;
+    GtkWindow *change_status_window;
+    GtkWindow *new_room_window;
+    GtkWindow *invite_users_window;
+    GtkWindow *leave_room_window;
+    GtkWindow *disconnect_window;
+    GtkButton *selected_room_btn;
+    char* selected_roomname;
+    char** selected_users;
+  }
+    ChatActions;
+  
   /* */
-  void add_notify(const char* msg);
+  void add_new_notify(const char* msg);
+  
+  /* */
+  void message_received(const char* chat_name, const char* sender, const char* content, ChatType chat_type, MessageType msg_type);
 
   /**
    * Launch the initial graphic user interface
@@ -96,13 +123,6 @@ extern "C"
 
   /* */
   static void load_main_page(Chat *chat, gpointer user_data);
-
-  /* */
-  static void add_new_message(Chat *chat, ChatData *chatty, MessageType type, const char* sender, const char* content);
-  
-  /* */
-  static Chat* new_chat_row(ChatData *chatty, ChatType type, const char* name, const char* msg);
-
    
   /**
    * Class constants and variables.
