@@ -91,11 +91,11 @@ build_message(ChatMessage *msg)
     gtk_label_set_text(GTK_LABEL(sender_label), msg->sender);
     gtk_label_set_text(GTK_LABEL(content_label), msg->content);
   } else {
-    msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "message_form"));
+    msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "own_message_form"));
     GtkWidget *sender_label;
-    sender_label = GTK_WIDGET(gtk_builder_get_object(builder, "sender_label"));
+    sender_label = GTK_WIDGET(gtk_builder_get_object(builder, "you_label"));
     GtkWidget *content_label;
-    content_label = GTK_WIDGET(gtk_builder_get_object(builder, "content_label"));
+    content_label = GTK_WIDGET(gtk_builder_get_object(builder, "your_content_label"));
     gtk_label_set_text(GTK_LABEL(sender_label), msg->sender);
     gtk_label_set_text(GTK_LABEL(content_label), msg->content);
   }
@@ -104,6 +104,24 @@ build_message(ChatMessage *msg)
   return msg_box;
 }
 
+/* */
+static gboolean
+focus_message_entry(gpointer user_data)
+{
+  GtkWidget *entry = GTK_WIDGET(user_data);
+  gtk_widget_grab_focus(entry);
+  return G_SOURCE_REMOVE;
+}
+
+/* */
+static gboolean
+scroll_to_bottom(gpointer user_data)
+{
+  GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(user_data);
+  GtkAdjustment *vadjustment = gtk_scrolled_window_get_vadjustment(scroll);
+  gtk_adjustment_set_value(vadjustment, gtk_adjustment_get_upper(vadjustment));
+  return G_SOURCE_REMOVE;
+}
 
 /* */
 static void
@@ -118,10 +136,14 @@ add_new_message(Chat *chat,
   msg->sender = g_strdup(sender);
   msg->content = g_strdup(content);
   chat->messages = g_list_append(chat->messages, msg);
-    //update the gui to show the newest message
+  //update the gui to show the newest message
   if (chatty->current_chat && g_strcmp0(chatty->current_chat->name, chat->name) == 0) {
     GtkWidget *msg_widget = build_message(msg);
     gtk_box_append(GTK_BOX(chatty->messages_box), msg_widget);
+    
+    //g_idle_add(scroll_to_bottom, chatty->messages_scroll);
+    g_timeout_add(50, scroll_to_bottom, chatty->messages_scroll);
+    
   } else if (chat->row)
     gtk_widget_add_css_class(chat->row, "new-message");
   if (chat->recent_label)
@@ -256,6 +278,8 @@ on_cancel_clicked(GtkButton *button,
 		  GtkWindow *window)
 {
   gtk_widget_set_visible(GTK_WIDGET(window), FALSE);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -310,6 +334,8 @@ new_status_changed(GtkButton *button,
     status = "ACTIVE";
   g_print("Status changed to: [%s]\n", status); //replace
   gtk_widget_set_visible(GTK_WIDGET(window), FALSE);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -341,6 +367,9 @@ change_status_clicked(GtkButton *button,
   connect_status_button(actions->builder, "active_button", actions->change_status_window);
   connect_status_button(actions->builder, "away_button", actions->change_status_window);
   connect_status_button(actions->builder, "busy_button", actions->change_status_window);
+
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -355,13 +384,13 @@ new_room_accept(GtkButton *button,
   buffer = gtk_entry_get_buffer(entry);
   const char *roomname = gtk_entry_buffer_get_text(buffer);
   g_print("Room [%s] created\n", roomname);
+  gtk_entry_buffer_set_text(buffer, "", -1);
   gtk_widget_set_visible(GTK_WIDGET(actions->new_room_window), FALSE);
 }
 
 /* */
 static void
-room_entry_changed(GtkBuilder *builder,
-		   GtkWidget *entry,
+room_entry_changed(GtkWidget *entry,
 		   GtkWidget *accept)
 {
   EntryValidation *val_data = g_new0(EntryValidation, 1);
@@ -371,7 +400,7 @@ room_entry_changed(GtkBuilder *builder,
   val_data->max_len = 16;
   
   g_signal_handlers_disconnect_by_func(entry, G_CALLBACK(on_entry_changed), val_data);
- g_signal_connect(entry, "changed", G_CALLBACK(on_entry_changed), val_data);
+  g_signal_connect(entry, "changed", G_CALLBACK(on_entry_changed), val_data);
 }
 
 /* */
@@ -393,10 +422,12 @@ new_room_clicked(GtkButton *button,
   gtk_widget_set_sensitive(accept, FALSE);
 
   //avoid multiple conncetions
-  room_entry_changed(actions->builder, entry, accept);
+  room_entry_changed(entry, accept);
   connect_accept_once("new_room_accept_button", G_CALLBACK(new_room_accept), actions);
   
   on_cancel_button(actions->builder, actions->new_room_window, "new_room_cancel_button");
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -584,6 +615,9 @@ invite_users_clicked(GtkButton *button,
 
   connect_accept_once("invite_users_accept_button", G_CALLBACK(invite_users_accept), actions);
   on_cancel_button(actions->builder, actions->invite_users_window, "invite_users_cancel_button");
+
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -633,6 +667,8 @@ leave_room_clicked(GtkButton *button,
 
   connect_accept_once("leave_room_accept_button", G_CALLBACK(leave_room_accept), actions);
   on_cancel_button(actions->builder, actions->leave_room_window, "leave_room_cancel_button");
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -665,6 +701,8 @@ display_user_actions(GtkButton *button,
 {
   ChatActions *actions = (ChatActions *)user_data;
   gtk_popover_popup(actions->popover);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -831,13 +869,40 @@ set_header(Chat *chat,
 }
 ///
 
-/*            *
+/*            */
+
+/* */
 static void
-connect_message_entry()
+send_message(GtkWidget *widget,
+	     gpointer user_data)
 {
-  
+  ChatData *chatty = (ChatData *)user_data;
+  GtkEntryBuffer *buffer;
+  buffer = gtk_entry_get_buffer(GTK_ENTRY(chatty->message_entry));
+  const char *msg_content = gtk_entry_buffer_get_text(buffer);
+  if (msg_content && *msg_content != '\0') {
+    g_print("Message:\n'%s'\nSent to: [%s]\n", msg_content, chatty->current_chat->name);
+    add_new_message(chatty->current_chat, chatty, OWN_MESSAGE, "You", msg_content);
+    gtk_entry_buffer_set_text(buffer, "", -1);
+    gtk_widget_set_sensitive(chatty->send_button, FALSE);
+  }
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
-//*/
+
+/* */
+static void
+check_message_entry(GtkWidget *entry,
+		    GtkWidget *accept)
+{
+  EntryValidation *val_data = g_new0(EntryValidation, 1);
+  val_data->entry = GTK_ENTRY(entry);
+  val_data->accept_button = accept;
+  val_data->min_len = 1;
+  val_data->max_len = 512;
+  g_signal_handlers_disconnect_by_func(entry, G_CALLBACK(on_entry_changed), val_data);
+  g_signal_connect(entry, "changed", G_CALLBACK(on_entry_changed), val_data);
+}
+///
 
 /*     Load the main page of the chat     */
 
@@ -861,11 +926,10 @@ load_main_page(Chat *chat,
   header_right = GTK_WIDGET(gtk_builder_get_object(builder, "header_right"));
   //GtkWidget *messages_box;
   chatty->messages_box = GTK_WIDGET(gtk_builder_get_object(builder, "messages_box"));
-  GtkWidget *message_entry;
-  message_entry = GTK_WIDGET(gtk_builder_get_object(builder, "message_entry"));
-  GtkWidget *send_button;
-  send_button = GTK_WIDGET(gtk_builder_get_object(builder, "send_button"));
-  gtk_widget_set_sensitive(send_button, FALSE);
+  chatty->messages_scroll = GTK_WIDGET(gtk_builder_get_object(builder, "messages_scroll"));
+  chatty->message_entry = GTK_WIDGET(gtk_builder_get_object(builder, "message_entry"));
+  chatty->send_button = GTK_WIDGET(gtk_builder_get_object(builder, "send_button"));
+  gtk_widget_set_sensitive(chatty->send_button, FALSE);
 
   //clean previous content
   clear_widget(chatty->main_content);
@@ -880,9 +944,13 @@ load_main_page(Chat *chat,
     gtk_box_append(GTK_BOX(chatty->messages_box), widget);
   }
   //send button logic
-  //connect_message_entry(builder, message_entry, sned_button);
-  //g_signal_connect(send_button, "clicked", G_CALLBACK(send_message), chatty);
-
+  check_message_entry(chatty->message_entry, chatty->send_button);
+  
+  g_signal_connect(chatty->message_entry, "activate", G_CALLBACK(send_message), chatty);
+ 
+  g_signal_connect(chatty->send_button, "clicked", G_CALLBACK(send_message), chatty);
+  g_idle_add(focus_message_entry, chatty->message_entry);
+ 
   gtk_box_append(GTK_BOX(chatty->main_content), row_page);
   gtk_widget_set_visible(chatty->main_content, TRUE);
   g_object_unref(builder);
@@ -985,6 +1053,8 @@ on_invite_accepted(GtkButton *button,
   g_print("Invitation accepted: %s\n", notif->room_name); //replace
   remove_notify(notif->message, data);
   gtk_widget_set_visible(window, FALSE);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -1014,6 +1084,8 @@ on_invitation_clicked(GtkButton *button,
   g_signal_connect(accept, "clicked", G_CALLBACK(on_invite_accepted), data);
   show_modal_window(GTK_WIDGET(notifs->button), window);
   g_free(text);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -1027,6 +1099,8 @@ on_normal_notify_clicked(GtkButton *button,
   data->notifs = notifs;
   remove_notify(msg, data);
   gtk_popover_popdown(notifs->popover);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */
@@ -1058,6 +1132,8 @@ display_notifications(GtkButton *button,
     }
   }
   gtk_popover_popup(notifs->popover);
+  ChatData *chatty = get_chat_data();
+  g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
 /* */

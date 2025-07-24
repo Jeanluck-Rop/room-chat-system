@@ -95,6 +95,9 @@ extern "C"
     GList *chats;
     Chat *current_chat;
     Notifs *notifs;
+    GtkWidget *messages_scroll;
+    GtkWidget *message_entry;
+    GtkWidget *send_button;
   }
     ChatData;
 

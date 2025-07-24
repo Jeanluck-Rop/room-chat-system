@@ -96,8 +96,9 @@
     
     <!-- MESSAGES ZONE -->
     <child>
-      <object class="GtkScrolledWindow">
+      <object class="GtkScrolledWindow" id="messages_scroll">
 	<property name="vexpand">True</property>
+	<property name="hexpand">False</property>
 	<child>
           <object class="GtkBox" id="messages_box">
 	    <property name="orientation">vertical</property>
