@@ -30,6 +30,36 @@
 	</child>
       </object>
     </child>
+
+    <!-- OWN MESSAGE -->
+    <child>
+      <object class="GtkBox" id="own_message_form">
+	<property name="orientation">vertical</property>
+	<property name="halign">end</property>
+	<property name="spacing">4</property>
+	<style>
+	  <class name="own-message-form"/>
+	</style>
+	<child>
+	  <object class="GtkLabel" id="you_label">
+            <property name="label">You</property>
+            <property name="halign">start</property>
+            <style>
+              <class name="you-label"/>
+            </style>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkLabel" id="your_content_label">
+            <property name="label">Message content goes here</property>
+            <property name="halign">start</property>
+            <style>
+              <class name="your-message-content"/>
+            </style>
+	  </object>
+	</child>
+      </object>
+    </child>
     
     <!-- INFO MESSAGE -->
     <child>

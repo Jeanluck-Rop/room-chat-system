@@ -46,7 +46,6 @@
 		<child>
 		  <object class="GtkPopover" id="notifs_popover">
 		    <property name="position">bottom</property>
-		    <property name="position">left</property>
 		    <child>
 		      <object class="GtkBox" id="notifs_box">
 			<property name="orientation">vertical</property>

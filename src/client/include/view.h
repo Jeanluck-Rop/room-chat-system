@@ -18,6 +18,7 @@ extern "C"
   }
     ChatType;
 
+  ///
   typedef enum
   {
    NORMAL_NOTIF,
@@ -48,12 +49,28 @@ extern "C"
   ///
   typedef struct
   {
+    char* message;
+    char* room_name;
+    NotifyType type;
+  }
+    Notify;
+
+  ///
+  typedef struct
+  {
     GList *list;
     GtkWidget *box;
     GtkWidget *button;
     GtkPopover *popover;
   }
     Notifs;
+
+  typedef struct
+  {
+    Notify *notif;
+    Notifs *notifs;
+  }
+    InviteData;
 
     ///
   typedef struct
@@ -106,9 +123,18 @@ extern "C"
     char** selected_users;
   }
     ChatActions;
-  
+
+  typedef struct
+  {
+    GtkEntry *entry;
+    GtkWidget *accept_button;
+    size_t min_len;
+    size_t max_len;
+  }
+    EntryValidation;
+
   /* */
-  void add_new_notify(const char* msg);
+  void add_new_notify(const char* msg, const char* room_name, NotifyType type);
   
   /* */
   void message_received(const char* chat_name, const char* sender, const char* content, ChatType chat_type, MessageType msg_type);
@@ -121,8 +147,10 @@ extern "C"
    **/
   void launch_gui(int port, char* server_ip);
 
+  
   /* */
   static void load_main_page(Chat *chat, gpointer user_data);
+  
    
   /**
    * Class constants and variables.

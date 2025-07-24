@@ -82,6 +82,14 @@ build_message(ChatMessage *msg)
     GtkWidget *content_label;
     content_label= GTK_WIDGET(gtk_builder_get_object(builder, "info_label"));
     gtk_label_set_text(GTK_LABEL(content_label), msg->content);
+  } else if (msg->type == NORMAL_MESSAGE) {
+    msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "message_form"));
+    GtkWidget *sender_label;
+    sender_label = GTK_WIDGET(gtk_builder_get_object(builder, "sender_label"));
+    GtkWidget *content_label;
+    content_label = GTK_WIDGET(gtk_builder_get_object(builder, "content_label"));
+    gtk_label_set_text(GTK_LABEL(sender_label), msg->sender);
+    gtk_label_set_text(GTK_LABEL(content_label), msg->content);
   } else {
     msg_box = GTK_WIDGET(gtk_builder_get_object(builder, "message_form"));
     GtkWidget *sender_label;
@@ -110,8 +118,7 @@ add_new_message(Chat *chat,
   msg->sender = g_strdup(sender);
   msg->content = g_strdup(content);
   chat->messages = g_list_append(chat->messages, msg);
-  
-  //update the gui to show the newest message
+    //update the gui to show the newest message
   if (chatty->current_chat && g_strcmp0(chatty->current_chat->name, chat->name) == 0) {
     GtkWidget *msg_widget = build_message(msg);
     gtk_box_append(GTK_BOX(chatty->messages_box), msg_widget);
@@ -208,16 +215,13 @@ static void
 on_entry_changed(GtkEditable *editable,
 		 gpointer user_data)
 {
-  gpointer *widgets = (gpointer *)user_data;
-  GtkEntry *entry = GTK_ENTRY(widgets[0]);
-  GtkWidget *accept_button = GTK_WIDGET(widgets[1]);
-  GtkEntryBuffer *buffer = gtk_entry_get_buffer(entry);
+  EntryValidation *data = (EntryValidation *)user_data;
+  GtkEntryBuffer *buffer = gtk_entry_get_buffer(data->entry);
   const char *text = gtk_entry_buffer_get_text(buffer);
-  gboolean valid_text = (text != NULL
-		       && *text != '\0'
-		       && strlen(text) >= 3
-		       && strlen(text) <= 16);
-  gtk_widget_set_sensitive(accept_button, valid_text);
+  size_t len = text ? strlen(text) : 0;
+
+  gboolean valid = (len >= data->min_len && len <= data->max_len);
+  gtk_widget_set_sensitive(data->accept_button, valid);
 }
 
 /* */
@@ -264,7 +268,7 @@ on_cancel_button(GtkBuilder *builder,
   g_signal_connect(cancel, "clicked", G_CALLBACK(on_cancel_clicked), window);
 }
 
-
+/* */
 static void
 connect_accept_once(const char* accept_id,
 		    GCallback callback,
@@ -356,15 +360,18 @@ new_room_accept(GtkButton *button,
 
 /* */
 static void
-connect_entry_changed(GtkBuilder *builder,
-                      GtkWidget *entry,
-                      GtkWidget *accept)
+room_entry_changed(GtkBuilder *builder,
+		   GtkWidget *entry,
+		   GtkWidget *accept)
 {
-  gpointer *widgets = g_new(gpointer, 2);
-  widgets[0] = entry;
-  widgets[1] = accept;
-  g_signal_handlers_disconnect_by_func(entry, G_CALLBACK(on_entry_changed), widgets);
-  g_signal_connect(entry, "changed", G_CALLBACK(on_entry_changed), widgets);
+  EntryValidation *val_data = g_new0(EntryValidation, 1);
+  val_data->entry = GTK_ENTRY(entry);
+  val_data->accept_button = accept;
+  val_data->min_len = 3;
+  val_data->max_len = 16;
+  
+  g_signal_handlers_disconnect_by_func(entry, G_CALLBACK(on_entry_changed), val_data);
+ g_signal_connect(entry, "changed", G_CALLBACK(on_entry_changed), val_data);
 }
 
 /* */
@@ -386,7 +393,7 @@ new_room_clicked(GtkButton *button,
   gtk_widget_set_sensitive(accept, FALSE);
 
   //avoid multiple conncetions
-  connect_entry_changed(actions->builder, entry, accept);
+  room_entry_changed(actions->builder, entry, accept);
   connect_accept_once("new_room_accept_button", G_CALLBACK(new_room_accept), actions);
   
   on_cancel_button(actions->builder, actions->new_room_window, "new_room_cancel_button");
@@ -824,6 +831,13 @@ set_header(Chat *chat,
 }
 ///
 
+/*            *
+static void
+connect_message_entry()
+{
+  
+}
+//*/
 
 /*     Load the main page of the chat     */
 
@@ -851,6 +865,7 @@ load_main_page(Chat *chat,
   message_entry = GTK_WIDGET(gtk_builder_get_object(builder, "message_entry"));
   GtkWidget *send_button;
   send_button = GTK_WIDGET(gtk_builder_get_object(builder, "send_button"));
+  gtk_widget_set_sensitive(send_button, FALSE);
 
   //clean previous content
   clear_widget(chatty->main_content);
@@ -865,6 +880,8 @@ load_main_page(Chat *chat,
     gtk_box_append(GTK_BOX(chatty->messages_box), widget);
   }
   //send button logic
+  //connect_message_entry(builder, message_entry, sned_button);
+  //g_signal_connect(send_button, "clicked", G_CALLBACK(send_message), chatty);
 
   gtk_box_append(GTK_BOX(chatty->main_content), row_page);
   gtk_widget_set_visible(chatty->main_content, TRUE);
@@ -920,10 +937,14 @@ message_received(const char* chat_name,
 
 /* */
 void
-add_new_notify(const char *msg)
+add_new_notify(const char *msg, const char* roomname, NotifyType type)
 {
   ChatData *chatty = get_chat_data();
-  chatty->notifs->list = g_list_append(chatty->notifs->list, g_strdup(msg));
+  Notify *notif = g_new0(Notify, 1);
+  notif->message = g_strdup(msg);
+  notif->room_name = g_strdup(roomname);
+  notif->type = type;
+  chatty->notifs->list = g_list_append(chatty->notifs->list, notif);
   gtk_widget_add_css_class(chatty->notifs->button, "has-notifications");
 }
 
@@ -932,10 +953,21 @@ static void
 remove_notify(const char *msg,
 	      gpointer user_data)
 {
-  Notifs *notifs = (Notifs *)user_data;
-  GList *found = g_list_find_custom(notifs->list, msg, (GCompareFunc)g_strcmp0);
+  InviteData *data = (InviteData *)user_data;
+  Notifs *notifs = data->notifs;
+  GList *found = NULL;
+  for (GList *l = notifs->list; l; l = l->next) {
+    Notify *notif = l->data;
+    if (g_strcmp0(notif->message, msg) == 0) {
+      found = l;
+      break;
+    }
+  }
   if (found) {
-    g_free(found->data);
+    Notify *notif = found->data;
+    g_free(notif->message);
+    g_free(notif->room_name);
+    g_free(notif);
     notifs->list = g_list_delete_link(notifs->list, found);
   }
   if (!notifs->list)
@@ -944,12 +976,56 @@ remove_notify(const char *msg,
 
 /* */
 static void
-on_notify_clicked(GtkButton *button,
-		  gpointer user_data)
+on_invite_accepted(GtkButton *button,
+		   gpointer user_data)
+{
+  InviteData *data = (InviteData *)user_data;
+  Notify *notif = data->notif;
+  GtkWidget *window = gtk_widget_get_ancestor(GTK_WIDGET(button), GTK_TYPE_WINDOW);
+  g_print("Invitation accepted: %s\n", notif->room_name); //replace
+  remove_notify(notif->message, data);
+  gtk_widget_set_visible(window, FALSE);
+}
+
+/* */
+static void
+on_invitation_clicked(GtkButton *button,
+		      gpointer user_data)
+{
+  InviteData *data = (InviteData *)user_data;
+  Notify *notif = data->notif;
+  Notifs *notifs = data->notifs;
+  
+  char *text = g_strdup_printf("Are you sure you want to join to the room [%s]", notif->room_name);
+  gtk_popover_popdown(notifs->popover);
+  
+  GtkBuilder *builder;
+  builder = builder = gtk_builder_new_from_resource("/org/chat/client/resources/invitation.ui");
+  GtkWidget *window;
+  window = GTK_WIDGET(gtk_builder_get_object(builder, "invitation_window"));
+  GtkWidget *label;
+  label = GTK_WIDGET(gtk_builder_get_object(builder, "invitation_label"));
+  gtk_label_set_text(GTK_LABEL(label), text);
+  GtkWidget *accept;
+  accept= GTK_WIDGET(gtk_builder_get_object(builder, "accept_button"));
+  
+  on_cancel_button(builder, GTK_WINDOW(window), "cancel_button");
+  g_signal_handlers_disconnect_by_func(accept, G_CALLBACK(on_invite_accepted), data);
+  g_signal_connect(accept, "clicked", G_CALLBACK(on_invite_accepted), data);
+  show_modal_window(GTK_WIDGET(notifs->button), window);
+  g_free(text);
+}
+
+/* */
+static void
+on_normal_notify_clicked(GtkButton *button,
+			 gpointer user_data)
 {
   Notifs *notifs = (Notifs *)user_data;
   const char *msg = gtk_button_get_label(button);
-  remove_notify(msg, user_data);
+  InviteData *data = g_new0(InviteData, 1);
+  data->notifs = notifs;
+  remove_notify(msg, data);
   gtk_popover_popdown(notifs->popover);
 }
 
@@ -960,15 +1036,24 @@ display_notifications(GtkButton *button,
 {
   Notifs *notifs = (Notifs *)user_data;
   clear_widget(notifs->box); //clear previous childs
-  if (notifs->list == NULL) {
+  
+  if (!notifs->list) {
     GtkWidget *label = gtk_label_new("No notifications yet");
     gtk_widget_add_css_class(label, "no-notifs-label");
     gtk_box_append(GTK_BOX(notifs->box), label);
   } else {
     for (GList *l = notifs->list; l; l = l->next) {
-      GtkWidget *btn = gtk_button_new_with_label((char*)l->data);
+      Notify *notif = l->data;
+      GtkWidget *btn = gtk_button_new_with_label(notif->message);
       gtk_widget_add_css_class(btn, "notif-item");
-      g_signal_connect(btn, "clicked", G_CALLBACK(on_notify_clicked), notifs);
+      if (notif->type == NORMAL_NOTIF)
+        g_signal_connect(btn, "clicked", G_CALLBACK(on_normal_notify_clicked), notifs);
+      else if (notif->type == INVITE_NOTIF) {
+	InviteData *data = g_new0(InviteData, 1);
+        data->notif = notif;
+        data->notifs = notifs;
+        g_signal_connect_data(btn, "clicked", G_CALLBACK(on_invitation_clicked), data, (GClosureNotify)g_free, 0);
+      }
       gtk_box_append(GTK_BOX(notifs->box), btn);
     }
   }
@@ -997,9 +1082,11 @@ static void fake_chat_info(ChatData *chatty) {
   Chat *room_chat = new_chat(chatty, ROOM_CHAT, "Room 1", "Welcome to [Room 1]");
   Chat *room_cha = new_chat(chatty, ROOM_CHAT, "Room A", "Welcome to [Room A]");
   
-  add_new_notify("Jose te envio una solicitud de amistad");
-  add_new_notify("Aileen se unió al chat");
-  add_new_notify("Sarah te invito al cuarto [Pumitas]");
+  add_new_notify("Jose se desconecto del chat", NULL, NORMAL_NOTIF);
+  add_new_notify("Jose abando no el cuarto {Pumitas}", NULL, NORMAL_NOTIF);
+  add_new_notify("Aileen se unió al chat", NULL, NORMAL_NOTIF);
+  add_new_notify("Sarah te invito al cuarto [Pumitas]", "Pumitas", INVITE_NOTIF);
+  add_new_notify("Pablo te invito al cuarto [Panas]", "Panas", INVITE_NOTIF);
 }
 
 
@@ -1020,6 +1107,7 @@ enter_chat()
   load_css("/org/chat/client/resources/css/headers.css");
   load_css("/org/chat/client/resources/css/main_page.css");
   load_css("/org/chat/client/resources/css/notifies.css");
+  load_css("/org/chat/client/resources/css/actions.css");
 
   //Define the chat builder
   chatty->builder = gtk_builder_new_from_resource("/org/chat/client/resources/chat.ui");

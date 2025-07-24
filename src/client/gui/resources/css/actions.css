@@ -1,0 +1,12 @@
+/* actions.css */
+
+.room-av-list-item {
+  padding: 8px;
+  background-color: #f0f4f8;
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+.room-av-list-item:hover {
+  background-color: #dbe7f0;
+}

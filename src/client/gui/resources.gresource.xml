@@ -9,6 +9,7 @@
     <file>headers.ui</file>
     <file>message.ui</file>
     <file>actions.ui</file>
+    <file>invitation.ui</file>
     
     <!-- CSS -->
     <file>css/start.css</file>
@@ -17,5 +18,6 @@
     <file>css/main_page.css</file>
     <file>css/headers.css</file>
     <file>css/notifies.css</file>
+    <file>css/actions.css</file>
   </gresource>
 </gresources>

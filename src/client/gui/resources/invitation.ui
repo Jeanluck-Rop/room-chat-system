@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>	    
+  <!-- INVITATION DIALOG -->
+  <object class="GtkWindow" id="invitation_window">
+    <property name="title">Invitation</property>
+    <property name="default-width">300</property>
+    <property name="default-height">200</property>
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+	<property name="orientation">vertical</property>
+	<property name="spacing">10</property>
+	<child>
+	  <object class="GtkLabel" id="invitation_label">
+	    <property name="halign">center</property>
+	    <property name="label">Do you want to join the room?:</property>
+	  </object>
+	</child>
+	<child>
+	  <object class="GtkBox" id="invitation_buttons">
+	    <property name="orientation">horizontal</property>
+	    <property name="spacing">10</property>
+	    <child>
+	      <object class="GtkButton" id="cancel_button">
+		<property name="label">Cancel</property>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkButton" id="accept_button">
+		<property name="label">Accept</property>
+	      </object>
+	    </child>
+	  </object>
+	</child>
+      </object>
+    </child>
+  </object>
+</interface>
