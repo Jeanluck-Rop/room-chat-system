@@ -14,13 +14,14 @@
         <child>
       	  <object class="GtkBox">
 	    <property name="orientation">vertical</property>
+	    <property name="spacing">12</property>
             <style>
 	      <class name="start-form"/>
             </style>
 	    <child>
 	      <object class="GtkBox">
 		<property name="orientation">vertical</property>
-		<property name="spacing">12</property>
+		<property name="spacing">6</property>
 		<child>
 		  <object class="GtkLabel">
 		    <property name="label">Server Port</property>
@@ -44,7 +45,7 @@
 	    <child>
 	      <object class="GtkBox">
 		<property name="orientation">vertical</property>
-		<property name="spacing">12</property>
+		<property name="spacing">6</property>
 		<child>
 		  <object class="GtkLabel">
 		    <property name="label">Server IPv4</property>
@@ -58,6 +59,31 @@
 		<child>
 		  <object class="GtkEntry" id="ip_entry">
 		    <property name="hexpand">true</property>
+		    <style>
+		      <class name="entries-form"/>
+		    </style>
+		  </object>
+		</child>
+	      </object>
+	    </child>
+	    <child>
+	      <object class="GtkBox">
+		<property name="orientation">vertical</property>
+		<property name="spacing">6</property>
+		<child>
+		  <object class="GtkLabel">
+		    <property name="label">Your user name</property>
+		    <property name="halign">start</property>
+		    <property name="width-chars">12</property>
+		    <style>
+		      <class name="labels-form"/>
+		    </style>
+		  </object>
+		</child>
+		<child>
+		  <object class="GtkEntry" id="username_entry">
+		    <property name="hexpand">true</property>
+		    <property name="placeholder-text">Type a user name</property>
 		    <style>
 		      <class name="entries-form"/>
 		    </style>

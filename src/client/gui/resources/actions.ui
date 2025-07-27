@@ -59,6 +59,7 @@
 	</child>
 	<child>
 	  <object class="GtkEntry" id="new_room_name">
+	    <property name="placeholder-text">Type a room name</property>
 	  </object>
 	</child>
 	<child>
