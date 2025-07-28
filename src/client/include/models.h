@@ -1,16 +1,14 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <gtk/gtk.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-   ///
+  
+  ///
   typedef enum
   {
    PUBLIC_CHAT,
@@ -50,6 +48,7 @@ extern "C"
   {
     int port;
     char* server_ip;
+    char* username;
     GtkWindow *window;
     GtkWidget *port_entry;
     GtkWidget *ip_entry;
@@ -76,6 +75,7 @@ extern "C"
   }
     Notifs;
 
+  ///
   typedef struct
   {
     Notify *notif;
@@ -83,7 +83,7 @@ extern "C"
   }
     InviteData;
 
-    ///
+  ///
   typedef struct
   {
     char* name;
@@ -97,6 +97,9 @@ extern "C"
   ///
   typedef struct
   {
+    int port;
+    char *ip;
+    char *username;
     GtkApplication *app;
     GtkBuilder *builder;
     GtkWindow *window;
@@ -138,6 +141,7 @@ extern "C"
   }
     ChatActions;
 
+  ///
   typedef struct
   {
     GtkEntry *entry;
