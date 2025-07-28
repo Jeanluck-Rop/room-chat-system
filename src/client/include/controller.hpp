@@ -9,6 +9,7 @@
 #include "client.hpp"
 #include "models.h"
 #include "view.h"
+#include "idle.h"
 
 /**
  * @class Controller

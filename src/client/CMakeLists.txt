@@ -51,6 +51,7 @@ set(CPP_SOURCES
   src/message.cpp
   src/controller.cpp
   src/wrapper_controller.cpp
+  src/idle.c
 )
 
 # Create static library to compile the view in C
@@ -69,4 +70,4 @@ add_executable(client src/main.cpp ${RESOURCE_C})
 add_dependencies(client resources_target)
 
 # Link static library with executable
-target_link_libraries(client gui_c client_library ${GTK4_LIBRARIES} ${ADWAITA_LIBRARIES})
+target_link_libraries(client gui_c client_library ${GTK4_LIBRARIES})

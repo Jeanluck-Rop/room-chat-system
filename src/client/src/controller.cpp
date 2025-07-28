@@ -25,8 +25,10 @@ void Controller::handle_response(const Message& incoming_msg)
     if (result == "SUCCESS")
       g_idle_add(enter_chat_idle, NULL);
     else if (result == "USER_ALREADY_EXISTS") {
-      msg = "Username [" + extra + "] already exists.";
-      init_alert_dialog(msg.c_str(), WARNING_DIALOG);
+      DialogIdle *data = g_new(DialogIdle, 1);
+      data->detail = g_strdup(msg.c_str());
+      data->type = WARNING_DIALOG;
+      g_idle_add(init_alert_dialog_idle, data);
       Client::instance().disconnect();
       return;
     }

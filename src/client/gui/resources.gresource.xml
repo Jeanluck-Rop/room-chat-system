@@ -19,5 +19,6 @@
     <file>css/headers.css</file>
     <file>css/notifies.css</file>
     <file>css/actions.css</file>
+    <file>css/invitation.css</file>
   </gresource>
 </gresources>
