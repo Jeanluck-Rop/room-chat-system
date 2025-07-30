@@ -44,6 +44,15 @@ extern "C"
     DialogType;
 
   ///
+  typedef enum
+  {
+    USERS_REQUEST_NONE,
+    USERS_REQUEST_INVITE,
+    USERS_REQUEST_PUBLIC
+  }
+    UsersRequestType;
+  
+  ///
   typedef struct
   {
     int port;
@@ -93,27 +102,6 @@ extern "C"
     GtkWidget *recent_label;
   }
     Chat;
-  
-  ///
-  typedef struct
-  {
-    int port;
-    char *ip;
-    char *username;
-    GtkApplication *app;
-    GtkBuilder *builder;
-    GtkWindow *window;
-    GtkWidget *chats_list;
-    GtkWidget *main_content;
-    GtkWidget *messages_box;
-    GList *chats;
-    Chat *current_chat;
-    Notifs *notifs;
-    GtkWidget *messages_scroll;
-    GtkWidget *message_entry;
-    GtkWidget *send_button;
-  }
-    ChatData;
 
   ///
   typedef struct
@@ -141,6 +129,29 @@ extern "C"
   }
     ChatActions;
 
+    ///
+  typedef struct
+  {
+    int port;
+    char *ip;
+    char *username;
+    GtkApplication *app;
+    GtkBuilder *builder;
+    GtkWindow *window;
+    GtkWidget *chats_list;
+    GtkWidget *main_content;
+    GtkWidget *header;
+    GtkWidget *messages_box;
+    GList *chats;
+    Chat *current_chat;
+    Notifs *notifs;
+    GtkWidget *messages_scroll;
+    GtkWidget *message_entry;
+    GtkWidget *send_button;
+    ChatActions *actions;
+  }
+    ChatData;
+  
   ///
   typedef struct
   {
@@ -151,6 +162,8 @@ extern "C"
   }
     EntryValidation;
 
+  extern UsersRequestType current_users_request;
+  
 #ifdef __cplusplus
 }
 #endif

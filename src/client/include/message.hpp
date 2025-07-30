@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <unordered_map>
 #include <nlohmann/json.hpp>
 
 /**
@@ -101,9 +102,9 @@ public:
   /**
    * Retrieves a formatted list of users and their statuses if present.
    *
-   * @return Formatted user list string or empty string if missing.
+   * @return .
    **/
-  std::string get_users() const;
+  std::unordered_map<std::string, std::string> get_users() const;
 
   /**
    * Retrieves the room name field from the message.

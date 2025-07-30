@@ -121,18 +121,13 @@ std::string Message::get_extra() const
  *
  * @return Formatted user list string or empty string if missing.
  **/
-std::string Message::get_users() const
+std::unordered_map<std::string, std::string> Message::get_users() const
 {
-  if (json_data.contains("users") && json_data["users"].is_object()) {
-    std::string list = "";
-    int n = 1;    
-    for (const auto& [user, status] : json_data["users"].items()) {
-      list += std::to_string(n) + ". " + user + " : " + status.get<std::string>() + "\n";
-      n++;
-    }
-    return list;
-  }
-  return "";
+  std::unordered_map<std::string, std::string> list;
+  if (json_data.contains("users") && json_data["users"].is_object())
+    for (const auto& [user, status] : json_data["users"].items())
+      list[user] = status.get<std::string>();
+  return list;
 }
 
 /**
