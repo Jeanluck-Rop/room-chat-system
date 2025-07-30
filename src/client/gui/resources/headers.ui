@@ -207,6 +207,7 @@
     </child>
   </object>
 
+  <!-- USER ROW-->
   <object class="GtkListBoxRow" id="user_list_item">
     <property name="visible">False</property>
     <style>
@@ -219,6 +220,13 @@
 	<child>
           <object class="GtkLabel" id="username_label">
             <property name="label">username</property>
+            <property name="hexpand">True</property>
+            <property name="halign">start</property>
+          </object>
+	</child>
+	<child>
+          <object class="GtkLabel" id="status_label">
+            <property name="label">Active</property>
             <property name="hexpand">True</property>
             <property name="halign">start</property>
           </object>

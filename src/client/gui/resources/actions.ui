@@ -122,7 +122,7 @@
 	    <property name="spacing">10</property>
 	    <child>
 	      <object class="GtkLabel" id="select_users_label">
-		<property name="label">Room Name</property>
+		<property name="label">Users</property>
 	      </object>
 	    </child>
 	    <child>
@@ -195,6 +195,13 @@
 	<child>
           <object class="GtkLabel" id="username_label">
             <property name="label">username</property>
+            <property name="hexpand">True</property>
+            <property name="halign">start</property>
+          </object>
+	</child>
+	<child>
+          <object class="GtkLabel" id="status_label">
+            <property name="label">Active</property>
             <property name="hexpand">True</property>
             <property name="halign">start</property>
           </object>
