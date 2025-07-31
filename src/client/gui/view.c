@@ -585,8 +585,13 @@ display_users_list(GtkListBox *list_box,
 		   gpointer user_data)
 {
   ChatActions *actions = (ChatActions *)user_data;
+  
+  ChatData* chatty = get_chat_data();
+  char* user = chatty->username;
+  
   gtk_list_box_remove_all(list_box);
   for (int i = 0; usernames[i] != NULL; i++) {
+    g_print("User = [%s], Current = [%s]", user, usernames[i]);
     GtkBuilder *row_builder;
     row_builder = gtk_builder_new_from_resource("/org/chat/client/resources/actions.ui");
     GtkWidget *template_row;
@@ -602,6 +607,12 @@ display_users_list(GtkListBox *list_box,
     add_btn = gtk_widget_get_next_sibling(status_label);
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
     gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
+
+    if (g_strcmp0(user, usernames[i]) == 0) {
+      g_print("They are same.");
+      gtk_widget_set_sensitive(add_btn, FALSE);
+    }
+    
     g_object_set_data(G_OBJECT(add_btn), "username", (gpointer)usernames[i]);
     g_signal_connect(add_btn, "clicked", callback, actions);
     gtk_list_box_append(list_box, template_row);
@@ -885,8 +896,15 @@ populate_user_list(GtkBuilder *builder,
 		   char **statuses,
                    GCallback send_callback)
 {
+  
+  ChatData* chatty = get_chat_data();
+  char* user = chatty->username;
+  
   gtk_list_box_remove_all(list_box);
   for (int i = 0; usernames[i] != NULL; i++) {
+    
+    g_print("User = [%s], Current = [%s]", user, usernames[i]);
+    
     GtkBuilder *row_builder;
     row_builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
     GtkWidget *template_row;
@@ -902,6 +920,12 @@ populate_user_list(GtkBuilder *builder,
     send_button = gtk_widget_get_next_sibling(status_label);
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
     gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
+
+    if (g_strcmp0(user, usernames[i]) == 0) {
+      g_print("They are same.");
+      gtk_widget_set_sensitive(send_button, FALSE);
+    }
+    
     g_signal_connect(send_button, "clicked", send_callback, g_strdup(usernames[i]));
     gtk_list_box_append(list_box, template_row);
     g_object_unref(row_builder);
