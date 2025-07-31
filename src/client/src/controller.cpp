@@ -56,7 +56,7 @@ void Controller::handle_message(const std::string& raw_message)
   case Message::Type::NEW_USER:
     new_notify("[" + username + "] joined the chat" + ".", "", NORMAL_NOTIF);
     send_message("Public Chat", info, "[" + username + "] joined the chat", PUBLIC_CHAT, INFO_MESSAGE);
-    ///
+    ///global_count(public_chat, ++);
     break;
   case Message::Type::NEW_STATUS:
     new_notify("[" + username + "] changed status to " + incoming_msg.get_status() + ".", "", NORMAL_NOTIF);
@@ -78,6 +78,7 @@ void Controller::handle_message(const std::string& raw_message)
   case Message::Type::JOINED_ROOM:
     new_notify("[" + username + "] joined the room [" + roomname + "].", roomname, NORMAL_NOTIF);
     send_message(roomname, username, "[" + username + "] joined the room", ROOM_CHAT, INFO_MESSAGE);
+    //global_count(roomname, ++);
     break;
   case Message::Type::ROOM_USER_LIST:
     users_list(roomname, incoming_msg.get_users());
@@ -88,12 +89,12 @@ void Controller::handle_message(const std::string& raw_message)
   case Message::Type::LEFT_ROOM:
     new_notify("[" + username + "] left the room [" + roomname + "].", "", NORMAL_NOTIF);
     send_message(roomname, username, "[" + username + "] left the room", ROOM_CHAT, INFO_MESSAGE);
-    ///
+    //global_count(roomname, --);
     break;
   case Message::Type::DISCONNECTED:
     new_notify("[" + username + "] disconnected from the chat.", "", NORMAL_NOTIF);
     send_message("Public Chat", info, "[" + username + "] disconnected from the chat", PUBLIC_CHAT, INFO_MESSAGE);
-    ///
+    //global_count(public_chat, --);
     break;
   default:
     send_dialog("Unknown message type received", WARNING_DIALOG);
@@ -292,8 +293,10 @@ void Controller::handle_response(const Message& incoming_msg)
   std::string extra = incoming_msg.get_extra();
   
   if (operation == "IDENTIFY") {
-    if (result == "SUCCESS")
+    if (result == "SUCCESS") {
+      ///incoming_msg.get_count()
       g_idle_add(enter_chat_idle, NULL);
+    }
     else if (result == "USER_ALREADY_EXISTS") {
       std::string msg = "Username [" + extra + "] already exists.";
       DialogIdle *data = g_new(DialogIdle, 1);
@@ -318,8 +321,10 @@ void Controller::handle_response(const Message& incoming_msg)
   }
 
   if (operation == "NEW_ROOM") {
-    if (result == "SUCCESS")
+    if (result == "SUCCESS") {
+      //1
       create_room(extra);
+    }
     else if (result == "INVALID")
       send_dialog("Invalid room name.", WARNING_DIALOG);
     else if (result == "ROOM_ALREADY_EXISTS")
@@ -348,8 +353,10 @@ void Controller::handle_response(const Message& incoming_msg)
   }
 
   if (operation == "JOIN_ROOM") {
-    if (result == "SUCCESS")
+    if (result == "SUCCESS") {
+      //incoming_msg.get_count()
       create_room(extra);
+    }
     else if (result == "INVALID")
       send_dialog("Invalid room name.", WARNING_DIALOG);
     else if (result == "NO_SUCH_ROOM")

@@ -116,6 +116,18 @@ std::string Message::get_extra() const
   return "";
 }
 
+ /**
+  * Retrieves the count field from the message, if present.
+  *
+  * @return The integer value of 'count', or 0 if missing.
+  **/
+int Message::get_count() const
+{
+  if (json_data.contains("count") && json_data["count"].is_number_integer())
+    return json_data["count"].get<int>();
+  return 0;
+}
+
 /**
  * Retrieves a formatted list of users and their statuses if present.
  *

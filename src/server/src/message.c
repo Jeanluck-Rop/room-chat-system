@@ -8,7 +8,9 @@
  * @param key JSON field key.
  * @return Pointer to internal string, or "".
  **/
-static const char *get_string(const Message *msg, const char *key)
+static const char*
+get_string(const Message* msg,
+	   const char* key)
 {
   cJSON *item = cJSON_GetObjectItem(msg->json_data, key);
   return cJSON_IsString(item) ? item->valuestring : "";
@@ -21,7 +23,8 @@ static const char *get_string(const Message *msg, const char *key)
  * @param type Type string to set (e.g., "TEXT", "JOIN_ROOM").
  * @return Pointer to a new Message instance.
  **/
-static Message *create_base_message(const char *type)
+static Message*
+create_base_message(const char* type)
 {
   Message *msg = malloc(sizeof(Message));
   msg->json_data = cJSON_CreateObject();
@@ -35,7 +38,8 @@ static Message *create_base_message(const char *type)
  * @param msg Message pointer.
  * @return MessageType enum value.
  **/
-MessageType get_type(const Message *msg)
+MessageType
+get_type(const Message* msg)
 {
   const char *type = get_string(msg, "type");
   if (strcmp(type, "IDENTIFY") == 0)
@@ -71,7 +75,8 @@ MessageType get_type(const Message *msg)
  * @param msg Message to serialize.
  * @return New string containing compact JSON.
  **/
-char *to_json(const Message *msg)
+char*
+to_json(const Message *msg)
 {
   return cJSON_PrintUnformatted(msg->json_data);
 }
@@ -82,7 +87,8 @@ char *to_json(const Message *msg)
  * @param msg Message pointer.
  * @return String value, "" in other case.
  **/
-const char *get_username(const Message *msg)
+const char*
+get_username(const Message *msg)
 {
   return get_string(msg, "username");
 }
@@ -93,7 +99,8 @@ const char *get_username(const Message *msg)
  * @param msg Message pointer.
  * @return String value, "" in other case.
  **/
-const char *get_text(const Message *msg)
+const char*
+get_text(const Message *msg)
 {
   return get_string(msg, "text");
 }
@@ -104,7 +111,8 @@ const char *get_text(const Message *msg)
  * @param msg Message pointer.
  * @return String value, "" in other case.
  **/
-const char *get_status(const Message *msg)
+const char*
+get_status(const Message *msg)
 {
   return get_string(msg, "status");
 }
@@ -115,7 +123,8 @@ const char *get_status(const Message *msg)
  * @param msg Message pointer.
  * @return String value, "" in other case.
  **/
-const char *get_roomname(const Message *msg)
+const char*
+get_roomname(const Message *msg)
 {
   return get_string(msg, "roomname");
 }
@@ -127,7 +136,9 @@ const char *get_roomname(const Message *msg)
  * @param size Output parameter for number of usernames.
  * @return Allocated array of strdup'd usernames.
  **/
-char **get_users(const Message *msg, int *size)
+char**
+get_users(const Message *msg,
+	  int *size)
 {
   cJSON *usernames_array = cJSON_GetObjectItem(msg->json_data, "usernames");
   if (!cJSON_IsArray(usernames_array))
@@ -163,7 +174,8 @@ char **get_users(const Message *msg, int *size)
  * @param raw_message A null-terminated JSON string.
  * @return Allocated Message or NULL if parsing fails.
  **/
-Message *parse(const char *raw_message)
+Message*
+parse(const char* raw_message)
 {
   cJSON *data = cJSON_Parse(raw_message);
   if (!data)
@@ -183,7 +195,8 @@ Message *parse(const char *raw_message)
  * @param username The new user's username.
  * @return Allocated Message instance.
  **/
-Message *create_new_user_message(const char *username)
+Message*
+create_new_user_message(const char* username)
 {
   Message *msg = create_base_message("NEW_USER");
   cJSON_AddStringToObject(msg->json_data, "username", username);
@@ -197,7 +210,9 @@ Message *create_new_user_message(const char *username)
  * @param status The new status.
  * @return Allocated Message instance.
  **/
-Message *create_new_status_message(const char *username, const char *status)
+Message*
+create_new_status_message(const char* username,
+			  const char* status)
 {
   Message *msg = create_base_message("NEW_STATUS");
   cJSON_AddStringToObject(msg->json_data, "username", username);
@@ -212,7 +227,9 @@ Message *create_new_status_message(const char *username, const char *status)
  * @param text Message content.
  * @return Allocated Message instance.
  **/
-Message *create_text_from_message(const char *username, const char *text)
+Message*
+create_text_from_message(const char* username,
+			 const char* text)
 {
   Message *msg = create_base_message("TEXT_FROM");
   cJSON_AddStringToObject(msg->json_data, "username", username);
@@ -227,7 +244,9 @@ Message *create_text_from_message(const char *username, const char *text)
  * @param text Message content.
  * @return Allocated Message instance.
  **/
-Message *create_public_text_from_message(const char *username, const char *text)
+Message*
+create_public_text_from_message(const char* username,
+				const char* text)
 {
   Message *msg = create_base_message("PUBLIC_TEXT_FROM");
   cJSON_AddStringToObject(msg->json_data, "username", username);
@@ -243,7 +262,10 @@ Message *create_public_text_from_message(const char *username, const char *text)
  * @param count Number of users.
  * @return Allocated Message instance.
  **/
-Message *create_users_list_message(char **usernames, char **statuses, int count)
+Message*
+create_users_list_message(char** usernames,
+			  char** statuses,
+			  int count)
 {
   Message *msg = create_base_message("USER_LIST");
   cJSON *users_object = cJSON_CreateObject();
@@ -260,7 +282,9 @@ Message *create_users_list_message(char **usernames, char **statuses, int count)
  * @param roomname Room to join.
  * @return Allocated Message instance.
  **/
-Message *create_invite_message(const char *username, const char *roomname)
+Message*
+create_invite_message(const char* username,
+		      const char* roomname)
 {
   Message *msg = create_base_message("INVITATION");
   cJSON_AddStringToObject(msg->json_data, "username", username);
@@ -275,7 +299,9 @@ Message *create_invite_message(const char *username, const char *roomname)
  * @param username Username of the joining user.
  * @return Allocated Message instance.
  **/
-Message *create_joined_room_message(const char *roomname, const char *username)
+Message*
+create_joined_room_message(const char* roomname,
+			   const char* username)
 {
   Message *msg = create_base_message("JOINED_ROOM");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
@@ -292,7 +318,11 @@ Message *create_joined_room_message(const char *roomname, const char *username)
  * @param count Number of users.
  * @return Allocated Message instance.
  **/
-Message *create_room_users_list_message(const char *roomname, const char **usernames, const char **statuses, int count)
+Message*
+create_room_users_list_message(const char* roomname,
+			       const char** usernames,
+			       const char** statuses,
+			       int count)
 {
   Message *msg = create_base_message("ROOM_USER_LIST");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
@@ -312,7 +342,10 @@ Message *create_room_users_list_message(const char *roomname, const char **usern
  * @param text Message content.
  * @return Allocated Message instance.
  **/
-Message *create_room_text_from_message(const char *roomname,const char *username, const char *text)
+Message*
+create_room_text_from_message(const char* roomname,
+			      const char* username,
+			      const char* text)
 {
   Message *msg = create_base_message("ROOM_TEXT_FROM");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
@@ -328,7 +361,9 @@ Message *create_room_text_from_message(const char *roomname,const char *username
  * @param username User who left.
  * @return Allocated Message instance.
  **/
-Message *create_left_room_message(const char *roomname, const char *username)
+Message*
+create_left_room_message(const char* roomname,
+			 const char* username)
 {
   Message *msg = create_base_message("LEFT_ROOM");
   cJSON_AddStringToObject(msg->json_data, "roomname", roomname);
@@ -342,7 +377,8 @@ Message *create_left_room_message(const char *roomname, const char *username)
  * @param username The disconnected client's username.
  * @return Allocated Message instance.
  **/
-Message *create_disconnected_message(const char *username)
+Message*
+create_disconnected_message(const char* username)
 {
   Message *msg = create_base_message("DISCONNECTED");
   cJSON_AddStringToObject(msg->json_data, "username", username);
@@ -357,13 +393,19 @@ Message *create_disconnected_message(const char *username)
  * @param extra Optional field (room name, username, etc.).
  * @return Allocated Message instance.
  **/
-Message *create_response_message(const char *operation, const char *result, const char *extra)
+Message*
+create_response_message(const char* operation,
+			const char* result,
+			const char* extra,
+			int count)
 {
   Message *msg = create_base_message("RESPONSE");
   cJSON_AddStringToObject(msg->json_data, "operation", operation);
   cJSON_AddStringToObject(msg->json_data, "result", result);
   if (strcmp(extra, "") != 0)
     cJSON_AddStringToObject(msg->json_data, "extra", extra);
+   if (count != 0)
+    cJSON_AddNumberToObject(msg->json_data, "count", count);
   return msg;
 }
 
@@ -372,7 +414,8 @@ Message *create_response_message(const char *operation, const char *result, cons
  *
  * @param msg Pointer to Message to be destroyed.
  **/
-void free_message(Message *msg)
+void
+free_message(Message *msg)
 {
   if (!msg)
     return;

@@ -14,7 +14,7 @@ In case of success the server responds:
 { "type": "RESPONSE",
   "operation": "IDENTIFY",
   "result": "SUCCESS",
-  "extra": "<username>" }
+  "count": int_client_count }
 ```
 also it sends the message NEW_USER to the rest of connected clients:
 ```
@@ -255,7 +255,8 @@ If the room exists and the user was previously invited, the server responds:
 { "type": "RESPONSE",
   "operation": "JOIN_ROOM",
   "result": "SUCCESS",
-  "extra": "<roomname>" }
+  "extra": "<roomname>"
+  "count": int_client_count }
 ```
 
 If the room is invalid the server responds:

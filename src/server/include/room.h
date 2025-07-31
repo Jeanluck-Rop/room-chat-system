@@ -35,7 +35,7 @@ void cleanup_empty_rooms();
  * @param message JSON-formatted message string to send.
  * @param sender_socket Socket descriptor of the sending client (to be excluded).
  **/
-void broadcast_to_room(Room *room, const char *message, int sender_socket);
+void broadcast_to_room(Room *room, const char* message, int sender_socket);
 
 /**
  * Checks if a user is a member of a given room.
@@ -45,7 +45,7 @@ void broadcast_to_room(Room *room, const char *message, int sender_socket);
  * @param roomname The name of the room.
  * @return true if user is a member of the room, false otherwise.
  **/
-bool is_member(const char *username, const char *roomname);
+bool is_member(const char* username, const char* roomname);
 
 /**
  * Finds a room by name.
@@ -54,7 +54,7 @@ bool is_member(const char *username, const char *roomname);
  * @param roomname The name of the room to find.
  * @return Pointer to the Room if found, NULL otherwise.
  **/
-Room *find_room(const char *roomname);
+Room *find_room(const char* roomname);
 
 /**
  * Removes a client from a room's client list.
@@ -83,6 +83,6 @@ bool add_client_to_room(Room *room, Client *client);
  * @param roomname Name of the room to create (max 16 characters).
  * @return Pointer to the newly created Room, or NULL on error or duplicate.
  **/
-Room *create_room(const char *roomname);
+Room *create_room(const char* roomname);
 
 #endif // ROOM_H

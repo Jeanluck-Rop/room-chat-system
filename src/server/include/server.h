@@ -23,7 +23,7 @@ typedef struct Client
   char username[9];       // Client username (maximum 8 characters + null terminator).
   pthread_t thread;       // Thread associated with the client to handle its connection.
   int invited_count;      // Number of current invitations.
-  char **invited_rooms;   // List of roomnames the client WASs invited to
+  char** invited_rooms;   // List of roomnames the client WASs invited to
   int invited_capacity;   // To allocate size memory for invitations list.
   bool is_disconnected;   // For stop handling a connected client.
   struct Client *next;    // Pointer to the next client in a linked list.
@@ -38,7 +38,7 @@ typedef struct Client
  * @param client Pointer to the target client.
  * @param message The message string to send.
  **/
-void send_message(Client *client, const char *message);
+void send_message(Client *client, const char* message);
 
 /**
  * Function to initialize and start the server on the specified port.

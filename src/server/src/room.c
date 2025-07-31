@@ -9,7 +9,8 @@ pthread_mutex_t rooms_mutex = PTHREAD_MUTEX_INITIALIZER;
 /**
  * Removes empty rooms from the global room list.
  **/
-void cleanup_empty_rooms()
+void
+cleanup_empty_rooms()
 {
   pthread_mutex_lock(&rooms_mutex);
   Room **prev = &rooms;
@@ -36,7 +37,10 @@ void cleanup_empty_rooms()
  * @param message JSON-formatted message string to send.
  * @param sender_socket Socket descriptor of the sending client (to be excluded).
  **/
-void broadcast_to_room(Room *room, const char *message, int sender_socket)
+void
+broadcast_to_room(Room *room,
+		  const char* message,
+		  int sender_socket)
 {
   if (!room)
     return;
@@ -61,13 +65,27 @@ void broadcast_to_room(Room *room, const char *message, int sender_socket)
 }
 
 /**
+ * Return the number of the clients in the given room
+ */
+int
+get_room_clients_count(Room *room) {
+  int count = 0;
+  pthread_mutex_lock(&rooms_mutex);
+  count = room->client_count;
+  pthread_mutex_unlock(&rooms_mutex);
+  return count;
+}
+
+/**
  * Checks if a user is a member of a given room.
  *
  * @param username The name of the user to check.
  * @param roomname The name of the room.
  * @return true if user is a member of the room, false otherwise.
  **/
-bool is_member(const char *username, const char *roomname)
+bool
+is_member(const char* username,
+	  const char* roomname)
 {
   pthread_mutex_lock(&rooms_mutex);
   Room *room = find_room(roomname);
@@ -91,7 +109,8 @@ bool is_member(const char *username, const char *roomname)
  * @param roomname The name of the room to find.
  * @return Pointer to the Room if found, NULL otherwise.
  **/
-Room *find_room(const char *roomname)
+Room*
+find_room(const char* roomname)
 {
   Room *current = rooms;
   while (current != NULL) {
@@ -109,7 +128,9 @@ Room *find_room(const char *roomname)
  * @param client Pointer to the client to remove.
  * @return true if the client was found and removed, false otherwise.
  **/
-bool remove_client_from_room(Room *room, Client *client)
+bool
+remove_client_from_room(Room *room,
+			Client *client)
 {
   if (!room || !client)
     return false;
@@ -135,7 +156,9 @@ bool remove_client_from_room(Room *room, Client *client)
  * @param client Pointer to the client to add.
  * @return true on success, false on memory allocation failure.
  **/
-bool add_client_to_room(Room *room, Client *client)
+bool
+add_client_to_room(Room *room,
+		   Client *client)
 {
   if (!room || !client)
     return false;
@@ -168,7 +191,8 @@ bool add_client_to_room(Room *room, Client *client)
  * @param roomname Name of the room to create (max 16 characters).
  * @return Pointer to the newly created Room, or NULL on error or duplicate.
  **/
-Room *create_room(const char *roomname)
+Room*
+create_room(const char* roomname)
 {
   pthread_mutex_lock(&rooms_mutex);
   if (find_room(roomname) != NULL) {

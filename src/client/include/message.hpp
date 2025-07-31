@@ -100,6 +100,13 @@ public:
   std::string get_extra() const;
 
   /**
+   * Retrieves the count field from the message, if present.
+   *
+   * @return The integer value of 'count', or 0 if missing.
+   **/
+  int get_count() const;
+  
+  /**
    * Retrieves a formatted list of users and their statuses if present.
    *
    * @return .
