@@ -94,6 +94,14 @@ controller_leave_room(const char* room_name)
 }
 
 /* */
+int
+controller_get_count(const char* name)
+{
+  std::string chat_name = name;
+  return Controller::instance().get_chat_count(chat_name);
+}
+
+/* */
 void
 controller_disconnect()
 {

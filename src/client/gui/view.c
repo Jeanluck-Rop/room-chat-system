@@ -238,21 +238,12 @@ update_count(const char* chat_name,
   Chat *chat = get_chat(chat_name, chatty);
   if (!chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
-  int count;
-  char *label_id;
-  if (chat->type == ROOM_CHAT) {
-    label_id = "room_users_count";
-    count = 4;//get_room_users_count(chat->name);
-  }
-  else {
-    label_id = "public_users_count";
-    count = 13;//get_chat_users_count();
-  }
+  char *label_id = (chat->type == ROOM_CHAT) ? "room_users_count" : "public_users_count";
   GtkBuilder *builder;
   builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
   GtkWidget *label;
   label= GTK_WIDGET(gtk_builder_get_object(builder, label_id));
-  char *formatted = g_strdup_printf("%d %s", count, (chat->type == PUBLIC_CHAT) ? "users" : "members");
+  char *formatted = g_strdup_printf("%d %s", users_count, (chat->type == PUBLIC_CHAT) ? "users" : "members");
   gtk_label_set_text(GTK_LABEL(label), formatted);
   g_free(formatted);
 }
@@ -1018,9 +1009,7 @@ set_header(Chat *chat,
     gtk_label_set_text(GTK_LABEL(label), chat->name);
     GtkWidget *status_label;
     status_label = GTK_WIDGET(gtk_builder_get_object(builder, "user_status_label"));
-    
-    const char *status = "Active";/////replace
-    
+    const char *status = "ACTIVE";///
     gtk_label_set_text(GTK_LABEL(status_label), status);
     break;
   case ROOM_CHAT:
@@ -1029,9 +1018,7 @@ set_header(Chat *chat,
     gtk_label_set_text(GTK_LABEL(label), chat->name);
     GtkWidget *room_count_label;
     room_count_label = GTK_WIDGET(gtk_builder_get_object(builder, "room_users_count"));
-    
-    int room_count = 1;/////replace
-    
+    int room_count = controller_get_count(chat->name);
     char *formatt = g_strdup_printf("%d members", room_count);
     gtk_label_set_text(GTK_LABEL(room_count_label), formatt);
     g_free(formatt);
@@ -1040,9 +1027,7 @@ set_header(Chat *chat,
     header_id = "public_header";
     GtkWidget *public_users_label;
     public_users_label = GTK_WIDGET(gtk_builder_get_object(builder, "public_users_count"));
-    
-    int users_count = 1;/////replace
-    
+    int users_count = controller_get_count("PUBLIC_CHAT");
     char *formatted = g_strdup_printf("%d users", users_count);
     gtk_label_set_text(GTK_LABEL(public_users_label), formatted);
     g_free(formatted);   
@@ -1396,7 +1381,7 @@ enter_chat()
   set_notifs(chatty);
 
   //set the public_chat
-  Chat *public_chat = new_chat(chatty, PUBLIC_CHAT, "Public Chat", "Welcome to the Public Chat!");
+  Chat *public_chat = new_chat(chatty, PUBLIC_CHAT, "PUBLIC_CHAT", "Welcome to the Public Chat!");
   
   //connect each chat_row
   g_signal_connect(chatty->chats_list, "row-activated", G_CALLBACK(on_row_selected), chatty);

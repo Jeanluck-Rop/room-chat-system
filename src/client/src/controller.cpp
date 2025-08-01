@@ -1,5 +1,7 @@
 #include "controller.hpp"
 
+ChatCounter chat_counter;
+
 Controller& Controller::instance()
 {
   static Controller instance;
@@ -54,20 +56,21 @@ void Controller::handle_message(const std::string& raw_message)
     handle_response(incoming_msg);
     break;
   case Message::Type::NEW_USER:
+    chat_counter.update("PUBLIC_CHAT", 1);
     new_notify("[" + username + "] joined the chat" + ".", "", NORMAL_NOTIF);
-    send_message("Public Chat", info, "[" + username + "] joined the chat", PUBLIC_CHAT, INFO_MESSAGE);
-    ///global_count(public_chat, ++);
+    send_message("PUBLIC_CHAT", info, "[" + username + "] joined the chat", PUBLIC_CHAT, INFO_MESSAGE);
+    update_count("PUBLIC_CHAT", chat_counter.count("PUBLIC_CHAT"));
     break;
   case Message::Type::NEW_STATUS:
     new_notify("[" + username + "] changed status to " + incoming_msg.get_status() + ".", "", NORMAL_NOTIF);
-    send_message("Public Chat", info, "[" + username + "] changed status to " + incoming_msg.get_status() + ".", PUBLIC_CHAT, INFO_MESSAGE);
-    ///
+    send_message("PUBLIC_CHAT", info, "[" + username + "] changed status to " + incoming_msg.get_status() + ".", PUBLIC_CHAT, INFO_MESSAGE);
+    update_status(username, incoming_msg.get_status());
     break;
   case Message::Type::TEXT_FROM:
     send_message(username, username, text, USER_CHAT, NORMAL_MESSAGE);
     break;
   case Message::Type::PUBLIC_TEXT_FROM:
-    send_message("Public Chat", username, text, PUBLIC_CHAT, NORMAL_MESSAGE);
+    send_message("PUBLIC_CHAT", username, text, PUBLIC_CHAT, NORMAL_MESSAGE);
     break;
   case Message::Type::USER_LIST:
     users_list("", incoming_msg.get_users());
@@ -76,9 +79,10 @@ void Controller::handle_message(const std::string& raw_message)
     new_notify("[" + username + "] invited you to the room [" + roomname + "].", roomname, INVITE_NOTIF);
     break;
   case Message::Type::JOINED_ROOM:
+    chat_counter.update(roomname, 1);
     new_notify("[" + username + "] joined the room [" + roomname + "].", roomname, NORMAL_NOTIF);
     send_message(roomname, username, "[" + username + "] joined the room", ROOM_CHAT, INFO_MESSAGE);
-    //global_count(roomname, ++);
+    update_count(roomname, chat_counter.count(roomname));
     break;
   case Message::Type::ROOM_USER_LIST:
     users_list(roomname, incoming_msg.get_users());
@@ -87,14 +91,16 @@ void Controller::handle_message(const std::string& raw_message)
     send_message(roomname, username, text, ROOM_CHAT, NORMAL_MESSAGE);
     break;
   case Message::Type::LEFT_ROOM:
+    chat_counter.update(roomname, -1);
     new_notify("[" + username + "] left the room [" + roomname + "].", "", NORMAL_NOTIF);
     send_message(roomname, username, "[" + username + "] left the room", ROOM_CHAT, INFO_MESSAGE);
-    //global_count(roomname, --);
+    update_count(roomname, chat_counter.count(roomname));
     break;
   case Message::Type::DISCONNECTED:
+    chat_counter.update("PUBLIC_CHAT", -1);
     new_notify("[" + username + "] disconnected from the chat.", "", NORMAL_NOTIF);
-    send_message("Public Chat", info, "[" + username + "] disconnected from the chat", PUBLIC_CHAT, INFO_MESSAGE);
-    //global_count(public_chat, --);
+    send_message("PUBLIC_CHAT", info, "[" + username + "] disconnected from the chat", PUBLIC_CHAT, INFO_MESSAGE);
+    update_count("PUBLIC_CHAT", chat_counter.count("PUBLIC_CHAT"));
     break;
   default:
     send_dialog("Unknown message type received", WARNING_DIALOG);
@@ -272,6 +278,14 @@ void Controller::leave_room(std::string& roomname)
 }
 
 /**
+ *
+ **/
+int Controller::get_chat_count(std::string& chat_name)
+{
+  return chat_counter.count(chat_name);
+}
+
+/**
  * Sends a disconnect message to the server and closes the connection.
  **/
 void Controller::disconnect_user()
@@ -294,7 +308,7 @@ void Controller::handle_response(const Message& incoming_msg)
   
   if (operation == "IDENTIFY") {
     if (result == "SUCCESS") {
-      ///incoming_msg.get_count()
+      chat_counter.add("PUBLIC_CHAT", incoming_msg.get_count());
       g_idle_add(enter_chat_idle, NULL);
     }
     else if (result == "USER_ALREADY_EXISTS") {
@@ -322,7 +336,7 @@ void Controller::handle_response(const Message& incoming_msg)
 
   if (operation == "NEW_ROOM") {
     if (result == "SUCCESS") {
-      //1
+      chat_counter.add(extra, 1);
       create_room(extra);
     }
     else if (result == "INVALID")
@@ -354,7 +368,7 @@ void Controller::handle_response(const Message& incoming_msg)
 
   if (operation == "JOIN_ROOM") {
     if (result == "SUCCESS") {
-      //incoming_msg.get_count()
+      chat_counter.add(extra, incoming_msg.get_count());
       create_room(extra);
     }
     else if (result == "INVALID")
@@ -468,6 +482,26 @@ void Controller::users_list(const std::string& roomname,
     data->statuses = statuses;
     g_idle_add(show_users_idle, data);
   }
+}
+
+/* */
+void Controller::update_count(const std::string& chat_name,
+			      int count)
+{
+  CountIdle *data = g_new0(CountIdle, 1);
+  data->chat_name = g_strdup(chat_name.c_str());
+  data->users_count = count;
+  g_idle_add(update_count_idle, data);
+}
+
+/* */
+void Controller::update_status(const std::string& username,
+			       const std::string& status)
+{
+  StatusIdle *data = g_new0(StatusIdle, 1);
+  data->user_name = g_strdup(username.c_str());
+  data->status = g_strdup(status.c_str());
+  g_idle_add(update_status_idle, data);
 }
 
 /**

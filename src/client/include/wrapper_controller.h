@@ -40,6 +40,9 @@ extern "C"
   void controller_leave_room(const char* room_name);
   
   /* */
+  int controller_get_count(const char* name);
+  
+  /* */
   void controller_disconnect();
   
 #ifdef __cplusplus

@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <unordered_map>
 
+#include "chat_counter.hpp"
 #include "message.hpp"
 #include "client.hpp"
 #include "models.h"
@@ -113,6 +114,11 @@ public:
    * @param roomname The room name to leave.
    **/
   void leave_room(std::string& roomname);
+
+  /**
+   *
+   **/
+  int get_chat_count(std::string& chat_name);
   
   /**
    * Sends a disconnect message to the server and closes the connection.
@@ -145,6 +151,12 @@ private:
 
   /* */
   void users_list(const std::string& roomname, const std::unordered_map<std::string, std::string> &users_map);
+
+  /* */
+  void update_count(const std::string& chat_name, int count);
+  
+  /* */
+  void update_status(const std::string& username, const std::string& status);
   
   /**
    * Removes trailing whitespace (spaces and tabs) from a string.
