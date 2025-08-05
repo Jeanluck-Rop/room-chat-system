@@ -8,7 +8,9 @@ extern "C"
 {
 #endif
   
-  ///
+  /**
+   * @enum ChatType. Defines the type of chat.
+   **/
   typedef enum
   {
    PUBLIC_CHAT,
@@ -17,7 +19,9 @@ extern "C"
   }
     ChatType;
 
-  ///
+  /**
+   * @enum NotifyType. Specifies the type of notification.
+   **/
   typedef enum
   {
    NORMAL_NOTIF,
@@ -25,7 +29,9 @@ extern "C"
   }
     NotifyType;
   
-  ///
+  /**
+   * @enum MessageType. Represents the type of a message in a chat.
+   **/
   typedef enum
   {
     NORMAL_MESSAGE,
@@ -34,7 +40,9 @@ extern "C"
   }
     MessageType;
 
-  ///
+  /**
+   * @enum DialogType. Defines the types of dialog alerts shown in the UI.
+   **/
   typedef enum
   {
     SUCCESS_DIALOG,
@@ -43,7 +51,9 @@ extern "C"
   }
     DialogType;
 
-  ///
+  /**
+   * @enum UsersRequestType. Specifies the type of user list request.
+   **/
   typedef enum
   {
     USERS_REQUEST_NONE,
@@ -52,7 +62,9 @@ extern "C"
   }
     UsersRequestType;
   
-  ///
+  /**
+   * @struct StartData. Holds startup configuration and UI references for initial connection.
+   **/
   typedef struct
   {
     int port;
@@ -65,7 +77,9 @@ extern "C"
   }
     StartData;
   
-  ///
+  /**
+   * @struct Notify. Represents a single notification in the system.
+   **/
   typedef struct
   {
     char* message;
@@ -74,7 +88,9 @@ extern "C"
   }
     Notify;
 
-  ///
+  /**
+   * @struct Notifs. Holds UI elements related to notifications.
+   **/
   typedef struct
   {
     GList *list;
@@ -84,7 +100,9 @@ extern "C"
   }
     Notifs;
 
-  ///
+  /**
+   * @struct InviteData. Holds data related to processing a user invitation.
+   **/
   typedef struct
   {
     Notify *notif;
@@ -92,7 +110,9 @@ extern "C"
   }
     InviteData;
 
-  ///
+  /**
+   * @struct Chat. Represents a chat session (publi chat, room or direct message).
+   **/
   typedef struct
   {
     char* name;
@@ -103,7 +123,9 @@ extern "C"
   }
     Chat;
 
-  ///
+  /**
+   * @struct ChatMessage. Represents a single message inside a chat.
+   **/
   typedef struct
   {
     char* sender;
@@ -112,7 +134,9 @@ extern "C"
   }
     ChatMessage;
 
-  ///
+  /**
+   * @struct ChatActions. Holds references to all chat-related action dialogs and elements.
+   **/
   typedef struct
   {
     GtkWidget *main_button;
@@ -129,7 +153,9 @@ extern "C"
   }
     ChatActions;
 
-    ///
+  /**
+   * @struct ChatData. Holds all global state and widgets for the chat application.
+   **/
   typedef struct
   {
     int port;
@@ -152,7 +178,9 @@ extern "C"
   }
     ChatData;
   
-  ///
+  /**
+   * @struct EntryValidation. Holds information for validating an input entry field.
+   **/
   typedef struct
   {
     GtkEntry *entry;
@@ -162,6 +190,9 @@ extern "C"
   }
     EntryValidation;
 
+  /**
+   * Stores the current type of user request for handle which dialog users list will be displayed.
+   **/
   extern UsersRequestType current_users_request;
   
 #ifdef __cplusplus

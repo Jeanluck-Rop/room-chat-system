@@ -1,17 +1,30 @@
 #include "controller.hpp"
 
+/* Class variable to register the memebers of each chat */
 ChatCounter chat_counter;
 
+/* Returns the singleton instance of the Controller class */
 Controller& Controller::instance()
 {
   static Controller instance;
   return instance;
 }
 
+/* Constructor: Initializes the Controller object with default values */
 Controller::Controller() {}
+
+/* Destructor: Ensures proper cleanup */
 Controller::~Controller() {}
 
-/* */
+/**
+ * Attempts to establish a connection to the server and initialize the client.
+ * Also verifies the validity of the provided username and shows an alert dialog
+ * in case of an error or invalid input.
+ *
+ * @param port Port number of the server.
+ * @param server_ip IP address of the server to connect to.
+ * @param user_name Client's username to be used for the connection.
+ **/
 void Controller::try_connection(int port,
 				const std::string& server_ip,
 				const std::string& user_name)
@@ -278,7 +291,10 @@ void Controller::leave_room(std::string& roomname)
 }
 
 /**
+ * Retrieves the number of members connected on given chat.
  *
+ * @param chat_name The name of the chat whose count is to be retrieved.
+ * @return The current count associated with the given chat name.
  **/
 int Controller::get_chat_count(std::string& chat_name)
 {
@@ -405,7 +421,15 @@ void Controller::handle_response(const Message& incoming_msg)
   }
 }
 
-/* */
+/**
+ * Sends a dialog alert to the GUI thread.
+ *
+ * Prepares a message with the given text and dialog type, and dispatches it
+ * asynchronously to the GUI via the GTK main loop using `g_idle_add`.
+ *
+ * @param message The message to be displayed in the dialog.
+ * @param type The type of dialog.
+ **/
 void Controller::send_dialog(const std::string& message,
 			     DialogType type)
 {
@@ -415,9 +439,15 @@ void Controller::send_dialog(const std::string& message,
   g_idle_add(alert_dialog_idle, data);
 }
 
-/* */
-void
-Controller::create_room(const std::string& room_name)
+/**
+ * Triggers the creation of a new room in the GUI.
+ *
+ * Sends an event to the GUI thread to visually create or acknowledge
+ * a new chat room with the given name.
+ *
+ * @param room_name The name of the room to create.
+ **/
+void Controller::create_room(const std::string& room_name)
 {
   MessageIdle *data = g_new0(MessageIdle, 1);
   data->chat_name = g_strdup(room_name.c_str());
@@ -426,9 +456,17 @@ Controller::create_room(const std::string& room_name)
   g_idle_add(message_received_idle, data);
 }
 
-/* */
-void
-Controller::new_notify(const std::string& message,
+/**
+ * Sends a new notification to the GUI.
+ *
+ * Dispatches a notification to the GUI,
+ * associated optionally with a specific room.
+ *
+ * @param message The content of the notification.
+ * @param roomname Optional name of the room related to the notification.
+ * @param type The type of notification.
+ **/
+void Controller::new_notify(const std::string& message,
 		       const std::string& roomname,
 		       NotifyType type)
 {
@@ -440,7 +478,18 @@ Controller::new_notify(const std::string& message,
   g_idle_add(new_notify_idle, data);
 }
 
-/* */
+/**
+ * Sends a chat message to the GUI.
+ *
+ * Prepares and dispatches a chat message to be shown in the interface.
+ * Handles both private and group chats.
+ *
+ * @param chat_name The name of the chat.
+ * @param sender The name of the sender of the message.
+ * @param content The content of the message.
+ * @param chat_type The type of chat.
+ * @param msg_type The type of message.
+ **/
 void Controller::send_message(const std::string& chat_name,
 			      const std::string& sender,
 			      const std::string& content,
@@ -456,7 +505,15 @@ void Controller::send_message(const std::string& chat_name,
   g_idle_add(message_received_idle, data);
 }
 
-/* */
+/**
+ * Updates the GUI with the current user list and their statuses.
+ *
+ * Depending on whether a room name is provided, sends the list to either
+ * the room-specific user list or the global user list.
+ *
+ * @param roomname The name of the room, or empty string for global context.
+ * @param users_map A map of usernames to their statuses.
+ **/
 void Controller::users_list(const std::string& roomname,
 			    const std::unordered_map<std::string, std::string>& users_map)
 {
@@ -469,7 +526,6 @@ void Controller::users_list(const std::string& roomname,
     statuses[i] = g_strdup(p.second.c_str()); //copy status
     i++;
   }
-  
   if (roomname != "") {
     RoomUsersListIdle *data = g_new0(RoomUsersListIdle, 1);
     data->room_name =  g_strdup(roomname.c_str());
@@ -484,7 +540,15 @@ void Controller::users_list(const std::string& roomname,
   }
 }
 
-/* */
+/**
+ * Updates the user count for a given chat in the GUI.
+ *
+ * Sends an update to the interface with the current number of users
+ * in a specific chat.
+ *
+ * @param chat_name The name of the chat.
+ * @param count The number of active users.
+ **/
 void Controller::update_count(const std::string& chat_name,
 			      int count)
 {
@@ -494,7 +558,14 @@ void Controller::update_count(const std::string& chat_name,
   g_idle_add(update_count_idle, data);
 }
 
-/* */
+/**
+ * Updates the online status of a specific user in the GUI.
+ *
+ * Sends an update to reflect a user's status change.
+ *
+ * @param username The name of the user.
+ * @param status The new status to be displayed.
+ **/
 void Controller::update_status(const std::string& username,
 			       const std::string& status)
 {

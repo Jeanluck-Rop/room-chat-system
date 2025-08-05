@@ -107,9 +107,9 @@ public:
   int get_count() const;
   
   /**
-   * Retrieves a formatted list of users and their statuses if present.
+   * Retrieves a map of users and their statuses from the message data.
    *
-   * @return .
+   * @return A map of usernames to their statuses. Returns an empty map if the data is missing or invalid.
    **/
   std::unordered_map<std::string, std::string> get_users() const;
 

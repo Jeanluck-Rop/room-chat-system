@@ -15,15 +15,30 @@
 
 /**
  * @class Controller
+ *
+ * Manages the interaction between the graphical user interface and the client operations.
+ * This class is responsible for sending user actions to the server, handling responses,
+ * and processing messages to be shown to the user.
+ * Implements the singleton pattern to ensure a single instance is used throughout the application.
  **/
 class Controller
 {
 public:
-  static Controller& instance(); // Singleton getter
-  Controller(const Controller&) = delete;
-  Controller& operator=(const Controller&) = delete;
+  /**
+   * Returns the singleton instance of the Controller class.
+   * Ensures that only one instance of the controller exists during the lifetime of the application.
+   **/
+  static Controller& instance();                     //Singleton getter
+  Controller(const Controller&) = delete;            //Deleted copy constructor
+  Controller& operator=(const Controller&) = delete; //Deleted copy assignment operator
 
-  /* */
+  /**
+   * Attempts to establish a connection to the server and initialize the client.
+   *
+   * @param port Port number of the server.
+   * @param server_ip IP address of the server to connect to.
+   * @param user_name Client's username to be used for the connection.
+   **/
   void try_connection(int port, const std::string& server_ip, const std::string& user_name);
     
   /**
@@ -116,7 +131,10 @@ public:
   void leave_room(std::string& roomname);
 
   /**
+   * Retrieves the number of members connected on given chat.
    *
+   * @param chat_name The name of the chat whose count is to be retrieved.
+   * @return The current count associated with the given chat name.
    **/
   int get_chat_count(std::string& chat_name);
   
@@ -137,25 +155,63 @@ private:
    **/
   void handle_response(const Message& incoming_msg);
   
-  /* */
+  /**
+   * Sends a dialog alert to the GUI thread.
+   *
+   * @param message The message to be displayed in the dialog.
+   * @param type The type of dialog.
+   **/
   void send_dialog(const std::string& message, DialogType type);
 
-  /* */
+  /**
+   * Triggers the creation of a new room in the GUI.
+   *
+   * @param room_name The name of the room to create.
+   **/
   void create_room(const std::string& room_name);
 
-  /* */ 
+  /**
+   * Sends a new notification to the GUI.
+   *
+   * @param message The content of the notification.
+   * @param roomname Optional name of the room related to the notification.
+   * @param type The type of notification.
+   **/
   void new_notify(const std::string& message, const std::string& roomname, NotifyType type);
 
-  /* */
+  /**
+   * Sends a chat message to the GUI.
+   *
+   * @param chat_name The name of the chat.
+   * @param sender The name of the sender of the message.
+   * @param content The content of the message.
+   * @param chat_type The type of chat.
+   * @param msg_type The type of message.
+   **/
   void send_message(const std::string& chat_name, const std::string& sender, const std::string& content, ChatType chat_type, MessageType msg_type);
 
-  /* */
+  /**
+   * Updates the GUI with the current user list and their statuses.
+   *
+   * @param roomname The name of the room, or empty string for global context.
+   * @param users_map A map of usernames to their statuses.
+   **/
   void users_list(const std::string& roomname, const std::unordered_map<std::string, std::string> &users_map);
 
-  /* */
+  /**
+   * Updates the user count for a given chat in the GUI.
+   *
+   * @param chat_name The name of the chat (room).
+   * @param count The number of active users.
+   **/
   void update_count(const std::string& chat_name, int count);
   
-  /* */
+  /**
+   * Updates the online status of a specific user in the GUI.
+   *
+   * @param username The name of the user.
+   * @param status The new status to be displayed.
+   **/
   void update_status(const std::string& username, const std::string& status);
   
   /**

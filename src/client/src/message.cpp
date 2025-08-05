@@ -129,9 +129,12 @@ int Message::get_count() const
 }
 
 /**
- * Retrieves a formatted list of users and their statuses if present.
+ * Retrieves a map of users and their statuses from the message data.
  *
- * @return Formatted user list string or empty string if missing.
+ * Parses the internal JSON object to extract a list of users, where each key is a username
+ * and each value is the corresponding status.
+ *
+ * @return A map of usernames to their statuses. Returns an empty map if the data is missing or invalid.
  **/
 std::unordered_map<std::string, std::string> Message::get_users() const
 {

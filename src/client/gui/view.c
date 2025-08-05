@@ -59,7 +59,8 @@ get_chat_data()
 
 /* */
 static Chat*
-get_chat(const char *name, ChatData *chatty)
+get_chat(const char *name,
+	 ChatData *chatty)
 {
   for (GList *l = chatty->chats; l != NULL; l = l->next) {
     Chat *chat = l->data;
@@ -84,9 +85,15 @@ clear_widget(GtkWidget *widget)
   }
 }
 
-/* */
+/**
+ * Launches an alert dialog from the main chat to notify the user of an event.
+ *
+ * @param detail Message describing the event.
+ * @param type Type of dialog.
+ **/
 void
-alert_dialog(const char* detail, DialogType type)
+alert_dialog(const char* detail,
+	     DialogType type)
 {
   ChatData *data = get_chat_data();
   GtkWindow *parent = data->window;
@@ -213,7 +220,12 @@ show_modal_window(GtkWidget *parent,
 
 /*      */
 
-/* *///////
+/**
+ * Updates the status of a user in the user chat, if visible.
+ *
+ * @param user_name The name of the user.
+ * @param status The new status to display.
+ **/
 void
 update_user_status(const char* user_name,
 		   const char* status)
@@ -229,7 +241,12 @@ update_user_status(const char* user_name,
   gtk_label_set_text(GTK_LABEL(label), status);
 }
 
-/* *//////
+/**
+ * Updates the member count of a given chat, if currently displayed.
+ *
+ * @param chat_name Name of the chat.
+ * @param users_count Updated number of users.
+ **/
 void
 update_count(const char* chat_name,
 	     int users_count)
@@ -679,7 +696,13 @@ invitations_room_selected(GtkButton *button,
   }
 }
 
-/* */
+/**
+ * Displays the invitation window with the list of users and their statuses
+ * from the general chat and any rooms they belong to.
+ *
+ * @param users Null-terminated array of usernames.
+ * @param statuses Null-terminated array of corresponding statuses for each user.
+ **/
 void
 show_invitation_window(char** users,
 		       char** statuses)
@@ -924,7 +947,13 @@ populate_user_list(GtkBuilder *builder,
   gtk_widget_set_visible(GTK_WIDGET(list_box), TRUE);
 }
 
-/* */
+/**
+ * Displays a window showing users and their statuses in the specified room.
+ *
+ * @param room_name Name of the room.
+ * @param users Array of usernames in the room.
+ * @param statuses Array of corresponding statuses.
+ **/
 void
 show_room_users(const char* room_name,
 		char **users,
@@ -944,7 +973,12 @@ show_room_users(const char* room_name,
   gtk_window_present(info_window);
 }
 
-/* */
+/**
+ * Displays a window showing users and their statuses in the general chat.
+ *
+ * @param users Array of usernames.
+ * @param statuses Array of corresponding statuses.
+ **/
 void
 show_chat_users(char **users,
 		char **statuses)
@@ -1085,7 +1119,12 @@ check_message_entry(GtkWidget *entry,
 
 /*     Load the main page of the chat     */
 
-/* */
+/**
+ * Loads the main page view for a given chat.
+ *
+ * @param chat Pointer to the chat object to display.
+ * @param user_data The ChatData from the app.
+ **/
 static void
 load_main_page(Chat *chat,
 	       gpointer user_data)
@@ -1143,7 +1182,16 @@ on_row_selected(GtkListBox *box,
     load_main_page(chat, user_data);
 }
 
-/* */
+/**
+ * Handles a message received from the server, delegating it to the appropriate
+ * GUI handler based on the chat and message type.
+ *
+ * @param chat_name Name of the chat the message belongs to.
+ * @param sender Sender of the message.
+ * @param content Content of the message.
+ * @param chat_type Type of the chat.
+ * @param msg_type Type of the message.
+ **/
 void
 message_received(const char* chat_name,
 		 const char* sender,
@@ -1175,7 +1223,13 @@ message_received(const char* chat_name,
 
 /*     Functions for handle the notifications     */
 
-/* */
+/**
+ * Adds a new notification to the user's notification list to inform about an event.
+ *
+ * @param msg Notification message.
+ * @param room_name Related room name, if any.
+ * @param type Notification type.
+ **/
 void
 add_new_notify(const char *msg, const char* roomname, NotifyType type)
 {
@@ -1343,7 +1397,9 @@ get_init_data()
   return g_object_get_data(G_OBJECT(window), "init-data");
 }
 
-/* Enter the chat */
+/**
+ * Displays the main chat interface once the user successfully connects.
+ **/
 void
 enter_chat()
 {
@@ -1397,7 +1453,12 @@ enter_chat()
   g_object_unref(chatty->builder);
 }
 
-/* */
+/**
+ * Launches an alert dialog from the home screen to notify the user of an event.
+ *
+ * @param detail Message describing the event.
+ * @param type Dialog type.
+ **/
 void
 init_alert_dialog(const char* detail,
 		  DialogType type)
@@ -1493,7 +1554,12 @@ validate_data(GtkButton *button,
   controller_try_connection(port, ip, user_name); //enter_chat();
 }
 
-/* */
+/**
+ * Launches the home page window so the user can connect to a server or quit the app.
+ *
+ * @param app Pointer to the GtkApplication instance.
+ * @param data Pointer to the StartData structure with initial connection data.
+ **/
 static void
 home_window(GtkApplication *app,
 	    StartData *data)
@@ -1549,7 +1615,12 @@ activate(GtkApplication *app,
   home_window(app, data);
 }
 
-/* */
+/**
+ * Launch the initial graphic user interface.
+ *
+ * @param port The inital port.
+ * @param server_ip The inital server_ip.
+ **/
 void
 launch_gui(int port,
 	   char* server_ip)

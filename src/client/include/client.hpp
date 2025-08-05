@@ -10,7 +10,7 @@
 /**
  * @class Client
  *
- * Singleton class that manages the client-side operations of a chat application.
+ * Class that manages the client-side operations of a chat application.
  * Responsible for establishing connection with the server, sending/receiving messages,
  * handling user inputs, maintaining connection status, and orchestrating chat-related actions.
  **/
@@ -22,7 +22,6 @@ public:
    * Ensures that only one instance of the client exists during the lifetime of the application.
    **/
   static Client& instance();                 //Singleton getter
-  
   Client(const Client&) = delete;            //Deleted copy constructor
   Client& operator=(const Client&) = delete; //Deleted copy assignment operator
 

@@ -1,6 +1,11 @@
 #include "idle.h"
 
-/* */
+/**
+ * Frees dynamically allocated arrays of usernames and statuses.
+ *
+ * @param users Array of user names (null-terminated).
+ * @param statuses Array of corresponding statuses (null-terminated).
+ **/
 static void
 free_users_and_statuses(char **users, char **statuses)
 {
@@ -16,7 +21,12 @@ free_users_and_statuses(char **users, char **statuses)
   }
 }
 
-/* */
+/**
+ * Idle callback to show an alert dialog on the GTK main loop.
+ *
+ * @param call_data Pointer to a DialogIdle structure.
+ * @return G_SOURCE_REMOVE to remove the source after execution.
+ **/
 gboolean
 alert_dialog_idle(gpointer call_data)
 {
@@ -27,7 +37,12 @@ alert_dialog_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to update a user's status in the UI.
+ *
+ * @param call_data Pointer to a StatusIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 update_status_idle(gpointer call_data)
 {
@@ -39,7 +54,12 @@ update_status_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to update the user count for a chat.
+ *
+ * @param call_data Pointer to a CountIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 update_count_idle(gpointer call_data)
 {
@@ -50,7 +70,12 @@ update_count_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to display users and statuses for a specific room.
+ *
+ * @param call_data Pointer to a RoomUsersListIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 room_users_idle(gpointer call_data)
 {
@@ -62,7 +87,13 @@ room_users_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to display users for general chat or invitation.
+ * Behavior depends on the value of current_users_request.
+ *
+ * @param call_data Pointer to a ChatUsersListIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 show_users_idle(gpointer call_data)
 {
@@ -76,7 +107,12 @@ show_users_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to process and display a received message in the UI.
+ *
+ * @param call_data Pointer to a MessageIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 message_received_idle(gpointer call_data)
 {
@@ -91,7 +127,12 @@ message_received_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to add a new notification to the notification system.
+ *
+ * @param call_data Pointer to a NotifyIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 new_notify_idle(gpointer call_data)
 {
@@ -103,7 +144,12 @@ new_notify_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to switch the UI to the chat interface.
+ *
+ * @param call_data Unused.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 enter_chat_idle(gpointer call_data)
 {
@@ -111,7 +157,12 @@ enter_chat_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to initialize and show a startup error/success dialog.
+ *
+ * @param call_data Pointer to a DialogIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 init_alert_dialog_idle(gpointer call_data)
 {

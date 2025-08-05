@@ -1,9 +1,5 @@
-#include <csignal>
 #include <iostream>
-#include "client.hpp"
-
 using namespace std;
-
 extern "C"
 {
 #include "view.h"
@@ -14,7 +10,7 @@ main(int num_args,
      char *argv[])
 {
   if (num_args != 3) {
-    std::cerr << "Use: " << argv[0] << " <server_ip> <port>" << std::endl;
+    cerr << "Use: " << argv[0] << " <server_ip> <port>" << endl;
     return EXIT_FAILURE;
   }
 
@@ -22,17 +18,17 @@ main(int num_args,
   int port;  
   try
     {
-      port = std::stoi(argv[2]);
+      port = stoi(argv[2]);
       if (port < 1024 || port > 49151) 
-	throw std::out_of_range("Port number must be between 1024 and 49151.");
+	throw out_of_range("Port number must be between 1024 and 49151.");
     }
   catch (const std::exception &e)
     {
-      std::cerr << "[ERROR] Invalid port: " << e.what() << std::endl;
+      cerr << "[ERROR] Invalid port: " << e.what() << endl;
       return EXIT_FAILURE;
     }
 
-  cout << "Launching gui client...\n";
+  cout << "Launching gui client..." << endl;
   launch_gui(port, server_ip);
   return EXIT_SUCCESS;
 }
