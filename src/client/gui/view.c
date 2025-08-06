@@ -1631,7 +1631,9 @@ launch_gui(int port,
   data->port = port;
   //Create the gtk app and connect it with the active signal
   GtkApplication *app;
-  app = gtk_application_new("org.chat.client", G_APPLICATION_DEFAULT_FLAGS);
+  app = gtk_application_new("org.chat.client",
+			    //G_APPLICATION_DEFAULT_FLAGS
+			    G_APPLICATION_NON_UNIQUE);
   g_signal_connect_data(app, "activate", G_CALLBACK (activate), data, (GClosureNotify)g_free, G_CONNECT_AFTER);
   //Run the gtk application
   g_application_run(G_APPLICATION (app), 0, NULL);

@@ -20,7 +20,7 @@ main(int num_args,
     {
       port = stoi(argv[2]);
       if (port < 1024 || port > 49151) 
-	throw out_of_range("Port number must be between 1024 and 49151.");
+	throw out_of_range("Port number must be between 1024-49151.");
     }
   catch (const std::exception &e)
     {
