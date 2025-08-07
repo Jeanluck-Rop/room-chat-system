@@ -86,6 +86,21 @@ extern "C"
     char* status;
   }
     StatusIdle;
+
+  /**
+   * @struct DeleteIdle. Structure used to the existing user chat with the given usern_name in the UI.
+   **/
+  typedef struct
+  {
+    char* user_name;
+  }
+    DeleteIdle;
+
+  /* */
+  gboolean back_to_home_idle(gpointer call_data);
+  
+  /* */
+  gboolean delete_chat_idle(gpointer call_data);
   
   /**
    * Frees dynamically allocated arrays of usernames and statuses.

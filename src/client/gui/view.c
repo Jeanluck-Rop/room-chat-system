@@ -58,6 +58,22 @@ get_chat_data()
 }
 
 /* */
+void
+back_to_home_page()
+{
+  ChatData *chatty = get_chat_data();
+  int port = chatty->port;
+  char *ip = g_strdup(chatty->ip);
+  gtk_widget_set_visible(GTK_WIDGET(chatty->window), FALSE);
+  //relaunch home-page
+  StartData *data = g_new0(StartData, 1);
+  data->port = port;
+  data->server_ip = ip;
+  home_window(GTK_APPLICATION(g_application_get_default()), data);
+  g_idle_add(free_chat_data, chatty);
+}
+
+/* */
 static Chat*
 get_chat(const char *name,
 	 ChatData *chatty)
@@ -234,11 +250,7 @@ update_user_status(const char* user_name,
   Chat *chat = get_chat(user_name, chatty);
   if (!chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
-  GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
-  GtkWidget *label;
-  label = GTK_WIDGET(gtk_builder_get_object(builder, "user_status_label"));
-  gtk_label_set_text(GTK_LABEL(label), status);
+  gtk_label_set_text(GTK_LABEL(chat->status_label), status);
 }
 
 /**
@@ -248,21 +260,22 @@ update_user_status(const char* user_name,
  * @param users_count Updated number of users.
  **/
 void
-update_count(const char* chat_name,
+update_chat_count(const char* chat_name,
 	     int users_count)
 {
   ChatData *chatty = get_chat_data();
   Chat *chat = get_chat(chat_name, chatty);
   if (!chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
-  char *label_id = (chat->type == ROOM_CHAT) ? "room_users_count" : "public_users_count";
-  GtkBuilder *builder;
-  builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
-  GtkWidget *label;
-  label= GTK_WIDGET(gtk_builder_get_object(builder, label_id));
-  char *formatted = g_strdup_printf("%d %s", users_count, (chat->type == PUBLIC_CHAT) ? "users" : "members");
-  gtk_label_set_text(GTK_LABEL(label), formatted);
-  g_free(formatted);
+  if (chat->type == ROOM_CHAT) {
+    char *format = g_strdup_printf("%d %s", users_count, "members");
+    gtk_label_set_text(GTK_LABEL(chat->room_count_label), format);
+    g_free(format);
+  } else {
+    char *formatted = g_strdup_printf("%d %s", users_count, "users");
+    gtk_label_set_text(GTK_LABEL(chat->public_count_label), formatted);
+    g_free(formatted);
+  }
 }
 ///
 
@@ -393,14 +406,25 @@ remove_chat(ChatData *chatty, Chat *chat)
 {
   if (chat->row)
     gtk_list_box_remove(GTK_LIST_BOX(chatty->chats_list), chat->row);
-
   chatty->chats = g_list_remove(chatty->chats, chat);
   g_free(chat->name);
-  
   if (chat->messages)
     g_list_free_full(chat->messages, (GDestroyNotify)free_chat_message);
-  
   g_free(chat);
+  Chat *public_chat = get_chat("PUBLIC_CHAT", chatty);
+  if (public_chat)
+    load_main_page(public_chat, chatty);
+}
+
+/* */
+void
+delete_user_chat_row(const char* user_name)
+{
+  ChatData *chatty = get_chat_data();
+  Chat *user_chat = get_chat(user_name, chatty);
+  if (!user_chat)
+    return;
+  remove_chat(chatty, user_chat);
 }
 ///
 
@@ -593,13 +617,10 @@ display_users_list(GtkListBox *list_box,
 		   gpointer user_data)
 {
   ChatActions *actions = (ChatActions *)user_data;
-  
   ChatData* chatty = get_chat_data();
   char* user = chatty->username;
-  
   gtk_list_box_remove_all(list_box);
   for (int i = 0; usernames[i] != NULL; i++) {
-    g_print("User = [%s], Current = [%s]", user, usernames[i]);
     GtkBuilder *row_builder;
     row_builder = gtk_builder_new_from_resource("/org/chat/client/resources/actions.ui");
     GtkWidget *template_row;
@@ -616,10 +637,8 @@ display_users_list(GtkListBox *list_box,
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
     gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
 
-    if (g_strcmp0(user, usernames[i]) == 0) {
-      g_print("They are same.");
+    if (g_strcmp0(user, usernames[i]) == 0)
       gtk_widget_set_sensitive(add_btn, FALSE);
-    }
     
     g_object_set_data(G_OBJECT(add_btn), "username", (gpointer)usernames[i]);
     g_signal_connect(add_btn, "clicked", callback, actions);
@@ -787,24 +806,13 @@ leave_room_clicked(GtkButton *button,
 /* */
 static void
 disconnect_response(GObject *source_object,
-		   GAsyncResult *res,
-		   gpointer user_data)
+		    GAsyncResult *res,
+		    gpointer user_data)
 {
-  ChatData *chatty = (ChatData *)user_data;
   GtkAlertDialog *dialog = GTK_ALERT_DIALOG(source_object);
   int response = gtk_alert_dialog_choose_finish(dialog, res, NULL);
-  if (response == 0) {
+  if (response == 0)
     controller_disconnect();
-    int port = chatty->port;
-    char *ip = g_strdup(chatty->ip);
-    gtk_widget_set_visible(GTK_WIDGET(chatty->window), FALSE);
-    //relaunch home-page
-    StartData *data = g_new0(StartData, 1);
-    data->port = port;
-    data->server_ip = ip;
-    home_window(GTK_APPLICATION(g_application_get_default()), data);
-    g_idle_add(free_chat_data, chatty);
-  }
 }
 
 /* */
@@ -910,15 +918,10 @@ populate_user_list(GtkBuilder *builder,
 		   char **statuses,
                    GCallback send_callback)
 {
-  
   ChatData* chatty = get_chat_data();
   char* user = chatty->username;
-  
   gtk_list_box_remove_all(list_box);
   for (int i = 0; usernames[i] != NULL; i++) {
-    
-    g_print("User = [%s], Current = [%s]", user, usernames[i]);
-    
     GtkBuilder *row_builder;
     row_builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
     GtkWidget *template_row;
@@ -935,10 +938,8 @@ populate_user_list(GtkBuilder *builder,
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
     gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
 
-    if (g_strcmp0(user, usernames[i]) == 0) {
-      g_print("They are same.");
+    if (g_strcmp0(user, usernames[i]) == 0)
       gtk_widget_set_sensitive(send_button, FALSE);
-    }
     
     g_signal_connect(send_button, "clicked", send_callback, g_strdup(usernames[i]));
     gtk_list_box_append(list_box, template_row);
@@ -959,6 +960,7 @@ show_room_users(const char* room_name,
 		char **users,
 		char **statuses)
 {
+  ChatData *chatty = get_chat_data();
   GtkBuilder *builder;
   builder = gtk_builder_new_from_resource("/org/chat/client/resources/headers.ui");
   GtkListBox *list_box;
@@ -968,7 +970,7 @@ show_room_users(const char* room_name,
   GtkWindow *info_window;
   info_window = GTK_WINDOW(gtk_builder_get_object(builder, "room_info_window"));
   gtk_window_set_modal(info_window, TRUE);
-  gtk_window_set_transient_for(info_window, GTK_WINDOW(gtk_widget_get_root(GTK_WIDGET(list_box))));
+  gtk_window_set_transient_for(info_window, GTK_WINDOW(gtk_widget_get_root(GTK_WIDGET(chatty->header))));
   g_signal_connect(info_window, "close-request", G_CALLBACK(on_dialog_close), NULL);
   gtk_window_present(info_window);
 }
@@ -1041,29 +1043,29 @@ set_header(Chat *chat,
     header_id = "user_header";
     label = GTK_WIDGET(gtk_builder_get_object(builder, "user_name_label"));
     gtk_label_set_text(GTK_LABEL(label), chat->name);
-    GtkWidget *status_label;
-    status_label = GTK_WIDGET(gtk_builder_get_object(builder, "user_status_label"));
+    //GtkWidget *status_label;
+    chat->status_label = GTK_WIDGET(gtk_builder_get_object(builder, "user_status_label"));
     const char *status = "ACTIVE";///
-    gtk_label_set_text(GTK_LABEL(status_label), status);
+    gtk_label_set_text(GTK_LABEL(chat->status_label), status);
     break;
   case ROOM_CHAT:
     header_id = "room_header";
     label = GTK_WIDGET(gtk_builder_get_object(builder, "room_name_label"));
     gtk_label_set_text(GTK_LABEL(label), chat->name);
-    GtkWidget *room_count_label;
-    room_count_label = GTK_WIDGET(gtk_builder_get_object(builder, "room_users_count"));
+    //GtkWidget *room_count_label;
+    chat->room_count_label = GTK_WIDGET(gtk_builder_get_object(builder, "room_users_count"));
     int room_count = controller_get_count(chat->name);
     char *formatt = g_strdup_printf("%d members", room_count);
-    gtk_label_set_text(GTK_LABEL(room_count_label), formatt);
+    gtk_label_set_text(GTK_LABEL(chat->room_count_label), formatt);
     g_free(formatt);
     break;
   default:
     header_id = "public_header";
-    GtkWidget *public_users_label;
-    public_users_label = GTK_WIDGET(gtk_builder_get_object(builder, "public_users_count"));
+    //GtkWidget *public_users_label;
+    chat->public_count_label = GTK_WIDGET(gtk_builder_get_object(builder, "public_users_count"));
     int users_count = controller_get_count("PUBLIC_CHAT");
     char *formatted = g_strdup_printf("%d users", users_count);
-    gtk_label_set_text(GTK_LABEL(public_users_label), formatted);
+    gtk_label_set_text(GTK_LABEL(chat->public_count_label), formatted);
     g_free(formatted);   
     break;
   }
@@ -1207,7 +1209,7 @@ message_received(const char* chat_name,
     return;
   }
   //create new user chat
-  if (msg_type == USER_CHAT) {
+  if (chat_type == USER_CHAT) {
     char *init_msg = g_strdup_printf("Your chat with [%s]", sender);
     Chat *nw_chat = new_chat(chatty, chat_type, chat_name, init_msg);
     add_new_message(nw_chat, chatty, msg_type, sender, content);

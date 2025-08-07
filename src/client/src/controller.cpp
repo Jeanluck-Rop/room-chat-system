@@ -112,6 +112,7 @@ void Controller::handle_message(const std::string& raw_message)
   case Message::Type::DISCONNECTED:
     chat_counter.update("PUBLIC_CHAT", -1);
     new_notify("[" + username + "] disconnected from the chat.", "", NORMAL_NOTIF);
+    remove_user(username);
     send_message("PUBLIC_CHAT", info, "[" + username + "] disconnected from the chat", PUBLIC_CHAT, INFO_MESSAGE);
     update_count("PUBLIC_CHAT", chat_counter.count("PUBLIC_CHAT"));
     break;
@@ -309,6 +310,12 @@ void Controller::disconnect_user()
   Message disconnect_msg = Message::create_disconnect_message();
   Client::instance().send_message(disconnect_msg.to_json());
   Client::instance().disconnect();
+}
+
+/* */
+void Controller::notify_disconnection()
+{
+  g_idle_add(back_to_home_idle, NULL);
 }
 
 /**
@@ -573,6 +580,14 @@ void Controller::update_status(const std::string& username,
   data->user_name = g_strdup(username.c_str());
   data->status = g_strdup(status.c_str());
   g_idle_add(update_status_idle, data);
+}
+
+/* */
+void Controller::remove_user(const std::string& username)
+{
+  DeleteIdle *data = g_new0(DeleteIdle, 1);
+  data->user_name = g_strdup(username.c_str());
+  g_idle_add(delete_chat_idle, data);
 }
 
 /**

@@ -12,6 +12,12 @@
 extern "C"
 {
 #endif
+
+  /* */
+  void back_to_home_page();
+  
+  /* */
+  void delete_user_chat_row(const char* user_name);
   
   /**
    * Launches an alert dialog from the main chat to notify the user of an event.
@@ -35,7 +41,7 @@ extern "C"
    * @param chat_name Name of the chat.
    * @param users_count Updated number of users.
    **/
-  void update_count(const char* chat_name, int users_count);
+  void update_chat_count(const char* chat_name, int users_count);
 
   /**
    * Displays the invitation window with the list of users and their statuses

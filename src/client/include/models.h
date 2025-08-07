@@ -120,6 +120,9 @@ extern "C"
     GList *messages;
     GtkWidget *row;
     GtkWidget *recent_label;
+    GtkWidget *status_label;
+    GtkWidget *public_count_label;
+    GtkWidget *room_count_label;
   }
     Chat;
 

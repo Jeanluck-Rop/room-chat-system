@@ -119,5 +119,6 @@ void Client::disconnect()
   if (socket_fd != -1)
     close(socket_fd);
   socket_fd = -1;
+  Controller::instance().notify_disconnection();
   std::cout << "Disconnected from the server." << std::endl; ////
 }

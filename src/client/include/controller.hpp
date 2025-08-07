@@ -142,6 +142,9 @@ public:
    * Sends a disconnect message to the server and closes the connection.
    **/
   void disconnect_user();
+
+  /* */
+  void notify_disconnection();
   
 private:
   Controller();  //private constructor
@@ -213,6 +216,9 @@ private:
    * @param status The new status to be displayed.
    **/
   void update_status(const std::string& username, const std::string& status);
+
+  /* */
+  void remove_user(const std::string& username);
   
   /**
    * Removes trailing whitespace (spaces and tabs) from a string.

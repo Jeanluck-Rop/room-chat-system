@@ -21,6 +21,24 @@ free_users_and_statuses(char **users, char **statuses)
   }
 }
 
+/* */
+gboolean
+back_to_home_idle(gpointer call_data)
+{
+  back_to_home_page();
+  return G_SOURCE_REMOVE;
+}
+
+/* */
+gboolean
+delete_chat_idle(gpointer call_data)
+{
+  DeleteIdle *data = (DeleteIdle *)call_data;
+  delete_user_chat_row(data->user_name);
+  g_free(data->user_name);
+  return G_SOURCE_REMOVE;
+}
+
 /**
  * Idle callback to show an alert dialog on the GTK main loop.
  *
@@ -64,7 +82,7 @@ gboolean
 update_count_idle(gpointer call_data)
 {
   CountIdle *data = (CountIdle *)call_data;
-  update_count(data->chat_name, data->users_count);
+  update_chat_count(data->chat_name, data->users_count);
   g_free(data->chat_name);
   g_free(data);
   return G_SOURCE_REMOVE;
