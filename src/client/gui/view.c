@@ -61,6 +61,12 @@ get_chat_data()
 void
 back_to_home_page()
 {
+  //Check if the window is already the home page
+  GtkWindow *window;
+  window = GTK_WINDOW(gtk_application_get_active_window(GTK_APPLICATION(g_application_get_default())));
+  if (window && g_object_get_data(G_OBJECT(window), "init-data") != NULL) 
+    return;
+  
   ChatData *chatty = get_chat_data();
   int port = chatty->port;
   char *ip = g_strdup(chatty->ip);
