@@ -3,7 +3,8 @@
 
 .sidebar-section {
     min-width: 150px;
-    background: #142d4c;
+    /*background: #142d4c;*/
+    background: #385170;
 }
 
 .sidebar-header {
@@ -24,5 +25,6 @@
 
 .main-content {
     min-width: 350px;
-    background: #385170;
+    /*background: #385170;*/
+    background: #dbe7f0;
 }

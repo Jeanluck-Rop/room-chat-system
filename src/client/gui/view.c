@@ -248,15 +248,8 @@ update_user_status(const char* user_name,
 {
   ChatData *chatty = get_chat_data();
   Chat *chat = get_chat(user_name, chatty);
-  
-  //if (!chat) {
-  //g_print("Chat para usuario '%s' no encontrado", user_name);
-  //return;
-  //}
-  
   if (!chat || !chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
-  
   gtk_label_set_text(GTK_LABEL(chat->status_label), status);
 }
 
@@ -272,7 +265,7 @@ update_chat_count(const char* chat_name,
 {
   ChatData *chatty = get_chat_data();
   Chat *chat = get_chat(chat_name, chatty);
-  if (!chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
+  if (!chat || !chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
   if (chat->type == ROOM_CHAT) {
     char *format = g_strdup_printf("%d %s", users_count, "members");
@@ -643,11 +636,9 @@ display_users_list(GtkListBox *list_box,
     add_btn = gtk_widget_get_next_sibling(status_label);
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
     gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
-
     if (g_strcmp0(user, usernames[i]) == 0)
       gtk_widget_set_sensitive(add_btn, FALSE);
-    
-    g_object_set_data(G_OBJECT(add_btn), "username", (gpointer)usernames[i]);
+    g_object_set_data_full(G_OBJECT(add_btn), "username", g_strdup(usernames[i]), g_free);
     g_signal_connect(add_btn, "clicked", callback, actions);
     gtk_list_box_append(list_box, template_row);
     g_object_unref(row_builder);
@@ -698,9 +689,14 @@ guests_selected(GtkButton *button,
     gtk_label_set_text(GTK_LABEL(label), "Add"); //return to initial label
   } else {
     //if !found add to selected users
-    actions->selected_users = g_realloc(actions->selected_users, sizeof(char*) * (count + 2));
-    actions->selected_users[count] = g_strdup(username);
-    actions->selected_users[count + 1] = NULL;
+    char **new_list = g_new(char *, count + 2);
+    for (int i = 0; i < count; i++)
+        new_list[i] = actions->selected_users[i];//copy existing pointers
+    new_list[count] = g_strdup(username);//duplicate each new string
+    new_list[count + 1] = NULL;
+    g_free(actions->selected_users);//free old array
+    actions->selected_users = new_list;
+    
     gtk_label_set_text(GTK_LABEL(label), "Quit");
   }
   GtkWidget *accept = GTK_WIDGET(gtk_builder_get_object(actions->builder, "invite_users_accept_button"));
@@ -818,7 +814,7 @@ disconnect_response(GObject *source_object,
 {
   GtkAlertDialog *dialog = GTK_ALERT_DIALOG(source_object);
   int response = gtk_alert_dialog_choose_finish(dialog, res, NULL);
-  if (response == 0)
+  if (response == 1)
     controller_disconnect();
 }
 
@@ -834,7 +830,7 @@ disconnect_user_clicked(GtkButton *button,
   GtkAlertDialog *alert;
   const char *message = "Disconnect";
   const char *detail = "Are you sure you want to disconnect from the chat?";
-  const char *buttons[] = { "OK", "Cancel", NULL };
+  const char *buttons[] = { "Cancel", "OK", NULL };
   alert = gtk_alert_dialog_new(message);
   gtk_alert_dialog_set_detail(alert, detail);
   gtk_alert_dialog_set_buttons(alert, buttons);
