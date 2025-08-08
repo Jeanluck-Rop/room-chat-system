@@ -248,8 +248,15 @@ update_user_status(const char* user_name,
 {
   ChatData *chatty = get_chat_data();
   Chat *chat = get_chat(user_name, chatty);
-  if (!chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
+  
+  //if (!chat) {
+  //g_print("Chat para usuario '%s' no encontrado", user_name);
+  //return;
+  //}
+  
+  if (!chat || !chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
+  
   gtk_label_set_text(GTK_LABEL(chat->status_label), status);
 }
 
