@@ -156,7 +156,12 @@ controller_get_count(const char* name)
   return controller.get_chat_count(chat_name);
 }
 
-/* */
+/**
+ * Retrieves the status code for a given user.
+ *
+ * @param user_name The username whose status should be retrieved.
+ * @return The integer status code (0, 1, or 2).
+ **/
 int
 controller_get_status(const char* user_name)
 {

@@ -313,7 +313,18 @@ int Controller::get_chat_count(std::string& chat_name)
   return chat_counter.count(chat_name);
 }
 
-/* */
+/**
+ * Retrieves the status code for a given username.
+ *
+ * The function checks the internal statuses list (if initialized) to determine the
+ * status string associated with the username, then maps it to an integer code:
+ *   - 0: "Active" or any status other than "AWAY" or "BUSY"
+ *   - 1: "AWAY"
+ *   - 2: "BUSY"
+ *
+ * @param username The username whose status should be retrieved.
+ * @return An integer status code (0, 1, or 2).
+ **/
 int Controller::get_user_status(std::string& username)
 {
   if (!statuses_list)
@@ -609,7 +620,15 @@ void Controller::update_status(const std::string& username,
   g_idle_add(update_status_idle, data);
 }
 
-/* */
+/**
+ * Initializes the internal statuses list from a given map, only if it has not been set before.
+ *
+ * This method takes an unordered_map of usernames and their corresponding statuses
+ * and uses it to populate a new StatusesList instance. If the internal statuses list
+ * has already been initialized, the function does nothing.
+ *
+ * @param statuses_map A map of usernames to status strings.
+ **/
 void Controller::check_statuses_list(const std::unordered_map<std::string, std::string>& statuses_map)
 {
   if (statuses_list.has_value())
