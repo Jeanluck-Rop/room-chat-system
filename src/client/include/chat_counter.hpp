@@ -7,9 +7,8 @@
  * @class ChatCounter
  *
  * Utility class for tracking numeric values associated with chat names.
- * This class maintains a mapping between chat names and integer counters,
- * useful for tracking data such as the number of participants, unread messages,
- * or any other numeric metric per chat. It supports adding, updating, and querying counters.
+ * This class maintains a mapping between chat names and the count of the memebrs on the chat.
+ * It supports adding, updating, and querying counters.
  **/
 class ChatCounter
 {
@@ -53,6 +52,21 @@ public:
   {
     auto k = counters.find(chat_name);
     return (k != counters.end()) ? k->second : 0;
+  }
+
+  /**
+   * Removes the counter entry for a given chat name.
+   * If the chat name does not exist, a runtime error is thrown.
+   *
+   * @param chat_name The name of the chat to remove from the map.
+   * @throws std::runtime_error if the chat name does not exist.
+   **/
+  void remove(const std::string& chat_name)
+  {
+    if (counters.find(chat_name) == counters.end())
+      throw std::runtime_error("Chat name does not exist: [" + chat_name + "]");
+    
+    counters.erase(chat_name);
   }
   
 private:

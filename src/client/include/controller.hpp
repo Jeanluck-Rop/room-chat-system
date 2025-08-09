@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include "chat_counter.hpp"
+#include "statuses.hpp"
 #include "message.hpp"
 #include "client.hpp"
 #include "models.h"
@@ -137,6 +138,9 @@ public:
    * @return The current count associated with the given chat name.
    **/
   int get_chat_count(std::string& chat_name);
+
+  /* */
+  int get_user_status(std::string& username);
   
   /**
    * Sends a disconnect message to the server and closes the connection.
@@ -219,6 +223,9 @@ private:
    **/
   void update_status(const std::string& username, const std::string& status);
 
+  /* */
+  void check_statuses_list(const std::unordered_map<std::string, std::string>& statuses_map);
+  
   /**
    * Schedules the removal of a user row from the chat UI.
    *

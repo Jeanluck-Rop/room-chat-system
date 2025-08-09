@@ -93,6 +93,9 @@ extern "C"
    * @return The number of users.
    **/
   int controller_get_count(const char* name);
+
+  /* */
+  int controller_get_status(const char* user_name);
   
   /**
    * Disconnects the current user from the server.

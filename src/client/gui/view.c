@@ -258,7 +258,16 @@ update_user_status(const char* user_name,
   Chat *chat = get_chat(user_name, chatty);
   if (!chat || !chatty->current_chat || g_strcmp0(chatty->current_chat->name, chat->name) != 0)
     return;
-  gtk_label_set_text(GTK_LABEL(chat->status_label), status);
+
+  const char *display_status;
+  if (g_strcmp0(status, "AWAY") == 0)
+    display_status = "Away";
+  else if (g_strcmp0(status, "BUSY") == 0)
+    display_status = "Busy";
+  else
+    display_status = "Active";
+    
+  gtk_label_set_text(GTK_LABEL(chat->status_label), display_status);
 }
 
 /**
@@ -1061,16 +1070,30 @@ set_header(Chat *chat,
     header_id = "user_header";
     label = GTK_WIDGET(gtk_builder_get_object(builder, "user_name_label"));
     gtk_label_set_text(GTK_LABEL(label), chat->name);
-    //GtkWidget *status_label;
     chat->status_label = GTK_WIDGET(gtk_builder_get_object(builder, "user_status_label"));
-    const char *status = "ACTIVE";///
+
+    //const char *status = "ACTIVE";///
+
+    int stts = controller_get_status(chat->name);
+    const char *status;
+    switch (stts) {
+    case 1:
+      status = "Away";
+      break;
+    case 2:
+      status = "Busy";
+      break;
+    default:
+      status = "Active";
+      break;
+    }
+    
     gtk_label_set_text(GTK_LABEL(chat->status_label), status);
     break;
   case ROOM_CHAT:
     header_id = "room_header";
     label = GTK_WIDGET(gtk_builder_get_object(builder, "room_name_label"));
     gtk_label_set_text(GTK_LABEL(label), chat->name);
-    //GtkWidget *room_count_label;
     chat->room_count_label = GTK_WIDGET(gtk_builder_get_object(builder, "room_users_count"));
     int room_count = controller_get_count(chat->name);
     char *formatt = g_strdup_printf("%d members", room_count);
@@ -1079,7 +1102,6 @@ set_header(Chat *chat,
     break;
   default:
     header_id = "public_header";
-    //GtkWidget *public_users_label;
     chat->public_count_label = GTK_WIDGET(gtk_builder_get_object(builder, "public_users_count"));
     int users_count = controller_get_count("PUBLIC_CHAT");
     char *formatted = g_strdup_printf("%d users", users_count);

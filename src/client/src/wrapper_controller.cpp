@@ -156,6 +156,14 @@ controller_get_count(const char* name)
   return controller.get_chat_count(chat_name);
 }
 
+/* */
+int
+controller_get_status(const char* user_name)
+{
+  std::string username = user_name;
+  return controller.get_user_status(username);
+}
+
 /**
  * Disconnects the current user from the server.
  **/

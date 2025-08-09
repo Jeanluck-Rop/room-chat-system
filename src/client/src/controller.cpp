@@ -3,6 +3,9 @@
 /* Class variable to register the memebers of each chat */
 ChatCounter chat_counter;
 
+/* Class variable to register the status of each user */
+std::optional<StatusesList> statuses_list; //optional, cause it can be NULL
+
 /* Returns the singleton instance of the Controller class */
 Controller& Controller::instance()
 {
@@ -72,11 +75,15 @@ void Controller::handle_message(const std::string& raw_message)
     chat_counter.update("PUBLIC_CHAT", 1);
     new_notify("[" + username + "] joined the chat" + ".", "", NORMAL_NOTIF);
     send_message("PUBLIC_CHAT", info, "[" + username + "] joined the chat", PUBLIC_CHAT, INFO_MESSAGE);
+    if (statuses_list.has_value())
+      statuses_list->add(username, "ACTIVE");
     update_count("PUBLIC_CHAT", chat_counter.count("PUBLIC_CHAT"));
     break;
   case Message::Type::NEW_STATUS:
     new_notify("[" + username + "] changed status to " + incoming_msg.get_status() + ".", "", NORMAL_NOTIF);
     send_message("PUBLIC_CHAT", info, "[" + username + "] changed status to " + incoming_msg.get_status() + ".", PUBLIC_CHAT, INFO_MESSAGE);
+    if (statuses_list.has_value())
+      statuses_list->update(username, incoming_msg.get_status());
     update_status(username, incoming_msg.get_status());
     break;
   case Message::Type::TEXT_FROM:
@@ -87,6 +94,7 @@ void Controller::handle_message(const std::string& raw_message)
     break;
   case Message::Type::USER_LIST:
     users_list("", incoming_msg.get_users());
+    check_statuses_list(incoming_msg.get_users());
     break;
   case Message::Type::INVITATION:
     new_notify("[" + username + "] invited you to the room [" + roomname + "].", roomname, INVITE_NOTIF);
@@ -114,6 +122,8 @@ void Controller::handle_message(const std::string& raw_message)
     new_notify("[" + username + "] disconnected from the chat.", "", NORMAL_NOTIF);
     remove_user(username);
     send_message("PUBLIC_CHAT", info, "[" + username + "] disconnected from the chat", PUBLIC_CHAT, INFO_MESSAGE);
+    if (statuses_list.has_value())
+      statuses_list->remove(username);
     update_count("PUBLIC_CHAT", chat_counter.count("PUBLIC_CHAT"));
     break;
   default:
@@ -287,6 +297,7 @@ void Controller::leave_room(std::string& roomname)
     send_dialog("Invalid room name.", WARNING_DIALOG);
     return;
   }
+  chat_counter.remove(roomname);
   Message leave_room_msg = Message::create_leave_room_message(roomname);
   Client::instance().send_message(leave_room_msg.to_json());
 }
@@ -300,6 +311,20 @@ void Controller::leave_room(std::string& roomname)
 int Controller::get_chat_count(std::string& chat_name)
 {
   return chat_counter.count(chat_name);
+}
+
+/* */
+int Controller::get_user_status(std::string& username)
+{
+  if (!statuses_list)
+    return 0;
+  
+  std::string status = statuses_list->status(username);
+  if (status == "AWAY")
+    return 1;
+  if (status == "BUSY")
+      return 2;
+  return 0;
 }
 
 /**
@@ -582,6 +607,18 @@ void Controller::update_status(const std::string& username,
   data->user_name = g_strdup(username.c_str());
   data->status = g_strdup(status.c_str());
   g_idle_add(update_status_idle, data);
+}
+
+/* */
+void Controller::check_statuses_list(const std::unordered_map<std::string, std::string>& statuses_map)
+{
+  if (statuses_list.has_value())
+    return;
+  
+  StatusesList list;
+  for (auto& [user, status] : statuses_map)
+    list.add(user, status);
+  statuses_list = std::move(list); 
 }
 
 /**
