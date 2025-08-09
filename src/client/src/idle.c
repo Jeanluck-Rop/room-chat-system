@@ -21,7 +21,12 @@ free_users_and_statuses(char **users, char **statuses)
   }
 }
 
-/* */
+/**
+ * Idle callback to return the user to the home page.
+ *
+ * @param call_data NULL.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 back_to_home_idle(gpointer call_data)
 {
@@ -29,7 +34,12 @@ back_to_home_idle(gpointer call_data)
   return G_SOURCE_REMOVE;
 }
 
-/* */
+/**
+ * Idle callback to delete a chat user row.
+ *
+ * @param call_data Pointer to a DeleteIdle structure.
+ * @return G_SOURCE_REMOVE
+ **/
 gboolean
 delete_chat_idle(gpointer call_data)
 {
@@ -43,7 +53,7 @@ delete_chat_idle(gpointer call_data)
  * Idle callback to show an alert dialog on the GTK main loop.
  *
  * @param call_data Pointer to a DialogIdle structure.
- * @return G_SOURCE_REMOVE to remove the source after execution.
+ * @return G_SOURCE_REMOVE.
  **/
 gboolean
 alert_dialog_idle(gpointer call_data)
@@ -165,7 +175,7 @@ new_notify_idle(gpointer call_data)
 /**
  * Idle callback to switch the UI to the chat interface.
  *
- * @param call_data Unused.
+ * @param call_data NULL.
  * @return G_SOURCE_REMOVE
  **/
 gboolean

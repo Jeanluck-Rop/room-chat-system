@@ -143,7 +143,9 @@ public:
    **/
   void disconnect_user();
 
-  /* */
+  /**
+   * Schedules returning to the home page after a disconnection.
+   **/
   void notify_disconnection();
   
 private:
@@ -217,7 +219,11 @@ private:
    **/
   void update_status(const std::string& username, const std::string& status);
 
-  /* */
+  /**
+   * Schedules the removal of a user row from the chat UI.
+   *
+   * @param username The name of the user to remove from the chat list.
+   **/
   void remove_user(const std::string& username);
   
   /**

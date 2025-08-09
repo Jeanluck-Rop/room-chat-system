@@ -57,7 +57,9 @@ get_chat_data()
   return g_object_get_data(G_OBJECT(window), "chat-data");
 }
 
-/* */
+/**
+ * Returns the application view to the home page.
+ **/
 void
 back_to_home_page()
 {
@@ -422,7 +424,14 @@ remove_chat(ChatData *chatty, Chat *chat)
     load_main_page(public_chat, chatty);
 }
 
-/* */
+/**
+ * Removes the chat row for a specific user.
+ *
+ * This function finds the chat associated with the given username and removes it
+ * from the ChatData structure, updating the UI accordingly.
+ *
+ * @param user_name The username whose chat should be removed.
+ **/
 void
 delete_user_chat_row(const char* user_name)
 {

@@ -312,7 +312,9 @@ void Controller::disconnect_user()
   Client::instance().disconnect();
 }
 
-/* */
+/**
+ * Schedules returning to the home page after a disconnection.
+ **/
 void Controller::notify_disconnection()
 {
   g_idle_add(back_to_home_idle, NULL);
@@ -582,7 +584,11 @@ void Controller::update_status(const std::string& username,
   g_idle_add(update_status_idle, data);
 }
 
-/* */
+/**
+ * Schedules the removal of a user row from the chat UI.
+ *
+ * @param username The name of the user to remove from the chat list.
+ **/
 void Controller::remove_user(const std::string& username)
 {
   DeleteIdle *data = g_new0(DeleteIdle, 1);
