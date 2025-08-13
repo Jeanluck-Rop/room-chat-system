@@ -10,6 +10,8 @@
 #include <stdbool.h> 
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #include "cJSON.h"
 #include "room.h"
@@ -26,6 +28,9 @@ typedef struct Client
   char** invited_rooms;   // List of roomnames the client WASs invited to
   int invited_capacity;   // To allocate size memory for invitations list.
   bool is_disconnected;   // For stop handling a connected client.
+
+  SSL *ssl;               // Handle encryptment of message received and sent.
+  
   struct Client *next;    // Pointer to the next client in a linked list.
 }
   Client;
