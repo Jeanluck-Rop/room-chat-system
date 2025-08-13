@@ -80,7 +80,7 @@ load_certificates(SSL_CTX* ctx,
     abort();
   }
   if (!SSL_CTX_check_private_key(ctx)) {
-    print_message("[ERROR]: Private key does not match the public certificate\n", 'e');
+    print_message("[ERROR]: Private key does not match the public certificate.\n", 'e');
     abort();
   }
 }
