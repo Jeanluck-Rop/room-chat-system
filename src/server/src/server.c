@@ -1170,7 +1170,7 @@ start_server(int port)
   SSL_CTX *ctx;
   SSL_library_init();
   ctx = init_serverCTX();
-  load_certificates(ctx, "certi.pem", "certi.pem");
+  load_certificates(ctx, "../src/server/certi.pem", "../src/server/key.pem");
   server_fd = open_listener(port);
   
   //Start server life cycle

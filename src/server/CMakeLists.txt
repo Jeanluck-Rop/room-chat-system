@@ -29,3 +29,6 @@ add_executable(server src/main.c)
 
 # Link static library with executable
 target_link_libraries(server server_library OpenSSL::SSL OpenSSL::Crypto pthread)
+
+add_custom_command(TARGET server PRE_BUILD COMMAND bash ${CMAKE_SOURCE_DIR}/generate_certs.sh)
+  
