@@ -156,17 +156,6 @@ void Client::disconnect()
   if (!is_connected)
     return;
   is_connected = false;
-
-  if (ssl) {
-    SSL_shutdown(ssl);
-    SSL_free(ssl);
-    ssl = nullptr;
-  }
-  if (ssl_ctx) {
-    SSL_CTX_free(ssl_ctx);
-    ssl_ctx = nullptr;
-  }
-  
   shutdown(socket_fd, SHUT_RDWR); //Close both socket sides
   if (socket_fd != -1)
     close(socket_fd);
