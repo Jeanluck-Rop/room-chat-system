@@ -18,7 +18,7 @@ Client::Client() : socket_fd(-1), is_connected(false), ssl_ctx(nullptr), ssl(nul
   }
 }
 
-/* Destructor: Ensures proper cleanup by disconnecting if still connected */
+/* Destructor: Ensures proper cleanup by disconnecting if still connected and freeing remaining ssl pointers */
 Client::~Client()
 {
   if (is_connected)

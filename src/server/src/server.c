@@ -32,9 +32,16 @@ print_message(const char* text,
     printf("[INFO]: %s\n", text);  
 }
 
-
-
-/* */
+/**
+ * Creates and configures a TCP server socket listening on a specific port.
+ *
+ * This function creates a TCP socket (AF_INET, SOCK_STREAM) for IPv4, binds it 
+ * to the specified port, and starts listening for incoming connections.
+ * The returned socket descriptor can be used with accept() to handle clients.
+ *
+ * @param port The port number on which the server will listen.
+ * @return File descriptor of the listening server socket.
+ **/
 static int
 open_listener(int port)
 {
@@ -65,7 +72,17 @@ open_listener(int port)
   return server_sd;
 }
 
-/* */
+/**
+ * Loads a certificate and private key into an SSL context.
+ *
+ * This function associates the given public certificate (CertFile) and 
+ * private key (KeyFile) with the specified SSL context.
+ * It also verifies that the private key matches the loaded certificate.
+ *
+ * @param ctx Pointer to an SSL context created with SSL_CTX_new().
+ * @param CertFile Path to the certificate file in PEM format.
+ * @param KeyFile Path to the private key file in PEM format.
+ **/
 static void
 load_certificates(SSL_CTX* ctx,
 		  char* CertFile,
@@ -85,7 +102,17 @@ load_certificates(SSL_CTX* ctx,
   }
 }
 
-/* */
+/**
+ * Initializes and creates an SSL context for a server.
+ *
+ * This function prepares OpenSSL for use in a server environment by:
+ * - Loading cryptographic algorithms.
+ * - Loading OpenSSL error strings for diagnostics.
+ * - Selecting the most up-to-date TLS server method.
+ * - Creating a new SSL context (SSL_CTX) for the server.
+ *
+ * @return Pointer to the newly created SSL context, ready for further configuration.
+ **/
 static SSL_CTX*
 init_serverCTX(void)
 {
@@ -103,8 +130,6 @@ init_serverCTX(void)
 
   return ctx;
 }
-
-
 
 /**
  * Handle SIGINT (Ctrl+C) signal for graceful shutdown.
