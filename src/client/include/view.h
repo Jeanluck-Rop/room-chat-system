@@ -6,6 +6,11 @@
 #include <gtk/gtk.h>
 
 #include "models.h"
+#include "header.h"
+#include "actions.h"
+#include "auxiliar.h"
+#include "notifies.h"
+#include "gtk_messages.h"
 #include "wrapper_controller.h"
 
 #ifdef __cplusplus
@@ -41,7 +46,7 @@ extern "C"
    *
    * @param user_name The name of the user.
    * @param status The new status to display.
-   **/////////
+   **/
   void update_user_status(const char* user_name, const char* status);
   
   /**
@@ -52,6 +57,12 @@ extern "C"
    **/
   void update_chat_count(const char* chat_name, int users_count);
 
+  /* */
+  Chat* new_chat(ChatData *chatty, ChatType type, const char* name, const char* msg);
+
+  /* */
+  void remove_chat(ChatData *chatty, Chat *chat);
+  
   /**
    * Displays the invitation window with the list of users and their statuses
    * from the general chat and any rooms they belong to.
@@ -98,6 +109,14 @@ extern "C"
    * @param type Notification type.
    **/
   void add_new_notify(const char* msg, const char* room_name, NotifyType type);
+
+  /**
+   * Loads the main page view for a given chat.
+   *
+   * @param chat Pointer to the chat object to display.
+   * @param user_data The ChatData from the app.
+   **/
+  void load_main_page(Chat *chat, gpointer user_data);
   
   /**
    * Displays the main chat interface once the user successfully connects.
@@ -119,14 +138,6 @@ extern "C"
    * @param server_ip The inital server_ip.
    **/
   void launch_gui(int port, char* server_ip);
- 
-  /**
-   * Loads the main page view for a given chat.
-   *
-   * @param chat Pointer to the chat object to display.
-   * @param user_data The ChatData from the app.
-   **/
-  static void load_main_page(Chat *chat, gpointer user_data);
 
   /**
    * Launches the home page window so the user can connect to a server or quit the app.
@@ -135,10 +146,6 @@ extern "C"
    * @param data Pointer to the StartData structure with initial connection data.
    **/
   static void home_window(GtkApplication *app, StartData *data);
-  
-  /**
-   * Class constants and variables.
-   **/
   
 #ifdef __cplusplus
 }

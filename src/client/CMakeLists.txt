@@ -42,7 +42,12 @@ add_custom_target(resources_target DEPENDS ${RESOURCE_C})
 
 # Source code files in C
 set(C_SOURCES
+  gui/auxiliar.c
   gui/view.c
+  gui/header.c
+  gui/actions.c
+  gui/notifies.c
+  gui/gtk_messages.c
   ${RESOURCE_C}
 )
 
