@@ -1,7 +1,3 @@
 cJSON/
-
 json/
-
 build/
-
-src/server/*.pem

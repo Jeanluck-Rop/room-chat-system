@@ -1,14 +1,14 @@
 # Room Chat System
 
-A robust chat system designed for real-time communication between users.
+A chat system app, designed for real-time communication between users.
 
 ## **Features**
 
 + **Public Chat**:  
-   - All users connected to the server can participate in a shared chatroom, where everyone can read and write messages.  
+   - All users connected to the server can participate in a shared chat-room, where everyone can read and write messages.  
 
 + **Private Rooms**:  
-   - Users can create private chatrooms.  
+   - Users can create private chat-rooms.  
    - Only invited users can read and send messages within the respective room.  
 
 + **Direct Messages (DMs)**:  
@@ -19,14 +19,8 @@ A robust chat system designed for real-time communication between users.
 
 - **Server**: Developed in **C**.  
 - **Client**: Developed in **C++**.  
-- **Graphical User Interface**: Built using **GTK**.  (Not implemented yet)
-- **Portability**: Enhanced with **Flatpak** for cross-platform compatibility. (Not implemented yet)
-
-
-## Contributors
-
-- [Ianluck Rojo](https://github.com/Jeanluck-Rop)
-- [Fernanda Ramírez](https://github.com/Mariafernandarj)
+- **Graphical User Interface**: Built using **GTK**.
+- **Portability**: Enhanced with **Flatpak** for cross-platform compatibility. (Not yet)
 
 
 ## **How to Run the Project**
@@ -46,27 +40,14 @@ A robust chat system designed for real-time communication between users.
    
 3. Compile the program:  
    ```
-   cmake ..
+   $ cmake ..
    ...
-   make
+   $ make 
    [  6%] Building CXX object src/client/CMakeFiles/client_library.dir/src/main.cpp.o
-   [ 13%] Building CXX object src/client/CMakeFiles/client_library.dir/src/client.cpp.o
-   [ 20%] Building CXX object src/client/CMakeFiles/client_library.dir/src/message.cpp.o
-   [ 26%] Building CXX object src/client/CMakeFiles/client_library.dir/ui/view.cpp.o
-   [ 33%] Linking CXX static library libclient_library.a
-   [ 33%] Built target client_library
-   [ 40%] Building CXX object src/client/CMakeFiles/client.dir/src/main.cpp.o
-   [ 46%] Linking CXX executable client
+   ...
    [ 46%] Built target client
    [ 53%] Building C object src/server/CMakeFiles/server_library.dir/src/main.c.o
-   [ 60%] Building C object src/server/CMakeFiles/server_library.dir/src/message.c.o
-   [ 66%] Building C object src/server/CMakeFiles/server_library.dir/src/server.c.o
-   [ 73%] Building C object src/server/CMakeFiles/server_library.dir/src/room.c.o
-   [ 80%] Building C object src/server/CMakeFiles/server_library.dir/src/cJSON.c.o
-   [ 86%] Linking C static library libserver_library.a
-   [ 86%] Built target server_library
-   [ 93%] Building C object src/server/CMakeFiles/server.dir/src/main.c.o
-   [100%] Linking C executable server
+   ...
    [100%] Built target server
    ```
 
@@ -89,4 +70,11 @@ A robust chat system designed for real-time communication between users.
    ./src/client/client 127.0.0.1 8080
    ```
    
+   
+## Contributors
+
+- [Ianluck Rojo](https://github.com/Jeanluck-Rop)
+- [Fernanda Ramírez](https://github.com/Mariafernandarj)
+
+
 ### Contact: rpmanianck@gmail.com
