@@ -33,105 +33,6 @@ print_message(const char* text,
 }
 
 /**
- * Creates and configures a TCP server socket listening on a specific port.
- *
- * This function creates a TCP socket (AF_INET, SOCK_STREAM) for IPv4, binds it 
- * to the specified port, and starts listening for incoming connections.
- * The returned socket descriptor can be used with accept() to handle clients.
- *
- * @param port The port number on which the server will listen.
- * @return File descriptor of the listening server socket.
- **/
-static int
-open_listener(int port)
-{
-  int server_sd;
-  struct sockaddr_in server_addr;
-  //Create the server socket
-  print_message("Creating the server socket...", 'i');
-  server_sd = socket(AF_INET, SOCK_STREAM, 0);
-  if (server_sd == -1)
-    print_message("[ERROR]: Error creating socket\n", 'e');
-  bzero(&server_addr, sizeof(server_addr));
-  //Set server address
-  server_addr.sin_family = AF_INET;         //Address-family IPv4
-  server_addr.sin_addr.s_addr = INADDR_ANY; //Accept connections on all interfaces
-  server_addr.sin_port = htons(port);       //Convert port number to network byte order
-
-  if (bind(server_sd, (struct sockaddr *)&server_addr, sizeof(server_addr)) != 0) {
-    print_message("[ERROR]: Socket cannot be associated to the port.\n", 'e');
-    abort();
-  }
-  
-  if (listen(server_sd, BACKLOG) == -1) {
-    print_message("[ERROR]: Error listening port.\n", 'e');
-    abort();
-  } else
-    print_message("Server is now listening for incoming connections.", 'i');
-    
-  return server_sd;
-}
-
-/**
- * Loads a certificate and private key into an SSL context.
- *
- * This function associates the given public certificate (CertFile) and 
- * private key (KeyFile) with the specified SSL context.
- * It also verifies that the private key matches the loaded certificate.
- *
- * @param ctx Pointer to an SSL context created with SSL_CTX_new().
- * @param CertFile Path to the certificate file in PEM format.
- * @param KeyFile Path to the private key file in PEM format.
- **/
-static void
-load_certificates(SSL_CTX* ctx,
-		  char* CertFile,
-		  char* KeyFile)
-{
-  if (SSL_CTX_use_certificate_file(ctx, CertFile, SSL_FILETYPE_PEM) <= 0) {
-    ERR_print_errors_fp(stderr);
-    abort();
-  }
-  if (SSL_CTX_use_PrivateKey_file(ctx, KeyFile, SSL_FILETYPE_PEM) <= 0) {
-    ERR_print_errors_fp(stderr);
-    abort();
-  }
-  if (!SSL_CTX_check_private_key(ctx)) {
-    print_message("[ERROR]: Private key does not match the public certificate.\n", 'e');
-    abort();
-  }
-}
-
-/**
- * Initializes and creates an SSL context for a server.
- *
- * This function prepares OpenSSL for use in a server environment by:
- * - Loading cryptographic algorithms.
- * - Loading OpenSSL error strings for diagnostics.
- * - Selecting the most up-to-date TLS server method.
- * - Creating a new SSL context (SSL_CTX) for the server.
- *
- * @return Pointer to the newly created SSL context, ready for further configuration.
- **/
-static SSL_CTX*
-init_serverCTX(void)
-{
-  const SSL_METHOD *method;
-  SSL_CTX *ctx;
-  OpenSSL_add_all_algorithms();
-  SSL_load_error_strings();
-  method = TLS_server_method();
-  ctx = SSL_CTX_new(method);
-
-  if (ctx == NULL) {
-    ERR_print_errors_fp(stderr);
-    abort();
-  }
-
-  return ctx;
-}
-
-/**
  * Handle SIGINT (Ctrl+C) signal for graceful shutdown.
  * Closes the server socket if open and exits the program.
  *
@@ -178,20 +79,11 @@ send_message(Client *client,
 {
   if (!client || client->is_disconnected)
     return;
-
-  size_t total_sent = 0;
-  size_t msg_len = strlen(message);
-  while (total_sent < msg_len) {
-    int sent = SSL_write(client->ssl, message + total_sent, msg_len - total_sent);
-      if (sent <= 0) {
-	int err = SSL_get_error(client->ssl, sent);
-	char buffer[256];
-	snprintf(buffer, sizeof(buffer), "Failed to send message to client [%s].\n SSL error code: %d\n", client->username, err);
-	print_message(buffer, 'e');
-	ERR_print_errors_fp(stderr);
-	break;
-      }
-    total_sent += sent;
+  
+  if (send(client->socket_fd, message, strlen(message), 0) < 0) {
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), "Failed to send message to client [%s].\n", client->username);
+    print_message(buffer, 'e');
   }
 }
 
@@ -1062,43 +954,41 @@ handle_client(void *arg)
   bool is_connected = true;
   
   while (is_connected) {
-    received_bytes = SSL_read(client->ssl, buffer, sizeof(buffer) - 1);
-    
-    if (received_bytes > 0) {
-      buffer[received_bytes] = '\0'; //Null-terminate for the received string
-      Message *incoming_msg = parse(buffer);
-      if (!incoming_msg) {
-	invalid_response(client, "INVALID");
-	printf("[INFO]: Invalid message received from the client [%s], disconnecting it.", client->username);
-	break;
-      }
+    received_bytes = recv(client->socket_fd, buffer, sizeof(buffer) - 1, 0);
 
-      if (!identified) {
-	identified = check_identify(client, incoming_msg);
-	if (!identified) {
-	  print_message("Disconnecting unidentified client.", 'i');
-	  invalid_response(client, "NOT_IDENTIFIED");
-	  free_message(incoming_msg);
-	  break;
-	}
-      } else {
-	is_connected = client_actions(client, incoming_msg);
-	if (!is_connected) {
-	  free_message(incoming_msg);
-	  break;
-	}
-      }
-      
-      free_message(incoming_msg);
-    } else {
+    if (received_bytes <= 0) {
       if (received_bytes == 0)
 	print_message("Client received disconnected.", 'i');
-      else {
+      else
 	print_message("Fail receiving client data.", 'e');
-	ERR_print_errors_fp(stderr);
-      }
       break;
     }
+    
+    buffer[received_bytes] = '\0'; //Null-terminate for the received string
+    Message *incoming_msg = parse(buffer);
+    if (!incoming_msg) {
+      invalid_response(client, "INVALID");
+      printf("[INFO]: Invalid message received from the client [%s], disconnecting it.", client->username);
+      break;
+    }
+    
+    if (!identified) {
+      identified = check_identify(client, incoming_msg);
+      if (!identified) {
+	print_message("Disconnecting unidentified client.", 'i');
+	invalid_response(client, "NOT_IDENTIFIED");
+	free_message(incoming_msg);
+	break;
+      }
+    } else {
+      is_connected = client_actions(client, incoming_msg);
+      if (!is_connected) {
+	free_message(incoming_msg);
+	break;
+      }
+    }
+      
+    free_message(incoming_msg); 
   }
 
   disconnect_client(client);
@@ -1111,7 +1001,7 @@ handle_client(void *arg)
  * @param server_fd File descriptor of the server socket returned by socket().
  **/
 static void
-server_cycle(SSL_CTX *ctx)
+server_cycle()
 {
   int client_fd;
   socklen_t client_len;
@@ -1136,23 +1026,6 @@ server_cycle(SSL_CTX *ctx)
 
     //Set default values for client
     client->socket_fd = client_fd;
-    
-    client->ssl = SSL_new(ctx);
-    if (!client->ssl) {
-      ERR_print_errors_fp(stderr);
-      close(client_fd);
-      free(client);
-      continue;
-    }
-    SSL_set_fd(client->ssl, client_fd);
-    if (SSL_accept(client->ssl) <= 0) {
-      ERR_print_errors_fp(stderr);
-      SSL_free(client->ssl);
-      close(client_fd);
-      free(client);
-      continue;
-    }
-	
     client->username[0] = '\0'; 
     client->invited_count = 0;
     client->invited_capacity = 0;
@@ -1173,7 +1046,6 @@ server_cycle(SSL_CTX *ctx)
       pthread_mutex_lock(&clients_mutex);
       clients = clients->next;
       pthread_mutex_unlock(&clients_mutex);
-      SSL_free(client->ssl);
       close(client_fd);
       free(client);
       continue;
@@ -1191,17 +1063,33 @@ void
 start_server(int port)
 {
   signal(SIGINT, handle_sigint);
-  
-  SSL_CTX *ctx;
-  SSL_library_init();
-  ctx = init_serverCTX();
-  load_certificates(ctx, "../src/server/certi.pem", "../src/server/key.pem");
-  server_fd = open_listener(port);
-  
+  struct sockaddr_in server_addr;
+  //Create the server socket
+  print_message("Creating the server socket...", 'i');
+  server_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (server_fd == -1)
+    print_message("[ERROR]: Error creating socket\n", 'e');
+  //Set server address
+  server_addr.sin_family = AF_INET;         //Address-family IPv4
+  server_addr.sin_addr.s_addr = INADDR_ANY; //Accept connections on all interfaces
+  server_addr.sin_port = htons(port);       //Convert port number to network byte order
+  if (server_addr.sin_port == 0)
+    print_message("[ERROR]: Error setting server port.\n", 'e');
+  //Bind the socket to the specified port
+  if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) != 0) {
+    close(server_fd);
+    print_message("[ERROR]: Socket cannot be associated to the port.\n", 'e');
+  }
+  //Put the server in listening mode
+  if (listen(server_fd, BACKLOG) == -1) {
+    close(server_fd);
+    print_message("[ERROR]: Error listening port.\n", 'e');
+    return;
+  } else
+    print_message("Server is now listening for incoming connections.", 'i');
   //Start server life cycle
-  server_cycle(ctx);
-  
+  server_cycle();
   //Closing server
-  close(server_fd);
-  SSL_CTX_free(ctx);
+  if (close(server_fd) == 0)
+    print_message("Server socket closed successfully.", 'i');
 }

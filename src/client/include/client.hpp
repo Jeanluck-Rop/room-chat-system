@@ -4,8 +4,6 @@
 #include <thread>
 #include <atomic>
 #include <iostream>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 #include "controller.hpp"
 
@@ -74,10 +72,6 @@ private:
   std::thread listener_thread;
   /* Flag indicating the connection status */
   std::atomic<bool> is_connected;
-  /* SSL context pointer */
-  SSL_CTX* ssl_ctx;
-  /* SSL pointer struct for encapsulate SSL/TLS session asociated to the socket_fd */
-  SSL* ssl;
 
   /**
    * Listens and parses incoming messages from the server in a loop.
