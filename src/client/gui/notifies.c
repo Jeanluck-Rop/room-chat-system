@@ -2,7 +2,12 @@
 
 static const char* invitation_ui = "/org/chat/client/resources/invitation.ui";
 
-/* */
+/**
+ * Remove a notification from the list and free its memory.
+ *
+ * @param msg The message of the notification to remove.
+ * @param user_data Pointer to an InviteData struct containing notification list.
+ **/
 static void
 remove_notify(const char *msg,
 	      gpointer user_data)
@@ -28,7 +33,12 @@ remove_notify(const char *msg,
     gtk_widget_remove_css_class(notifs->button, "has-notifications");
 }
 
-/* */
+/**
+ * Handle the event when an invitation is accepted.
+ *
+ * @param button The accept button clicked.
+ * @param user_data Pointer to an InviteData struct containing the notification.
+ **/
 static void
 on_invite_accepted(GtkButton *button,
 		   gpointer user_data)
@@ -43,7 +53,12 @@ on_invite_accepted(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Display a popover asking the user to confirm joining a room.
+ *
+ * @param button The notification button clicked.
+ * @param user_data Pointer to an InviteData struct containing the notification.
+ **/
 static void
 on_invitation_clicked(GtkButton *button,
 		      gpointer user_data)
@@ -71,7 +86,12 @@ on_invitation_clicked(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Handle the event when a normal notification is clicked.
+ *
+ * @param button The notification button clicked.
+ * @param user_data Pointer to a Notifs struct containing the notifications list.
+ **/
 static void
 on_normal_notify_clicked(GtkButton *button,
 			 gpointer user_data)
@@ -86,7 +106,12 @@ on_normal_notify_clicked(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Handle the event when a normal notification is clicked.
+ *
+ * @param button The notification button clicked.
+ * @param user_data Pointer to a Notifs struct containing the notifications list.
+ **/
 static void
 display_notifications(GtkButton *button,
 		      gpointer user_data)
@@ -118,7 +143,11 @@ display_notifications(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Initialize and attach notification popover functionality to the chat interface.
+ *
+ * @param chatty Pointer to the main chat data structure.
+ **/
 void
 set_notifs(ChatData *chatty)
 {

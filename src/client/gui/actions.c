@@ -2,7 +2,12 @@
 
 static const char* actions_ui = "/org/chat/client/resources/actions.ui";
 
-/* */
+/**
+ * Frees the memory used by stored chat actions.
+ * Clears selected room button, room name, and list of selected users.
+ *
+ * @param user_data Pointer to the ChatActions structure to free.
+ **/
 static void
 free_used_actions(gpointer user_data)
 {
@@ -19,7 +24,14 @@ free_used_actions(gpointer user_data)
   }
 }
 
-/* */
+/**
+ * Handles the click on a status change button.
+ * Updates the user's status, hides the status change window, 
+ * and focuses the message entry field.
+ *
+ * @param button The GTK button clicked.
+ * @param window The status change GtkWindow.
+ **/
 static void
 new_status_changed(GtkButton *button,
 		   GtkWindow *window)
@@ -41,7 +53,14 @@ new_status_changed(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Connects a status change button to the click handler.
+ * Ensures that multiple connections are avoided.
+ *
+ * @param builder The GtkBuilder containing the button.
+ * @param button_id The ID of the button widget.
+ * @param window The status change GtkWindow.
+ **/
 static void
 connect_status_button(GtkBuilder *builder,
                       const char *button_id,
@@ -54,7 +73,13 @@ connect_status_button(GtkBuilder *builder,
   g_signal_connect(button, "clicked", G_CALLBACK(new_status_changed), window);
 }
 
-/* */
+/**
+ * Handles the "change status" button click.
+ * Opens the status change window, sets up status change buttons.
+ *
+ * @param button The GTK button clicked.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 change_status_clicked(GtkButton *button,
 		      gpointer user_data)
@@ -71,7 +96,14 @@ change_status_clicked(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Handles the acceptance of a new room creation.
+ * Sends the new room name to the controller, clears the input, 
+ * and hides the new room window.
+ *
+ * @param button The GTK button clicked to accept.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 new_room_accept(GtkButton *button,
 		gpointer user_data)
@@ -87,7 +119,13 @@ new_room_accept(GtkButton *button,
   gtk_widget_set_visible(GTK_WIDGET(actions->new_room_window), FALSE);
 }
 
-/* */
+/**
+ * Creates an EntryValidation structure, configures length constraints,
+ * and connects the "changed" signal to the on_entry_changed handler.
+ *
+ * @param entry The room name GtkWidget entry.
+ * @param accept The accept GtkWidget button to enable/disable.
+ **/
 static void
 room_entry_changed(GtkWidget *entry,
 		   GtkWidget *accept)
@@ -101,7 +139,13 @@ room_entry_changed(GtkWidget *entry,
   g_signal_connect(entry, "changed", G_CALLBACK(on_entry_changed), val_data);
 }
 
-/* */
+/**
+ * Handles the "new room" button click.
+ * Opens the new room creation window, sets up entry, connects accept and cancel actions.
+ *
+ * @param button The GTK button clicked.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 new_room_clicked(GtkButton *button,
 		 gpointer user_data)
@@ -124,7 +168,14 @@ new_room_clicked(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Handles selection of a room from the room list.
+ * Updates button labels, disables the selected button, 
+ * and stores the selected room name in ChatActions.
+ *
+ * @param button The GTK button clicked to select the room.
+ * @param actions Pointer to the ChatActions structure.
+ **/
 static void
 room_selected(GtkButton *button,
               ChatActions *actions)
@@ -146,7 +197,14 @@ room_selected(GtkButton *button,
   actions->selected_roomname = g_strdup(roomname); 
 }
 
-/* */
+/**
+ * Displays the list of available rooms in the UI.
+ *
+ * @param list_box The GtkListBox to populate with room entries.
+ * @param row_id The resource ID of the row template.
+ * @param callback The function to call when the "select" button is clicked.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 void
 display_rooms_list(GtkListBox *list_box,
 		   const char* row_id,
@@ -179,7 +237,18 @@ display_rooms_list(GtkListBox *list_box,
   gtk_widget_set_visible(GTK_WIDGET(list_box), TRUE);
 }
 
-/* */
+/**
+ * Displays a list of available users in the UI.
+ * Populates a GtkListBox with rows containing usernames, statuses, 
+ * and an "Add" button for inviting them to a room.
+ * Disables the "Add" button for the current user.
+ *
+ * @param list_box The GtkListBox to populate with user entries.
+ * @param usernames Null-terminated array of usernames.
+ * @param statuses Null-terminated array of statuses corresponding to the usernames.
+ * @param callback The function to call when the "Add" button is clicked.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 void
 display_users_list(GtkListBox *list_box,
 		   char** usernames,
@@ -217,7 +286,13 @@ display_users_list(GtkListBox *list_box,
   gtk_widget_set_visible(GTK_WIDGET(list_box), TRUE);
 }
 
-/* */
+/**
+ * Handles acceptance of an invite for selected users.
+ * Sends the list of selected users and room name to the controller.
+ *
+ * @param button The GTK button clicked to accept.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 void
 invite_users_accept(GtkButton *button,
 		    gpointer user_data)
@@ -228,7 +303,12 @@ invite_users_accept(GtkButton *button,
   free_used_actions(actions);
 }
 
-/* */
+/**
+ * Handles the selection and deselection of guests in the invite list.
+ *
+ * @param button The GTK button clicked to toggle guest selection.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 void
 guests_selected(GtkButton *button,
                 gpointer user_data)
@@ -276,7 +356,12 @@ guests_selected(GtkButton *button,
   gtk_widget_set_sensitive(accept, room_selected && has_users);
 }
 
-/* */
+/**
+ * Handles selection of a room in the invitations UI.
+ *
+ * @param button The GTK button clicked to select the room.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 void
 invitations_room_selected(GtkButton *button,
 			  gpointer user_data)
@@ -289,7 +374,14 @@ invitations_room_selected(GtkButton *button,
   }
 }
 
-/* */
+/**
+ * Handles the "invite users" button click.
+ * Sets the users request type for invitations,
+ * and requests the list of chat users from the controller.
+ *
+ * @param button The GTK button clicked.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 invite_users_clicked(GtkButton *button,
 		     gpointer user_data)
@@ -300,7 +392,13 @@ invite_users_clicked(GtkButton *button,
   controller_chat_users();
 }
 
-/* */
+/**
+ * Handles the "leave room" button click.
+ * Removes the room from the user's chat list, sends a leave request to the controller.
+ *
+ * @param button The GTK button triggering this action.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 leave_room_accept(GtkButton *button,
 		  gpointer user_data)
@@ -314,7 +412,13 @@ leave_room_accept(GtkButton *button,
   free_used_actions(actions);
 }
 
-/* */
+/**
+ * Handles the selection of a room to leave.
+ * It marks the room as selected and enables the accept button.
+ *
+ * @param button The GTK button representing the selected room.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 room_to_leave_selected(GtkButton *button,
 		       gpointer user_data)
@@ -325,7 +429,14 @@ room_to_leave_selected(GtkButton *button,
   gtk_widget_set_sensitive(accept, TRUE);
 }
 
-/* */
+/**
+ * Displays the "leave room" dialog.
+ * Shows a dialog listing all rooms the user can leave.
+ * The accept button is initially disabled until a room is selected.
+ *
+ * @param button The GTK button triggering this action.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 leave_room_clicked(GtkButton *button,
 		   gpointer user_data)
@@ -347,7 +458,15 @@ leave_room_clicked(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Handles the response to the disconnect confirmation dialog.
+ * Checks the user's selection in the disconnect alert dialog and triggers the
+ * disconnect process if confirmed.
+ *
+ * @param source_object  The GtkAlertDialog that generated the response.
+ * @param res            The asynchronous result of the dialog.
+ * @param user_data      User-defined data (unused here).
+ **/
 static void
 disconnect_response(GObject *source_object,
 		    GAsyncResult *res,
@@ -359,7 +478,13 @@ disconnect_response(GObject *source_object,
     controller_disconnect();
 }
 
-/* */
+/**
+ * Handles the "leave room" button click.
+ * Displays a confirmation dialog for disconnecting from the chat.
+ *
+ * @param button The GTK button triggering this action.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 disconnect_user_clicked(GtkButton *button,
 			gpointer user_data)
@@ -379,7 +504,13 @@ disconnect_user_clicked(GtkButton *button,
   gtk_alert_dialog_choose(alert, parent, NULL, disconnect_response, chatty);
 }
 
-/* */
+/**
+ * Displays the user actions popover.
+ * It shows the actions popover.
+ *
+ * @param button The GTK button triggering this action.
+ * @param user_data Pointer to the ChatActions structure.
+ **/
 static void
 display_user_actions(GtkButton *button,
 		     gpointer user_data)
@@ -390,7 +521,14 @@ display_user_actions(GtkButton *button,
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
 
-/* */
+/**
+ * Initializes and connects all chat-related UI actions.
+ * This function creates a new ChatActions structure, loads the UI elements
+ * from resources, and connects all relevant buttons to their corresponding callbacks.
+ *
+ * @param builder The GtkBuilder object containing the main UI.
+ * @param user_data User-defined data (unused here).
+ **/
 void
 set_actions(GtkBuilder *builder,
 	    gpointer user_data)
@@ -420,7 +558,6 @@ set_actions(GtkBuilder *builder,
   GtkWidget *disconnect_user_btn;
   disconnect_user_btn = GTK_WIDGET(gtk_builder_get_object(builder, "disconnect_user"));
   g_signal_connect(disconnect_user_btn, "clicked", G_CALLBACK(disconnect_user_clicked), actions);
-  
   ChatData *chatty = get_chat_data();
   chatty->actions = actions;
 }

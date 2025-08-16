@@ -9,7 +9,11 @@
 #include "models.h"
 #include "auxiliar.h"
 
-/* */
+/**
+ * Initialize and attach notification popover functionality to the chat interface.
+ *
+ * @param chatty Pointer to the main chat data structure.
+ **/
 void set_notifs(ChatData *chatty);
   
 #endif // NOTIFIES_H

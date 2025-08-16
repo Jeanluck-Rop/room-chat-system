@@ -3,23 +3,28 @@
 /* Constants and variables */
 UsersRequestType current_users_request = USERS_REQUEST_NONE;
 static const char* welcome = "Welcome to the Public Chat!";
-
-static const char* start_ui = "/org/chat/client/resources/start.ui";
-static const char* chat_ui = "/org/chat/client/resources/chat.ui";
-static const char* main_page_ui = "/org/chat/client/resources/main_page.ui";
-static const char* headers_ui = "/org/chat/client/resources/headers.ui";
 static const char* rows_ui = "/org/chat/client/resources/rows.ui";
-
-static const char* start_css = "/org/chat/client/resources/css/start.css";
+static const char* chat_ui = "/org/chat/client/resources/chat.ui";
+static const char* start_ui = "/org/chat/client/resources/start.ui";
+static const char* headers_ui = "/org/chat/client/resources/headers.ui";
+static const char* main_page_ui = "/org/chat/client/resources/main_page.ui";
 static const char* chat_css = "/org/chat/client/resources/css/chat.css";
 static const char* rows_css = "/org/chat/client/resources/css/rows.css";
+static const char* start_css = "/org/chat/client/resources/css/start.css";
 static const char* headers_css = "/org/chat/client/resources/css/headers.css";
-static const char* main_page_css = "/org/chat/client/resources/css/main_page.css";
-static const char* notifies_css = "/org/chat/client/resources/css/notifies.css";
 static const char* actions_css = "/org/chat/client/resources/css/actions.css";
+static const char* notifies_css = "/org/chat/client/resources/css/notifies.css";
+static const char* main_page_css = "/org/chat/client/resources/css/main_page.css";
 static const char* invitation_css = "/org/chat/client/resources/css/invitation.css";
 
-/* */
+/**
+ * Handles the closing event of the chat window.
+ * Disconnects from the chat, and destroys the chat window.
+ *
+ * @param window The GtkWindow being closed.
+ * @param user_data Pointer to the ChatData structure.
+ * @return TRUE to stop other handlers from being invoked for the event.
+ **/
 static gboolean
 on_chat_window_close(GtkWindow *window,
                      gpointer user_data)
@@ -142,7 +147,16 @@ update_chat_count(const char* chat_name,
   }
 }
 
-/* */
+/**
+ * Creates and adds a new chat to the chat list.
+ * Builds the chat's row in the UI based on its type.
+ *
+ * @param chatty Pointer to the ChatData structure containing all chats.
+ * @param type The type of chat (PUBLIC_CHAT, USER_CHAT, ROOM_CHAT).
+ * @param name The name of the chat.
+ * @param msg The initial message to display in the recent label.
+ * @return Pointer to the newly created Chat structure.
+ **/
 Chat*
 new_chat(ChatData *chatty,
 	 ChatType type,
@@ -200,7 +214,13 @@ new_chat(ChatData *chatty,
   return chat;
 }
 
-/* */
+/**
+ * Removes a chat from the chat list and frees its resources.
+ * Also updates the UI to display the public chat if available.
+ *
+ * @param chatty Pointer to the ChatData structure containing all chats.
+ * @param chat Pointer to the Chat to be removed.
+ **/
 void
 remove_chat(ChatData *chatty,
 	    Chat *chat)
@@ -219,9 +239,8 @@ remove_chat(ChatData *chatty,
 
 /**
  * Removes the chat row for a specific user.
- *
- * This function finds the chat associated with the given username and removes it
- * from the ChatData structure, updating the UI accordingly.
+ * Finds the chat associated with the given username and removes it
+ * from the ChatData structure, updating the UI.
  *
  * @param user_name The username whose chat should be removed.
  **/
@@ -365,7 +384,14 @@ load_main_page(Chat *chat,
   g_object_unref(builder);
 }
 
-/* */
+/**
+ * Handles the selection of a row in the chat list.
+ * Loads the main page for the chat associated with the selected row.
+ *
+ * @param box The GtkListBox containing the rows.
+ * @param row The selected GtkListBoxRow.
+ * @param user_data Pointer to the ChatData structure.
+ **/
 static void
 on_row_selected(GtkListBox *box,
 		GtkListBoxRow *row,
@@ -425,9 +451,9 @@ add_new_notify(const char *msg, const char* roomname, NotifyType type)
 {
   ChatData *chatty = get_chat_data();
   Notify *notif = g_new0(Notify, 1);
+  notif->type = type;
   notif->message = g_strdup(msg);
   notif->room_name = g_strdup(roomname);
-  notif->type = type;
   chatty->notifs->list = g_list_append(chatty->notifs->list, notif);
   gtk_widget_add_css_class(chatty->notifs->button, "has-notifications");
 }
@@ -462,7 +488,6 @@ enter_chat()
   chatty->ip = g_strdup(data->server_ip);
   chatty->username = g_strdup(data->username);
   chatty->app = GTK_APPLICATION(g_application_get_default());
-
   //Load the css
   load_css(chat_css);
   load_css(rows_css);
@@ -471,33 +496,24 @@ enter_chat()
   load_css(notifies_css);
   load_css(actions_css);
   load_css(invitation_css);
-
   //Define the chat builder
   chatty->builder = gtk_builder_new_from_resource(chat_ui);
-  
   //Set initial chatty data
   chatty->window = GTK_WINDOW(gtk_builder_get_object(chatty->builder, "chat_window"));
   chatty->chats_list = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "chats_list"));
   chatty->main_content = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "main_content"));
-
   //set the main app
   gtk_window_set_application(chatty->window, chatty->app);
   g_object_set_data(G_OBJECT(chatty->window), "chat-data", chatty);
-  
   //set the notif button/popover
   set_notifs(chatty);
-
   //set the public_chat
   Chat *public_chat = new_chat(chatty, PUBLIC_CHAT, "PUBLIC_CHAT", welcome);
-  
   //connect each chat_row
   g_signal_connect(chatty->chats_list, "row-activated", G_CALLBACK(on_row_selected), chatty);
-
   //load the public chat page
   load_main_page(public_chat, chatty);
-  
   //testing fake_chat_info(chatty);
-
   //show the window app
   gtk_window_present(chatty->window);
   g_signal_connect(chatty->window, "close-request", G_CALLBACK(on_chat_window_close), chatty);
@@ -535,7 +551,14 @@ init_alert_dialog(const char* detail,
   gtk_alert_dialog_show(alert, parent);
 }
 
-/* */
+/**
+ * Validates the initial connection data from the GUI.
+ * Checks port number range, retrieves IP and username.
+ * Attempts a connection through the controller.
+ *
+ * @param button The GTK button triggering the validation.
+ * @param user_data Pointer to the StartData structure.
+ **/
 static void
 validate_data(GtkButton *button,
 	      gpointer user_data)
@@ -597,7 +620,14 @@ home_window(GtkApplication *app,
   g_object_unref(builder);
 }
 
-/* */
+/**
+ * Activates the main application window.
+ * Called when the GTK application is launched.
+ * Loads the home window with the provided StartData.
+ *
+ * @param app The GtkApplication instance.
+ * @param user_data Pointer to the StartData structure.
+ **/
 static void
 activate(GtkApplication *app,
 	 gpointer user_data)
