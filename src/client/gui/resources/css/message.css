@@ -1,0 +1,18 @@
+.message-form {
+  border-radius: 10px;
+  background-color: #e0f7fa;
+  padding: 6px 10px;
+  margin: 4px 0;
+}
+
+.sender-label {
+  font-weight: bold;
+  color: #00796b;
+  margin-bottom: 2px;
+}
+
+.message-content {
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+}

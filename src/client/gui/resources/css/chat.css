@@ -13,6 +13,10 @@
 .notifs-button {
 }
 
+.in-icon {
+    color: white;   
+}
+
 #notifs_popover {
 }
 
@@ -25,6 +29,5 @@
 
 .main-content {
     min-width: 350px;
-    /*background: #385170;*/
     background: #dbe7f0;
 }

@@ -36,11 +36,19 @@
 		</child>
 		<child>
 		  <object class="GtkButton" id="notifs_button">
-                    <property name="label">N</property> <!-- Import icon -->
 		    <property name="halign">end</property>
 		    <style>
 		      <class name="notifs-button"/>
 		    </style>
+		    <child>
+		      <object class="GtkImage">
+			<property name="resource">/org/chat/client/resources/bell-outline-symbolic.svg</property>
+			<property name="icon-size">normal</property>
+			<style>
+			  <class name="in-icon"/>
+			</style>
+		      </object>
+		    </child>
 		  </object>
 		</child>
 		<child>

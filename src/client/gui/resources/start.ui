@@ -2,19 +2,23 @@
 <interface>
   <object class="GtkApplicationWindow" id="start_window">
     <property name="title">Chat App</property>
-    <property name="default-width">500</property>
-    <property name="default-height">450</property>
+    <property name="default-width">600</property>
+    <property name="default-height">550</property>
     <child>
       <object class="GtkBox" id="connect_form">
         <property name="orientation">vertical</property>
 	<property name="halign">center</property>
 	<property name="valign">center</property>
-	<property name="spacing">32</property>
+	<property name="hexpand">true</property>
+	<property name="spacing">36</property>
+	<style>
+	  <class name="connect-form"/>
+	</style>
 	<!-- Server Port and IP address-->
         <child>
       	  <object class="GtkBox">
 	    <property name="orientation">vertical</property>
-	    <property name="spacing">12</property>
+	    <property name="spacing">24</property>
             <style>
 	      <class name="start-form"/>
             </style>
@@ -25,7 +29,6 @@
 		<child>
 		  <object class="GtkLabel">
 		    <property name="label">Server Port</property>
-		    <property name="halign">start</property>
 		    <property name="width-chars">12</property>
 		    <style>
 		      <class name="labels-form"/>
@@ -49,7 +52,6 @@
 		<child>
 		  <object class="GtkLabel">
 		    <property name="label">Server IPv4</property>
-		    <property name="halign">start</property>
 		    <property name="width-chars">12</property>
 		    <style>
 		      <class name="labels-form"/>
@@ -73,7 +75,6 @@
 		<child>
 		  <object class="GtkLabel">
 		    <property name="label">Your user name</property>
-		    <property name="halign">start</property>
 		    <property name="width-chars">12</property>
 		    <style>
 		      <class name="labels-form"/>
@@ -98,7 +99,7 @@
         <child>
           <object class="GtkBox">
 	    <property name="orientation">vertical</property>
-	    <property name="spacing">12</property>
+	    <property name="spacing">14</property>
 	    <style>
 	      <class name="buttons-box"/>
 	    </style>
@@ -106,7 +107,7 @@
               <object class="GtkButton" id="connect_button">
                 <property name="label">Connect</property>
 		<style>
-		  <class name="buttons-form"/>
+		  <class name="connect-button"/>
 		</style>
               </object>
             </child>
@@ -114,7 +115,7 @@
               <object class="GtkButton" id="quit_button">
                 <property name="label">Cancel</property>
 		<style>
-		  <class name="buttons-form"/>
+		  <class name="quit-button"/>
 		</style>
               </object>
             </child>

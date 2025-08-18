@@ -20,5 +20,9 @@
     <file>css/notifies.css</file>
     <file>css/actions.css</file>
     <file>css/invitation.css</file>
+    <file>css/message.css</file>
+
+    <!-- SVG -->
+    <file>bell-outline-symbolic.svg</file>
   </gresource>
 </gresources>
