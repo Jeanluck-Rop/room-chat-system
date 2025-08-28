@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkApplicationWindow" id="chat_window">
-    <property name="title">Chat App</property>
-    <property name="default-width">1000</property>
-    <property name="default-height">800</property>
+    <property name="default-width">1200</property>
+    <property name="default-height">1000</property>
+    <property name="resizable">true</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="main_header">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Chat App</property>
+          </object>
+        </property>
+        <style>
+          <class name="custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">horizontal</property>
-	
 	<!-- SIDEBAR-->
 	<child>
 	  <object class="GtkBox">
@@ -42,8 +53,8 @@
 		    </style>
 		    <child>
 		      <object class="GtkImage">
-			<property name="resource">/org/chat/client/resources/bell-outline-symbolic.svg</property>
-			<property name="icon-size">normal</property>
+			<property name="resource">/org/chat/client/resources/svg/bell-outline-symbolic.svg</property>
+			<property name="pixel-size">20</property>
 			<style>
 			  <class name="in-icon"/>
 			</style>
@@ -54,10 +65,15 @@
 		<child>
 		  <object class="GtkPopover" id="notifs_popover">
 		    <property name="position">bottom</property>
+		    <style>
+		      <class name="notifs-popover"/>
+		    </style>
 		    <child>
-		      <object class="GtkBox" id="notifs_box">
+		      <object class="GtkBox" id="notifs_list">
 			<property name="orientation">vertical</property>
-			<property name="spacing">4</property>
+			<style>
+			  <class name="notifs-list"/>
+			</style>
 		      </object>
 		    </child>
 		  </object>
@@ -68,6 +84,7 @@
 	    <child>
 	      <object class="GtkScrolledWindow">
 		<property name="vexpand">True</property>
+		<property name="hexpand">False</property>
 		<child>
 		  <object class="GtkListBox" id="chats_list">
 		    <property name="selection-mode">none</property>
@@ -80,7 +97,6 @@
 	    </child>
 	  </object>
 	</child>
-	
 	<!-- MAIN CONTENT -->
 	<child>
 	  <object class="GtkBox" id="main_content">

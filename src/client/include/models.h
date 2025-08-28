@@ -94,7 +94,7 @@ extern "C"
   typedef struct
   {
     GList *list;
-    GtkWidget *box;
+    GtkWidget *listbox;
     GtkWidget *button;
     GtkPopover *popover;
   }

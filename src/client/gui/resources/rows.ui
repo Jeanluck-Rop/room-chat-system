@@ -17,12 +17,22 @@
           <object class="GtkLabel" id="public_row_label">
 	    <property name="halign">start</property>
             <property name="label">Public Chat</property>
+	    <style>
+	      <class name="public-title-label"/>
+	    </style>
           </object>
         </child>
 	<child>
           <object class="GtkLabel" id="public_recent_label">
 	    <property name="halign">start</property>
+	    <property name="ellipsize">end</property>
+	    <property name="max-width-chars">50</property>
+	    <property name="width-chars">25</property>
+	    <property name="xalign">0</property>
             <property name="label">Welcome</property>
+	    <style>
+	      <class name="chat-preview-label"/>
+	    </style>
           </object>
         </child>
       </object>
@@ -46,12 +56,22 @@
           <object class="GtkLabel" id="user_row_label">
 	    <property name="halign">start</property>
             <property name="label">Username</property>
+	    <style>
+	      <class name="user-title-label"/>
+	    </style>
           </object>
         </child>
 	<child>
           <object class="GtkLabel" id="user_recent_label">
 	    <property name="halign">start</property>
+	    <property name="ellipsize">end</property>
+	    <property name="max-width-chars">50</property>
+	    <property name="width-chars">25</property>
+	    <property name="xalign">0</property>
             <property name="label">Hello</property>
+	    <style>
+	      <class name="chat-preview-label"/>
+	    </style>
           </object>
         </child>
       </object>
@@ -75,12 +95,22 @@
           <object class="GtkLabel" id="room_row_label">
 	    <property name="halign">start</property>
             <property name="label">ROOMNAME</property>
+	    <style>
+	      <class name="room-title-label"/>
+	    </style>
           </object>
         </child>
 	<child>
           <object class="GtkLabel" id="room_recent_label">
 	    <property name="halign">start</property>
+	    <property name="ellipsize">end</property>
+	    <property name="max-width-chars">50</property>
+	    <property name="width-chars">25</property>
+	    <property name="xalign">0</property>
             <property name="label">Welcome</property>
+	    <style>
+	      <class name="chat-preview-label"/>
+	    </style>
           </object>
         </child>
       </object>

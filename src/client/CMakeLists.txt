@@ -8,8 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-find_package(OpenSSL REQUIRED)
-
 # Add the headers in the include/ directory for the compiltation/executation
 include_directories(include)
 
@@ -77,4 +75,4 @@ add_executable(client src/main.cpp ${RESOURCE_C})
 add_dependencies(client resources_target)
 
 # Link static library with executable
-target_link_libraries(client OpenSSL::SSL OpenSSL::Crypto gui_c client_library ${GTK4_LIBRARIES})
+target_link_libraries(client gui_c client_library ${GTK4_LIBRARIES})

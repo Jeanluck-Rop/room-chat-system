@@ -1,21 +1,17 @@
-.public_header, .user_header, .room_header {
-    padding: 8px 4px;
-    border-radius: 6px;
-    transition: background 120ms ease;
+.public-header, .user-header, .room-header {
+    background-color: transparent;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: white;
 }
 
 .public-header:hover,
 .user-header:hover,
 .room-header:hover {
-    background-color: rgba(0,0,0,0.07);
 }
-
-
-.public_title, .user_name_label, .room_name_label {
-}
-
 
 .public_users_count, .user_status_label, .room_users_count {
+
 }
 
 .dialog-overlay {

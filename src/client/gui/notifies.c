@@ -117,25 +117,26 @@ display_notifications(GtkButton *button,
 		      gpointer user_data)
 {
   Notifs *notifs = (Notifs *)user_data;
-  clear_widget(notifs->box); //clear previous childs
+  GtkWidget *listbox = notifs->listbox;
+  clear_widget(notifs->listbox); //clear previous childs
   if (!notifs->list) {
     GtkWidget *label = gtk_label_new("No notifications yet");
     gtk_widget_add_css_class(label, "no-notifs-label");
-    gtk_box_append(GTK_BOX(notifs->box), label);
+    gtk_box_append(GTK_BOX(listbox), label);
   } else {
     for (GList *l = notifs->list; l; l = l->next) {
       Notify *notif = l->data;
-      GtkWidget *btn = gtk_button_new_with_label(notif->message);
-      gtk_widget_add_css_class(btn, "notif-item");
+      GtkWidget *row = gtk_button_new_with_label(notif->message);
+      gtk_widget_add_css_class(row, "notif-item");
       if (notif->type == NORMAL_NOTIF)
-        g_signal_connect(btn, "clicked", G_CALLBACK(on_normal_notify_clicked), notifs);
+        g_signal_connect(row, "clicked", G_CALLBACK(on_normal_notify_clicked), notifs);
       else if (notif->type == INVITE_NOTIF) {
 	InviteData *data = g_new0(InviteData, 1);
         data->notif = notif;
         data->notifs = notifs;
-        g_signal_connect_data(btn, "clicked", G_CALLBACK(on_invitation_clicked), data, (GClosureNotify)g_free, 0);
+        g_signal_connect_data(row, "clicked", G_CALLBACK(on_invitation_clicked), data, (GClosureNotify)g_free, 0);
       }
-      gtk_box_append(GTK_BOX(notifs->box), btn);
+      gtk_box_append(GTK_BOX(listbox), row);
     }
   }
   gtk_popover_popup(notifs->popover);
@@ -154,9 +155,9 @@ set_notifs(ChatData *chatty)
   Notifs *notifs = g_new0(Notifs, 1);
   notifs->button = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_button"));
   notifs->popover = GTK_POPOVER(gtk_builder_get_object(chatty->builder, "notifs_popover"));
+  notifs->listbox = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_list"));
   gtk_popover_set_has_arrow(notifs->popover, FALSE);
   gtk_popover_set_autohide(notifs->popover, TRUE);
-  notifs->box = GTK_WIDGET(gtk_builder_get_object(chatty->builder, "notifs_box"));
   g_signal_connect(notifs->button, "clicked", G_CALLBACK(display_notifications), notifs);
   chatty->notifs = notifs;
 }

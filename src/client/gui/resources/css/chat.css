@@ -1,33 +1,42 @@
-#chat_window {
-}
-
 .sidebar-section {
-    min-width: 150px;
-    /*background: #142d4c;*/
-    background: #385170;
+    background: #1E3C72;
+    color: white;
 }
 
 .sidebar-header {
+    padding: 6px;
+    font-weight: bold;
+    border-bottom: 1px solid #2A5298;
 }
 
 .notifs-button {
+    background: transparent;
+    border: 1px solid white;
+    border-radius: 50%;
+    padding: 8px;
+    transition: background 200ms ease, box-shadow 200ms ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.notifs-button:hover {
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.notifs-button:active {
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .in-icon {
-    color: white;   
-}
-
-#notifs_popover {
+    color: white;
 }
 
 .title-sidebar {
     color: white;
 }
 
-.chats-list {
-}
-
 .main-content {
-    min-width: 350px;
-    background: #dbe7f0;
+    min-width: 380px;
+    background: #BACDDE;
 }

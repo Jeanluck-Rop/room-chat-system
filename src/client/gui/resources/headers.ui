@@ -10,7 +10,6 @@
     <child>
       <object class="GtkBox" id="public_header_labels">
 	<property name="orientation">vertical</property>
-	<property name="spacing">6</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
 	<child>
@@ -39,7 +38,6 @@
     <child>
       <object class="GtkBox" id="user_header_labels">
 	<property name="orientation">vertical</property>
-	<property name="spacing">6</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
 	<child>
@@ -57,7 +55,6 @@
       </object>
     </child>
   </object>
-
   <!-- ROOM HEADER -->
   <object class="GtkListBoxRow" id="room_header">
     <property name="name">room_header</property>
@@ -68,7 +65,6 @@
     <child>
       <object class="GtkBox" id="room_header_labels">
 	<property name="orientation">vertical</property>
-	<property name="spacing">6</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
 	<child>
@@ -86,7 +82,6 @@
       </object>
     </child>
   </object>
-
   <!-- PUBLIC INFO WINDOW -->
   <object class="GtkWindow" id="public_info_window">
     <property name="title">Public Chat Info</property>
@@ -206,7 +201,6 @@
       </object>
     </child>
   </object>
-
   <!-- USER ROW-->
   <object class="GtkListBoxRow" id="user_list_item">
     <property name="visible">False</property>
@@ -239,5 +233,4 @@
       </object>
     </child>
   </object>
-
 </interface>

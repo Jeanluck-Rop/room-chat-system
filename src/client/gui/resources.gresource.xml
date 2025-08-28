@@ -23,6 +23,9 @@
     <file>css/message.css</file>
 
     <!-- SVG -->
-    <file>bell-outline-symbolic.svg</file>
+    <file>svg/bell-outline-symbolic.svg</file>
+    <file>svg/log-out-symbolic.svg</file>
+    <file>svg/send-alt-symbolic.svg</file>
+    <file>svg/more-small-symbolic.svg</file>
   </gresource>
 </gresources>

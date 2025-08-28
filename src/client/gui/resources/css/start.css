@@ -1,8 +1,22 @@
-.connect-form {
-    padding: 20px;
+.custom-header {
+    background: #1E3C72;
+    color: white;
+    font-weight: bold;
+    border-bottom: 1px solid #2A5298;
 }
 
-.start-form {
+.custom-header button {
+    background: transparent;
+    border-radius: 50px;
+    color: white;
+}
+
+.custom-header button:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.connect-form {
+    padding: 40px 20px;
 }
 
 .labels-form {
@@ -22,7 +36,7 @@
 
 .entries-form:hover,
 .entries-form:focus {
-    border-color: #7aaaff;
+    border-color: #7AAAFF;
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
@@ -32,64 +46,68 @@
 }
 
 .entries-form:active {
-    background-color: #f9f9f9;
-}
-
-.buttons-box {
-}
-
-.buttons-form {
-    
+    background-color: #F9F9F9;
 }
 
 .connect-button {
     font-family: 'Montserrat', sans-serif;
-    border-radius: 24px;
-    border: 1px solid #5585B5;
-    background: #5585B5; /*#7236C2;*/
+    border-radius: 16px;
+    border: 1px solid #2A5298;
+    background: #2A5298;
     color: white;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 50px;
+    padding: 10px 50px;
     letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: transform 80ms ease-in;
+    transition: background-color 300ms ease,
+                color 300ms ease,
+                border-color 300ms ease,
+                transform 80ms ease-in;
 }
 
 .connect-button:hover {
-    background: #527DA8;
+    border: 1px solid #2A5298;
+    color: #2A5298;
+    background: white;
 }
 
 .connect-button:active {
-    background: #3D5E80;
+    border: 1px solid #1E3C72;
+    background: #1E3C72;
+    color: white;
 }
 
 .connect-button:disabled {
-    background: #5585B5;
     color: #ddd;
     opacity: 0.6;
 }
 
 .quit-button {
     font-family: 'Montserrat', sans-serif;
-    border-radius: 24px;
-    border: 1px solid #5585B5;
+    border-radius: 16px;
+    border: 1px solid #2A5298;
     background-color: transparent;
-    color: #5585B5;
+    color: #2A5298;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 50px;
+    padding: 10px 50px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    transition: transform 80ms ease-in;
+    transition: background-color 300ms ease,
+                color 300ms ease,
+                border-color 300ms ease,
+                transform 80ms ease-in;
 }
 
 .quit-button:hover {
-    background: rgba(82, 125, 168, 0.1);
+    background: #2A5298;
+    color: white;
 }
 
 .quit-button:active {
-    background: rgba(82, 125, 168, 0.2);
+    border: 1px solid #1E3C72;
+    background: transparent;
+    color: #1E3C72;
 }
 
 .quit-button:disabled {

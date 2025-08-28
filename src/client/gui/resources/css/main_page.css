@@ -1,26 +1,110 @@
-#row_page {
+.row-page {
+    background: transparent;
 }
 
-#chat_header {
+.chat-header {
+    background: #1E3C72;
+    padding: 3px;
 }
 
-#header_left {
+.header-left,
+.header-right {
+    background: transparent;
 }
 
-#header_right {
+.info-button,
+.disconnect-button {
+    background: transparent;
+    border: 1px solid white;
+    border-radius: 50%;
+    padding: 8px;
+    transition: background 200ms ease, box-shadow 200ms ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-.info-button {
+.disconnect-button {
+    background: #FA4525;
+    border: none;
 }
 
-#messages_box {
+.disconnect-button:hover {
+    background: #E03E20;
 }
 
-#entry_box {
+.info-button:hover {
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.info-button:active,
+.disconnect-button:active {
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.messages-box {
+    background: transparent;
+}
+
+.entry-box {
+    background: transparent;
 }
 
 .type-entry {
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 18px;
+    padding: 6px 12px;
+    background: white;
+    color: #111;
 }
 
 .send-button {
+    background: #2A5298;
+    border: 1px solid #2A5298;
+    border-radius: 50%;
+    padding: 10px;
+    color: white;
+}
+
+.send-button:hover {
+    background: #3A63B8;
+}
+
+.send-buttonxs:disabled {
+    color: #ddd;
+    opacity: 0.6;
+}
+
+.actions-popover {
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    min-width: 220px;
+}
+
+.actions-item {
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    transition: background 180ms ease, transform 120ms ease;
+}
+
+.actions-item:hover {
+    background: #f5f8fc;
+}
+
+.actions-item:active {
+    background: #e6eef9;
+    transform: scale(0.98);
+}
+
+.actions-item label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #222;
+}
+
+.in-icon {
+    color: white;
 }

@@ -23,11 +23,9 @@
 	  <object class="GtkLabel" id="content_label">
             <property name="label">Message content goes here</property>
             <property name="halign">start</property>
-
 	    <property name="wrap">true</property>
 	    <property name="wrap-mode">word-char</property>
 	    <property name="max-width-chars">20</property>
-  
             <style>
               <class name="message-content"/>
             </style>
@@ -35,7 +33,6 @@
 	</child>
       </object>
     </child>
-
     <!-- OWN MESSAGE -->
     <child>
       <object class="GtkBox" id="own_message_form">
@@ -58,6 +55,9 @@
 	  <object class="GtkLabel" id="your_content_label">
             <property name="label">Message content goes here</property>
             <property name="halign">start</property>
+	    <property name="wrap">true</property>
+	    <property name="wrap-mode">word-char</property>
+	    <property name="max-width-chars">20</property>
             <style>
               <class name="your-message-content"/>
             </style>
@@ -65,7 +65,6 @@
 	</child>
       </object>
     </child>
-    
     <!-- INFO MESSAGE -->
     <child>
       <object class="GtkBox" id="info_message_form">

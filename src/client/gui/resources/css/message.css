@@ -1,18 +1,53 @@
 .message-form {
-  border-radius: 10px;
-  background-color: #e0f7fa;
-  padding: 6px 10px;
-  margin: 4px 0;
+    border-radius: 10px;
+    background-color: #333;
+    padding: 6px 10px;
+    margin: 4px 0;
 }
 
 .sender-label {
-  font-weight: bold;
-  color: #00796b;
-  margin-bottom: 2px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 2px;
+    font-size: 16px;
 }
 
 .message-content {
-  color: #333;
-  font-size: 14px;
-  line-height: 1.4;
+    color: white;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.own-message-form {
+    border-radius: 10px;
+    background-color: #2A5298;
+    padding: 6px 10px;
+    margin: 4px 0;
+}
+
+.you-label {
+    font-weight: bold;
+    color: white;
+    margin-bottom: 2px;
+    font-size: 16px;
+}
+
+.your-message-content {
+    color: white;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.info-message {
+    border-radius: 4px;
+    background-color: #FFA726;
+    border: 1px solid #E68A00;
+    padding: 6px 12px;
+    margin: 6px 0;
+}
+
+.info-label {
+    color: #333;
+    font-weight: 400;
+    font-size: 14px;
 }

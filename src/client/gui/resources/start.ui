@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkApplicationWindow" id="start_window">
-    <property name="title">Chat App</property>
     <property name="default-width">600</property>
     <property name="default-height">550</property>
+    <property name="resizable">true</property>
+     <child type="titlebar">
+      <object class="GtkHeaderBar" id="main_header">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Chat App</property>
+          </object>
+        </property>
+        <style>
+          <class name="custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox" id="connect_form">
         <property name="orientation">vertical</property>
@@ -14,7 +26,6 @@
 	<style>
 	  <class name="connect-form"/>
 	</style>
-	<!-- Server Port and IP address-->
         <child>
       	  <object class="GtkBox">
 	    <property name="orientation">vertical</property>
@@ -94,8 +105,6 @@
 	    </child>
           </object>
 	</child>
-	
-	<!-- Connect to server or quit gui buttons-->
         <child>
           <object class="GtkBox">
 	    <property name="orientation">vertical</property>

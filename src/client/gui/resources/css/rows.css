@@ -1,15 +1,61 @@
-.public-row {
-}
-
-.user-row {
-}
-
+.public-row,
+.user-row,
 .room-row {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    background: white;
+    transition: background 200ms ease;
 }
 
-.new-message {
-    background-image: radial-gradient(circle, blue 3px, white 4px);
-    background-repeat: no-repeat;
-    background-position: top right;
-    background-size: 10px 10px;
+.public-row:hover,
+.user-row:hover,
+.room-row:hover {
+    background: #f1f5fb;
+}
+
+.public-row:selected,
+.user-row:selected,
+.room-row:selected {
+    background: #dbe7f0;
+}
+
+.public-title-label {
+    color: #D1890F;
+}
+
+.room-title-label {
+    color: #86078A;
+}
+
+.user-title-label {
+    color: #143F9C;
+}
+
+.public-title-label, .room-title-label, .user-title-label{
+    font-size: 14px;
+}
+
+.chat-preview-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.new-message .public-title-label {
+    font-weight: 700;
+    font-style: italic;
+}
+
+.new-message .user-title-label {
+    font-weight: 700;
+    font-style: italic;
+}
+
+.new-message .room-title-label {
+    font-weight: 700;
+    font-style: italic;
+}
+
+.new-message .chat-preview-label {
+    font-weight: 600;
+    color: #333;
 }
