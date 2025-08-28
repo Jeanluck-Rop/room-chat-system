@@ -4,7 +4,7 @@
     <property name="default-width">600</property>
     <property name="default-height">550</property>
     <property name="resizable">true</property>
-     <child type="titlebar">
+    <child type="titlebar">
       <object class="GtkHeaderBar" id="main_header">
         <property name="title-widget">
           <object class="GtkLabel">

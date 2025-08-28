@@ -70,7 +70,7 @@
     background: #3A63B8;
 }
 
-.send-buttonxs:disabled {
+.send-button:disabled {
     color: #ddd;
     opacity: 0.6;
 }
@@ -91,17 +91,17 @@
 }
 
 .actions-item:hover {
-    background: #f5f8fc;
+    background: #F5F8FC;
 }
 
 .actions-item:active {
-    background: #e6eef9;
+    background: #E6EEF9;
     transform: scale(0.98);
 }
 
 .actions-item label {
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     color: #222;
 }
 

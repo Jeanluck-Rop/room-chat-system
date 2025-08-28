@@ -40,15 +40,18 @@ remove_notify(const char *msg,
  * @param user_data Pointer to an InviteData struct containing the notification.
  **/
 static void
-on_invite_accepted(GtkButton *button,
+on_invite_accepted(GObject *source_object,
+		   GAsyncResult *res,
 		   gpointer user_data)
 {
+  GtkAlertDialog *dialog = GTK_ALERT_DIALOG(source_object);
+  int response = gtk_alert_dialog_choose_finish(dialog, res, NULL);
   InviteData *data = (InviteData *)user_data;
   Notify *notif = data->notif;
-  GtkWidget *window = gtk_widget_get_ancestor(GTK_WIDGET(button), GTK_TYPE_WINDOW);
-  controller_join_room(notif->room_name);
-  remove_notify(notif->message, data);
-  gtk_widget_set_visible(window, FALSE);
+  if (response == 1) {
+    controller_join_room(notif->room_name);
+    remove_notify(notif->message, data);
+  }
   ChatData *chatty = get_chat_data();
   g_idle_add(focus_message_entry, chatty->message_entry);
 }
@@ -66,24 +69,18 @@ on_invitation_clicked(GtkButton *button,
   InviteData *data = (InviteData *)user_data;
   Notify *notif = data->notif;
   Notifs *notifs = data->notifs;
-  char *text = g_strdup_printf("Are you sure you want to join to the room [%s]?", notif->room_name);
   gtk_popover_popdown(notifs->popover);
-  GtkBuilder *builder;
-  builder = builder = gtk_builder_new_from_resource(invitation_ui);
-  GtkWidget *window;
-  window = GTK_WIDGET(gtk_builder_get_object(builder, "invitation_window"));
-  GtkWidget *label;
-  label = GTK_WIDGET(gtk_builder_get_object(builder, "invitation_label"));
-  gtk_label_set_text(GTK_LABEL(label), text);
-  GtkWidget *accept;
-  accept= GTK_WIDGET(gtk_builder_get_object(builder, "accept_button"));
-  on_cancel_button(builder, GTK_WINDOW(window), "cancel_button");
-  g_signal_handlers_disconnect_by_func(accept, G_CALLBACK(on_invite_accepted), data);
-  g_signal_connect(accept, "clicked", G_CALLBACK(on_invite_accepted), data);
-  show_modal_window(GTK_WIDGET(notifs->button), window);
-  g_free(text);
   ChatData *chatty = get_chat_data();
-  g_idle_add(focus_message_entry, chatty->message_entry);
+  GtkWindow *parent = chatty->window;
+  GtkAlertDialog *alert;
+  const char *message = "Invitation";
+  const char *detail = g_strdup_printf("Are you sure you want to join to the room [%s]?", notif->room_name);
+  const char *buttons[] = { "Cancel", "OK", NULL };
+  alert = gtk_alert_dialog_new(message);
+  gtk_alert_dialog_set_detail(alert, detail);
+  gtk_alert_dialog_set_buttons(alert, buttons);
+  gtk_alert_dialog_set_modal(alert, TRUE);
+  gtk_alert_dialog_choose(alert, parent, NULL, on_invite_accepted, data);
 }
 
 /**
@@ -128,6 +125,7 @@ display_notifications(GtkButton *button,
       Notify *notif = l->data;
       GtkWidget *row = gtk_button_new_with_label(notif->message);
       gtk_widget_add_css_class(row, "notif-item");
+      gtk_widget_add_css_class(row, "notif-label");
       if (notif->type == NORMAL_NOTIF)
         g_signal_connect(row, "clicked", G_CALLBACK(on_normal_notify_clicked), notifs);
       else if (notif->type == INVITE_NOTIF) {

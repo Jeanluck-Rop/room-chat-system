@@ -2,37 +2,72 @@
 <interface>
   <!-- CHANGE STATUS DIALOG -->
   <object class="GtkWindow" id="change_status_window">
-    <property name="title">Change your status</property>
-    <property name="default-width">300</property>
+    <property name="default-width">350</property>
     <property name="default-height">200</property>
     <property name="visible">False</property>
+    <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="stts_header">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Change your status</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">vertical</property>
-	<property name="spacing">10</property>
+	<property name="margin-top">20</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+	<property name="spacing">24</property>
 	<child>
 	  <object class="GtkLabel" id="change_status_label">
+	    <property name="valign">center</property>
 	    <property name="halign">center</property>
-	    <property name="label">Select your new status</property>
+	    <property name="label">Select your new status:</property>
+	    <style>
+	      <class name="dialog-text-label"/>
+	    </style>
 	  </object>
 	</child>
 	<child>
 	  <object class="GtkBox" id="change_status_buttons">
 	    <property name="orientation">horizontal</property>
+	    <property name="halign">center</property>
 	    <property name="spacing">10</property>
+	    <style>
+	      <class name="change-status-buttons"/>
+	    </style>
 	    <child>
 	      <object class="GtkButton" id="active_button">
 		<property name="label">Active</property>
+		<style>
+		  <class name="change-active-button"/>
+		</style>
 	      </object>
 	    </child>
 	    <child>
 	      <object class="GtkButton" id="away_button">
 		<property name="label">Away</property>
+		<style>
+		  <class name="change-away-button"/>
+		</style>
 	      </object>
 	    </child>
 	    <child>
 	      <object class="GtkButton" id="busy_button">
 		<property name="label">Busy</property>
+		<style>
+		  <class name="change-busy-button"/>
+		</style>
 	      </object>
 	    </child>
 	  </object>
@@ -40,40 +75,72 @@
       </object>
     </child>
   </object>
-
   <!-- NEW ROOM DIALOG -->
   <object class="GtkWindow" id="new_room_window">
-    <property name="title">New Room Name</property>
-    <property name="default-width">300</property>
-    <property name="default-height">200</property>
+    <property name="default-width">400</property>
+    <property name="default-height">250</property>
     <property name="visible">False</property>
+    <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="nroom_header">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">New Room Name</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">vertical</property>
-	<property name="spacing">10</property>
+	<property name="margin-top">20</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">18</property>
+        <property name="margin-end">18</property>
+	<property name="spacing">12</property>
 	<child>
 	  <object class="GtkLabel" id="new_room_label">
 	    <property name="halign">center</property>
-	    <property name="label">Write the name of your new room</property>
+	    <property name="label">Write the name of your new room:</property>
+	    <style>
+	      <class name="dialog-text-label"/>
+	    </style>
 	  </object>
 	</child>
 	<child>
 	  <object class="GtkEntry" id="new_room_name">
 	    <property name="placeholder-text">Type a room name</property>
+	    <style>
+	      <class name="entries-form"/>
+	    </style>
 	  </object>
 	</child>
 	<child>
 	  <object class="GtkBox" id="new_room_config_buttons">
 	    <property name="orientation">horizontal</property>
-	    <property name="spacing">10</property>
+	    <property name="halign">end</property>
+	    <property name="margin-top">20</property>
+            <property name="margin-bottom">12</property>
+	    <property name="spacing">12</property>
 	    <child>
 	      <object class="GtkButton" id="new_room_cancel_button">
 		<property name="label">Cancel</property>
+		<style>
+		  <class name="cancel-button"/>
+		</style>
 	      </object>
 	    </child>
 	    <child>
 	      <object class="GtkButton" id="new_room_accept_button">
 		<property name="label">Accept</property>
+		<style>
+		  <class name="accept-button"/>
+		</style>
 	      </object>
 	    </child>
 	  </object>
@@ -81,17 +148,34 @@
       </object>
     </child>
   </object>
-  
   <!-- INVITE USERS DIALOG -->
   <object class="GtkWindow" id="invite_users_window">
-    <property name="title">Invite Users</property>
-    <property name="default-width">350</property>
-    <property name="default-height">600</property>
+    <property name="default-width">400</property>
+    <property name="default-height">650</property>
     <property name="visible">False</property>
+     <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="inv_header">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Invite Users</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">vertical</property>
-	<property name="spacing">10</property>
+	<property name="margin-top">20</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">18</property>
+        <property name="margin-end">18</property>
+	<property name="spacing">12</property>
 	<child>
 	  <object class="GtkBox">
 	    <property name="orientation">vertical</property>
@@ -99,6 +183,9 @@
 	    <child>
 	      <object class="GtkLabel" id="select_room_label">
 		<property name="label">Select the room to invite the users:</property>
+		<style>
+		  <class name="dialog-text-label"/>
+		</style>
 	      </object>
 	    </child>
     	    <child>
@@ -144,14 +231,23 @@
 	  <object class="GtkBox" id="invite_users_config_buttons">
 	    <property name="orientation">horizontal</property>
 	    <property name="spacing">10</property>
+	    <property name="halign">end</property>
+	    <property name="margin-top">20</property>
+            <property name="margin-bottom">12</property>
 	    <child>
 	      <object class="GtkButton" id="invite_users_cancel_button">
 		<property name="label">Cancel</property>
+		<style>
+		  <class name="cancel-button"/>
+		</style>
 	      </object>
 	    </child>
 	    <child>
 	      <object class="GtkButton" id="invite_users_accept_button">
 		<property name="label">Accept</property>
+		<style>
+		  <class name="accept-button"/>
+		</style>
 	      </object>
 	    </child>
 	  </object>
@@ -214,20 +310,40 @@
       </object>
     </child>
   </object>
-
   <!-- LEAVE ROOM DIALOG -->
   <object class="GtkWindow" id="leave_room_window">
-    <property name="title">Leave Room</property>
-    <property name="default-width">300</property>
-    <property name="default-height">200</property>
+    <property name="default-width">450</property>
+    <property name="default-height">350</property>
     <property name="visible">False</property>
+    <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar" id="lroom_header">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Leave Room</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">vertical</property>
-	<property name="spacing">10</property>
+	<property name="margin-top">20</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">18</property>
+        <property name="margin-end">18</property>
+	<property name="spacing">12</property>
 	<child>
 	  <object class="GtkLabel" id="select_leave_room_label">
 	    <property name="label">Select the room you want to leave:</property>
+	    <style>
+	      <class name="dialog-text-label"/>
+	    </style>
 	  </object>
 	</child>
     	<child>
@@ -247,14 +363,23 @@
 	  <object class="GtkBox" id="leave_room_config_buttons">
 	    <property name="orientation">horizontal</property>
 	    <property name="spacing">10</property>
+	    <property name="halign">end</property>
+	    <property name="margin-top">20</property>
+            <property name="margin-bottom">12</property>
 	    <child>
 	      <object class="GtkButton" id="leave_room_cancel_button">
 		<property name="label">Cancel</property>
+		<style>
+		  <class name="cancel-button"/>
+		</style>
 	      </object>
 	    </child>
 	    <child>
 	      <object class="GtkButton" id="leave_room_accept_button">
 		<property name="label">Accept</property>
+		<style>
+		  <class name="accept-button"/>
+		</style>
 	      </object>
 	    </child>
 	  </object>
@@ -286,41 +411,4 @@
       </object>
     </child>
   </object>
-  
-  <!-- DISCONNECT DIALOG -->
-  <object class="GtkWindow" id="disconnect_window">
-    <property name="title">Disconnect</property>
-    <property name="default-width">300</property>
-    <property name="default-height">200</property>
-    <property name="visible">False</property>
-    <child>
-      <object class="GtkBox">
-	<property name="orientation">vertical</property>
-	<property name="spacing">10</property>
-	<child>
-	  <object class="GtkLabel" id="disconnect_label">
-	    <property name="halign">center</property>
-	    <property name="label">Are you sure you want to disconnect from server?</property>
-	  </object>
-	</child>
-	<child>
-	  <object class="GtkBox" id="disconnect_buttons">
-	    <property name="orientation">horizontal</property>
-	    <property name="spacing">10</property>
-	    <child>
-	      <object class="GtkButton" id="cancel_disconnect_button">
-		<property name="label">Cancel</property>
-	      </object>
-	    </child>
-	    <child>
-	      <object class="GtkButton" id="accept_disconnect_button">
-		<property name="label">Accept</property>
-	      </object>
-	    </child>
-	  </object>
-	</child>
-      </object>
-    </child>
-  </object>
-
 </interface>

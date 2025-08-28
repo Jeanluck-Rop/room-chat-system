@@ -1,10 +1,113 @@
+.actions-info-dialog {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    padding: 0;
+}
+
+.dialog-custom-header {
+    background: white;
+    color: #333;
+    font-size: 22px;
+    font-weight: bold;
+    border-bottom: none;
+}
+
+.dialog-custom-header button {
+    background: transparent;
+    border-radius: 50%;
+    color: #333;
+}
+
+.dialog-custom-header button:hover {
+    background:#ddd;
+}
+
+.dialog-text-label {
+    font-size: 18px;
+    color: #444444;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.change-active-button,
+.change-away-button,
+.change-busy-button {
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    border: none;
+    padding: 12px 24px;
+}
+
+.change-active-button {
+    background: #2CC745;
+}
+
+.change-active-button:hover {
+    background: #1CB035;
+}
+
+.change-away-button {
+    background: #FA4525;
+}
+
+.change-away-button:hover {
+    background: #E03E20;
+}
+
+.change-busy-button {
+    background: #C7BB36;
+}
+
+.change-busy-button:hover {
+    background: #ABA024;
+}
+
+.cancel-button,
+.accept-button {
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    padding: 10px 24px;
+    border: 1px solid #2A5298;
+    transition: all 0.25s ease-in-out; 
+}
+
+.cancel-button {
+    background: transparent;
+    color: #2A5298;
+}
+
+.accept-button {
+    background: #2A5298;
+    color: white;
+}
+
+.cancel-button:hover {
+    background: rgba(42, 82, 152, 0.1);
+    color: #1A3970;
+    border-color: #1A3970;
+}
+
+.accept-button:hover {
+    background: #1A3970;
+    border-color: #1A3970;
+}
+
+.accept-button:disabled {
+    color: #ddd;
+    opacity: 0.6;
+}
+
 .room-av-list-item {
-  padding: 8px;
-  background-color: #f0f4f8;
-  border-radius: 6px;
-  margin: 4px 0;
+    padding: 8px;
+    background-color: #f0f4f8;
+    border-radius: 6px;
+    margin: 4px 0;
 }
 
 .room-av-list-item:hover {
-  background-color: #dbe7f0;
+    background-color: #dbe7f0;
 }
