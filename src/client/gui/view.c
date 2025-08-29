@@ -459,24 +459,6 @@ add_new_notify(const char *msg, const char* roomname, NotifyType type)
   gtk_widget_add_css_class(chatty->notifs->button, "has-notifications");
 }
 
-
-
-///
-static void fake_chat_info(ChatData *chatty) {
-  Chat *room_chat = new_chat(chatty, ROOM_CHAT, "Room 1", "Welcome to [Room 1]");
-  Chat *room_cha = new_chat(chatty, ROOM_CHAT, "Room A", "Welcome to [Room A]");
-  add_new_notify("Jose se desconecto del chat", NULL, NORMAL_NOTIF);
-  add_new_notify("Jose abando no el cuarto {Pumitas}", NULL, NORMAL_NOTIF);
-  add_new_notify("Aileen se unió al chat", NULL, NORMAL_NOTIF);
-  add_new_notify("Sarah te invito al cuarto [Pumitas]", "Pumitas", INVITE_NOTIF);
-  add_new_notify("Pablo te invito al cuarto [Panas]", "Panas", INVITE_NOTIF);
-  message_received("Room 1", "Pope", "Hello to everyone on this chat! Lorem Ipsum destere mortum inicedi", ROOM_CHAT, NORMAL_MESSAGE);
-  message_received("PUBLIC_CHAT", "Pancrasio", "Lorem Ipsum es simplemente el texto de relleno de las imprentas y archivos de texto. Lorem Ipsum ha sido el texto de relleno estándar de las industrias desde el año 1500, cuando un impresor (N. del T. persona que se dedica a la imprenta) desconocido usó una galería de textos y los mezcló de tal manera que logró hacer un libro de textos especimen. ", PUBLIC_CHAT, NORMAL_MESSAGE);
-}
-///
-
-
-
 /**
  * Displays the main chat interface once the user successfully connects.
  **/
@@ -517,8 +499,6 @@ enter_chat()
   g_signal_connect(chatty->chats_list, "row-activated", G_CALLBACK(on_row_selected), chatty);
   //load the public chat page
   load_main_page(public_chat, chatty);
-  //testing
-  fake_chat_info(chatty);
   //show the window app
   gtk_window_present(chatty->window);
   g_signal_connect(chatty->window, "close-request", G_CALLBACK(on_chat_window_close), chatty);
@@ -577,8 +557,7 @@ validate_data(GtkButton *button,
     return;
   }
   data->username = g_strdup(user_name);
-  //controller_try_connection(port, ip, user_name); //
-  enter_chat();
+  controller_try_connection(port, ip, user_name); //
 }
 
 /**

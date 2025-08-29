@@ -101,13 +101,52 @@
     opacity: 0.6;
 }
 
+.user-av-list-item,
 .room-av-list-item {
-    padding: 8px;
-    background-color: #f0f4f8;
-    border-radius: 6px;
-    margin: 4px 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    background: white;
+    transition: background 200ms ease;
 }
 
+.user-av-list-item:hover,
 .room-av-list-item:hover {
-    background-color: #dbe7f0;
+    background: #F1F5FB;
+}
+
+.user-av-list-item:last-child,
+.room-av-list-item:last-child {
+    border-bottom: none;
+}
+
+.dialog-row-label {
+    font-size: 16px;
+}
+
+.select-add-button {
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    padding: 10px 20px;
+    transition: all 0.25s ease-in-out; 
+    background: #333;
+    color: white;
+    border: 1px solid #333;
+}
+
+.select-add-button:hover {
+    background: #222;
+    color: #ddd;
+    border-color: #222;
+}
+
+.select-add-button:disabled {
+    color: #ddd;
+    opacity: 0.2;
+}
+
+.is-clicked {
+    background: white;
+    color: #333;
+    border: 1px solid #333;
 }

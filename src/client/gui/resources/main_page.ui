@@ -25,7 +25,9 @@
 	  <object class="GtkBox" id="header_right">
             <property name="orientation">horizontal</property>
 	    <property name="halign">end</property>
-            <property name="spacing">6</property>
+	    <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="spacing">12</property>
 	    <style>
               <class name="header-right"/>
               <class name="chat-header"/>

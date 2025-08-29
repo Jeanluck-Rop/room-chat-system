@@ -1,17 +1,8 @@
 .public-header, .user-header, .room-header {
     background-color: transparent;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 18px;
     color: white;
-}
-
-.public-header:hover,
-.user-header:hover,
-.room-header:hover {
-}
-
-.public_users_count, .user_status_label, .room_users_count {
-
 }
 
 .dialog-overlay {
@@ -25,3 +16,46 @@
   padding: 20px;
 }
 
+.user-list-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    background: white;
+    transition: background 200ms ease;
+}
+
+.user-list-item:hover,
+.room-list-item:hover {
+    background: #F1F5FB;
+}
+
+.user-list-label {
+    font-size: 16px;
+    color: #333;
+}
+
+.user-list-item:last-child {
+    border-bottom: none;
+}
+.send-msg-button {
+    border-radius: 50%;
+    padding: 10px 10px;
+    transition: all 0.25s ease-in-out; 
+    background: #333;
+    color: white;
+    border: 1px solid #333;
+}
+
+.send-msg-button:hover {
+    background: #222;
+    border-color: #222;
+}
+
+.send-msg-button:disabled {
+    color: #ddd;
+    opacity: 0.2;
+}
+
+.dialog-info-label {
+    font-size: 18px;
+    color: #333;
+}

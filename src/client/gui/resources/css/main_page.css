@@ -4,12 +4,16 @@
 
 .chat-header {
     background: #1E3C72;
-    padding: 3px;
+    padding: 2px;
 }
 
 .header-left,
 .header-right {
     background: transparent;
+}
+
+.header-left:hover {
+    background: #345591;
 }
 
 .info-button,

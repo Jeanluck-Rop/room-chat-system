@@ -65,16 +65,21 @@ populate_user_list(GtkBuilder *builder,
     box = gtk_widget_get_first_child(template_row);
     GtkWidget *username_label;
     username_label = gtk_widget_get_first_child(box);
+    const char *status;
+    if (g_strcmp0(statuses[i], "AWAY") == 0)
+      status = "Away";
+    else if (g_strcmp0(statuses[i], "BUSY") == 0)
+      status = "Busy";
+    else
+      status = "Active";
     GtkWidget *status_label;
     status_label = gtk_widget_get_next_sibling(username_label);
     GtkWidget *send_button;
     send_button = gtk_widget_get_next_sibling(status_label);
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
-    gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
-
+    gtk_label_set_text(GTK_LABEL(status_label), status);
     if (g_strcmp0(user, usernames[i]) == 0)
       gtk_widget_set_sensitive(send_button, FALSE);
-    
     g_signal_connect(send_button, "clicked", send_callback, g_strdup(usernames[i]));
     gtk_list_box_append(list_box, template_row);
     g_object_unref(row_builder);
@@ -154,7 +159,6 @@ set_header(Chat *chat,
       status = "Active";
       break;
     }
-    
     gtk_label_set_text(GTK_LABEL(chat->status_label), status);
     break;
   case ROOM_CHAT:

@@ -10,6 +10,7 @@
     <child>
       <object class="GtkBox" id="public_header_labels">
 	<property name="orientation">vertical</property>
+	<property name="spacing">12</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
 	<child>
@@ -27,7 +28,6 @@
       </object>
     </child>
   </object>
-
   <!-- USER HEADER -->
   <object class="GtkListBoxRow" id="user_header">
     <property name="name">user_header</property>
@@ -38,6 +38,7 @@
     <child>
       <object class="GtkBox" id="user_header_labels">
 	<property name="orientation">vertical</property>
+	<property name="spacing">6</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
 	<child>
@@ -65,6 +66,7 @@
     <child>
       <object class="GtkBox" id="room_header_labels">
 	<property name="orientation">vertical</property>
+	<property name="spacing">6</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
 	<child>
@@ -84,20 +86,40 @@
   </object>
   <!-- PUBLIC INFO WINDOW -->
   <object class="GtkWindow" id="public_info_window">
-    <property name="title">Public Chat Info</property>
-    <property name="default-width">300</property>
-    <property name="default-height">200</property>
+    <property name="default-width">400</property>
+    <property name="default-height">600</property>
     <property name="visible">False</property>
+    <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Public Chat Info</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">vertical</property>
+	<property name="margin-top">20</property>
+	<property name="margin-bottom">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
 	<property name="spacing">10</property>
 	<child>
 	  <object class="GtkBox" id="public_info_labels">
-	    <property name="orientation">horizontal</property>
+	    <property name="orientation">vertical</property>
 	    <property name="spacing">6</property>
 	    <property name="hexpand">True</property>
-	    <property name="vexpand">True</property>
+	    <style>
+	      <class name="dialog-info-label"/>
+	    </style>
 	    <child>
 	      <object class="GtkLabel" id="public_info_title">
 		<property name="halign">start</property>
@@ -128,19 +150,35 @@
       </object>
     </child>
   </object>
-
   <!-- USER INFO WINDOW -->
   <object class="GtkWindow" id="user_info_window">
-    <property name="title">Información del Usuario</property>
     <property name="default-width">300</property>
     <property name="default-height">200</property>
     <property name="visible">False</property>
+    <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">User Info</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox" id="user_info_labels">
 	<property name="orientation">horizontal</property>
-	<property name="spacing">6</property>
+	<property name="spacing">12</property>
 	<property name="hexpand">True</property>
 	<property name="vexpand">True</property>
+	<style>
+	  <class name="dialog-info-label"/>
+	</style>
 	<child>
 	  <object class="GtkLabel" id="user_name_info_label">
 	    <property name="halign">start</property>
@@ -156,13 +194,26 @@
       </object>
     </child>
   </object>
-
   <!-- ROOM INFO WINDOW -->
   <object class="GtkWindow" id="room_info_window">
-    <property name="title">Información del Chat de Sala</property>
-    <property name="default-width">300</property>
-    <property name="default-height">200</property>
+    <property name="default-width">400</property>
+    <property name="default-height">600</property>
     <property name="visible">False</property>
+    <style>
+      <class name="actions-info-dialog"/>
+    </style>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="title-widget">
+          <object class="GtkLabel">
+	    <property name="label">Room Chat Info</property>
+	  </object>
+        </property>
+        <style>
+          <class name="dialog-custom-header"/>
+        </style>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
 	<property name="orientation">vertical</property>
@@ -171,8 +222,10 @@
 	  <object class="GtkBox" id="room_info_labels">
 	    <property name="orientation">horizontal</property>
 	    <property name="hexpand">True</property>
-	    <property name="vexpand">True</property>
-	    <property name="spacing">6</property>
+	    <property name="spacing">12</property>
+	    <style>
+	      <class name="dialog-info-label"/>
+	    </style>
 	    <child>
 	      <object class="GtkLabel" id="room_name_info_label">
 		<property name="label">Room Name</property>
@@ -216,6 +269,9 @@
             <property name="label">username</property>
             <property name="hexpand">True</property>
             <property name="halign">start</property>
+	    <style>
+	      <class name="user-list-label"/>
+	    </style>
           </object>
 	</child>
 	<child>
@@ -223,11 +279,25 @@
             <property name="label">Active</property>
             <property name="hexpand">True</property>
             <property name="halign">start</property>
+	    <style>
+	      <class name="user-list-label"/>
+	    </style>
           </object>
 	</child>
 	<child>
           <object class="GtkButton" id="send_button">
-            <property name="label">Send Message</property>
+            <style>
+	      <class name="send-msg-button"/>
+	    </style>
+	    <child>
+	      <object class="GtkImage">
+		<property name="resource">/org/chat/client/resources/svg/send-alt-symbolic.svg</property>
+		<property name="pixel-size">18</property>
+		<style>
+		  <class name="in-icon"/>
+		</style>
+	      </object>
+	    </child>
           </object>
 	</child>
       </object>

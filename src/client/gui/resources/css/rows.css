@@ -10,13 +10,13 @@
 .public-row:hover,
 .user-row:hover,
 .room-row:hover {
-    background: #f1f5fb;
+    background: #F1F5FB;
 }
 
 .public-row:selected,
 .user-row:selected,
 .room-row:selected {
-    background: #dbe7f0;
+    background: #DBE7F0;
 }
 
 .public-title-label {
@@ -32,11 +32,12 @@
 }
 
 .public-title-label, .room-title-label, .user-title-label{
-    font-size: 14px;
+    font-size: 18px;
+    font-weight: 500;
 }
 
 .chat-preview-label {
-    font-size: 13px;
+    font-size: 16px;
     color: #666;
 }
 

@@ -206,10 +206,9 @@
 	<child>
 	  <object class="GtkBox">
 	    <property name="orientation">vertical</property>
-	    <property name="spacing">10</property>
 	    <child>
 	      <object class="GtkLabel" id="select_users_label">
-		<property name="label">Users</property>
+		<property name="label">Select the users to invite:</property>
 	      </object>
 	    </child>
 	    <child>
@@ -267,13 +266,20 @@
 	<child>
           <object class="GtkLabel" id="roomname_label">
             <property name="label">roomname</property>
-            <property name="hexpand">True</property>
             <property name="halign">start</property>
+	    <style>
+	      <class name="dialog-row-label"/>
+	    </style>
           </object>
 	</child>
 	<child>
           <object class="GtkButton" id="select_room_button">
+	    <property name="hexpand">True</property>
+            <property name="halign">end</property>
             <property name="label">Select</property>
+	    <style>
+	      <class name="select-add-button"/>
+	    </style>
           </object>
 	</child>
       </object>
@@ -291,20 +297,29 @@
 	<child>
           <object class="GtkLabel" id="username_label">
             <property name="label">username</property>
-            <property name="hexpand">True</property>
             <property name="halign">start</property>
+	    <style>
+	      <class name="dialog-row-label"/>
+	    </style>
           </object>
 	</child>
 	<child>
           <object class="GtkLabel" id="status_label">
             <property name="label">Active</property>
-            <property name="hexpand">True</property>
             <property name="halign">start</property>
+	    <style>
+	      <class name="dialog-row-label"/>
+	    </style>
           </object>
 	</child>
 	<child>
           <object class="GtkButton" id="add_user_button">
+	    <property name="hexpand">True</property>
+            <property name="halign">end</property>
             <property name="label">Add</property>
+	    <style>
+	      <class name="select-add-button"/>
+	    </style>
           </object>
 	</child>
       </object>

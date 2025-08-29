@@ -182,9 +182,11 @@ room_selected(GtkButton *button,
 {
   if (actions->selected_room_btn != NULL) {
     gtk_button_set_label(actions->selected_room_btn, "Select");
+    gtk_widget_remove_css_class(GTK_WIDGET(actions->selected_room_btn), "is-clicked");
     gtk_widget_set_sensitive(GTK_WIDGET(actions->selected_room_btn), TRUE);
   }
   gtk_button_set_label(button, "Selected");
+  gtk_widget_add_css_class(GTK_WIDGET(button), "is-clicked");
   gtk_widget_set_sensitive(GTK_WIDGET(button), FALSE);
   actions->selected_room_btn = button;
   GtkWidget *row;
@@ -270,12 +272,19 @@ display_users_list(GtkListBox *list_box,
     box = gtk_widget_get_first_child(template_row);
     GtkWidget *username_label;
     username_label = gtk_widget_get_first_child(box);
+    const char *status;
+    if (g_strcmp0(statuses[i], "AWAY") == 0)
+      status = "Away";
+    else if (g_strcmp0(statuses[i], "BUSY") == 0)
+      status = "Busy";
+    else
+      status = "Active";
     GtkWidget *status_label;
     status_label = gtk_widget_get_next_sibling(username_label);
     GtkWidget *add_btn;
     add_btn = gtk_widget_get_next_sibling(status_label);
     gtk_label_set_text(GTK_LABEL(username_label), usernames[i]);
-    gtk_label_set_text(GTK_LABEL(status_label), statuses[i]);
+    gtk_label_set_text(GTK_LABEL(status_label), status);
     if (g_strcmp0(user, usernames[i]) == 0)
       gtk_widget_set_sensitive(add_btn, FALSE);
     g_object_set_data_full(G_OBJECT(add_btn), "username", g_strdup(usernames[i]), g_free);
@@ -338,6 +347,7 @@ guests_selected(GtkButton *button,
     g_free(actions->selected_users);
     actions->selected_users = new_list;
     gtk_label_set_text(GTK_LABEL(label), "Add"); //return to initial label
+    gtk_widget_remove_css_class(GTK_WIDGET(button), "is-clicked");
   } else {
     //if !found add to selected users
     char **new_list = g_new(char *, count + 2);
@@ -347,8 +357,8 @@ guests_selected(GtkButton *button,
     new_list[count + 1] = NULL;
     g_free(actions->selected_users);//free old array
     actions->selected_users = new_list;
-    
     gtk_label_set_text(GTK_LABEL(label), "Quit");
+    gtk_widget_add_css_class(GTK_WIDGET(button), "is-clicked");
   }
   GtkWidget *accept = GTK_WIDGET(gtk_builder_get_object(actions->builder, "invite_users_accept_button"));
   gboolean room_selected = actions->selected_roomname != NULL;

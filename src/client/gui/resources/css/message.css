@@ -1,6 +1,6 @@
 .message-form {
     border-radius: 10px;
-    background-color: #333;
+    background-color: #5F85C7;
     padding: 6px 10px;
     margin: 4px 0;
 }
@@ -40,8 +40,8 @@
 
 .info-message {
     border-radius: 4px;
-    background-color: #FFA726;
-    border: 1px solid #E68A00;
+    background-color: #DEA21B;
+    border: 1px solid #C28E15;
     padding: 6px 12px;
     margin: 6px 0;
 }

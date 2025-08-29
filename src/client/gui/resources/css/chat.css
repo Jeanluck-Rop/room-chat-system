@@ -4,7 +4,8 @@
 }
 
 .sidebar-header {
-    padding: 6px;
+    padding: 12px;
+    font-size: 18px;
     font-weight: bold;
     border-bottom: 1px solid #2A5298;
 }
