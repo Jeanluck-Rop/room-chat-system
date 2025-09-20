@@ -10,7 +10,6 @@ include_directories(include)
 
 # Code files
 set(SOURCES
-  src/main.c
   src/message.c
   src/server.c
   src/room.c

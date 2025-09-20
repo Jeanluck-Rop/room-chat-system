@@ -51,7 +51,6 @@ set(C_SOURCES
 
 # Source code files in C++
 set(CPP_SOURCES
-  src/main.cpp
   src/client.cpp
   src/message.cpp
   src/controller.cpp

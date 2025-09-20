@@ -19,8 +19,7 @@ A chat system app, designed for real-time communication between users.
 
 - **Server**: Developed in **C**.  
 - **Client**: Developed in **C++**.  
-- **Graphical User Interface**: Built using **GTK**.
-- **Portability**: Enhanced with **Flatpak** for cross-platform compatibility. (Not yet)
+- **Graphical User Interface**: Built using **GTK-4**.
 
 
 ## **How to Run the Project**
@@ -33,16 +32,44 @@ A chat system app, designed for real-time communication between users.
    cd room-chat-system
    ```
 
-2. Create a compilation directory and enter it to compile and run the program:  
+2. Check Gtk-4 version, you must have 4.10.X or greater:
+	```
+	pkg-config --modversion gtk4
+	```
+	
+	If you don't have gtk 4.10 you can do:
+	```
+	git clone https://gitlab.gnome.org/GNOME/gtk.git
+	```
+	```
+	cd gtk
+	```
+	```
+	meson setup builddir --prefix=/usr/local
+	```
+	```
+	meson compile -C builddir
+	```
+	```
+	sudo meson install -C builddir
+	```
+
+    And check again the Gtk-4 version:
+	```
+	pkg-config --modversion gtk4
+	```
+	   
+3. Create a compilation directory and enter it to compile and run the program:  
    ```
    mkdir build && cd build
    ```
    
-3. Compile the program:  
+4. Compile the program:  
    ```
-   $ cmake ..
-   ...
-   $ make 
+   cmake ..
+   ```
+   ```
+   $ make -j
    [  6%] Building CXX object src/client/CMakeFiles/client_library.dir/src/main.cpp.o
    ...
    [ 46%] Built target client
@@ -51,7 +78,7 @@ A chat system app, designed for real-time communication between users.
    [100%] Built target server
    ```
 
-4. To run the server:
+5. To run the server:
    ```
    ./src/server/server <port>
    ```
@@ -61,7 +88,7 @@ A chat system app, designed for real-time communication between users.
    ./src/server/server 8080
    ```
    
-5. To run the client, open another terminal, tab or window:
+6. To run the client, open another terminal, tab or window:
    ```
    ./src/client/client <IPv4> <port>
    ```
